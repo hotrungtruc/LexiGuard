@@ -1,0 +1,32 @@
+{
+  "dataset_name": "golden_qa_contracts_v1",
+  "total_cases": 25,
+  "description": "Ground truth legal audit dataset for RAGAS evaluation (faithfulness, answer_relevancy, context_precision, context_recall)",
+  "test_cases": [
+    {
+      "id": "CASE-001",
+      "contract_file": "contract_01_commercial_sale_penalty_trap.docx",
+      "clause_id": "Clause 8.3",
+      "clause_text": "Trong trường hợp Bên B vi phạm thời hạn giao hàng quá 05 ngày, Bên B phải chịu mức phạt vi phạm hợp đồng bằng 15% tổng giá trị hợp đồng.",
+      "question": "Điều khoản phạt 15% tổng giá trị hợp đồng có hợp pháp theo pháp luật Việt Nam không?",
+      "ground_truth_answer": "Điều khoản phạt vi phạm 15% là trái luật và bị vô hiệu một phần. Căn cứ Điều 301 Luật Thương mại 2005, mức phạt vi phạm nghĩa vụ hợp đồng không được vượt quá 8% giá trị phần nghĩa vụ hợp đồng bị vi phạm.",
+      "ground_truth_contexts": [
+        "Điều 301 Luật Thương mại 2005: Mức phạt đối với vi phạm nghĩa vụ hợp đồng hoặc tổng mức phạt đối với nhiều vi phạm do các bên thoả thuận trong hợp đồng, nhưng không quá 8% giá trị phần nghĩa vụ hợp đồng bị vi phạm, trừ trường hợp quy định tại Điều 266 của Luật này."
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "CASE-002",
+      "contract_file": "contract_02_labor_probation_wage_trap.docx",
+      "clause_id": "Clause 4.1",
+      "clause_text": "Thời gian thử việc là 90 ngày đối với vị trí Chuyên viên phân tích kinh doanh. Lương thử việc bằng 70% mức lương chính thức.",
+      "question": "Quy định về thời gian thử việc 90 ngày và mức lương thử việc 70% có vi phạm Bộ luật Lao động 2019 không?",
+      "ground_truth_answer": "Điều khoản này vi phạm cả về thời gian thử việc lẫn mức lương. Theo Điều 25 Bộ luật Lao động 2019, thời gian thử việc đối với công việc có chức danh nghề nghiệp cần trình độ từ cao đẳng trở lên không quá 60 ngày. Theo Điều 26, tiền lương của người lao động trong thời gian thử việc do hai bên thỏa thuận nhưng ít nhất phải bằng 85% mức lương của công việc đó.",
+      "ground_truth_contexts": [
+        "Điều 25 Bộ luật Lao động 2019: Thời gian thử việc do hai bên thỏa thuận căn cứ vào tính chất và mức độ phức tạp của công việc nhưng chỉ được thử việc một lần đối với một công việc và bảo đảm điều kiện... Không quá 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên.",
+        "Điều 26 Bộ luật Lao động 2019: Tiền lương của người lao động trong thời gian thử việc do hai bên thỏa thuận nhưng ít nhất phải bằng 85% mức lương của công việc đó."
+      ],
+      "risk_level": "HIGH"
+    }
+  ]
+}
