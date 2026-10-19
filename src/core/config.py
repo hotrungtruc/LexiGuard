@@ -10,9 +10,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
 
-    # LLM Settings (Google Gemini)
+    # LLM Settings (Google Gemini & Ollama Dual-LLM)
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    FAST_LLM_MODEL: str = "qwen2.5:3b-instruct-q4_K_M"
+    REASONING_LLM_MODEL: str = "qwen2.5:7b-instruct-q4_K_M"
+    OLLAMA_NUM_THREADS: int = 8
 
     # Qdrant Vector DB
     QDRANT_URL: str = "http://localhost:6333"

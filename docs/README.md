@@ -12,6 +12,7 @@ Standardized technical documentation, architecture blueprints, data schemas, and
 | [01. Multimodal Document AI & OCR Pipeline](file:///c:/PROJECTS/LexiGuard/docs/01_ocr_and_vision_pipeline.md) | Ingestion, Layout Parsing, Spatial Provenance | IBM Docling (DocLayNet, TableFormer), EasyOCR (`vi` + `en`), pypdfium2 batch slicing | **Production Ready** |
 | [02. Hierarchical Statutory Parsing, Schemas & Knowledge Graph](file:///c:/PROJECTS/LexiGuard/docs/02_data_schema_and_hierarchical_graph_ingestion.md) | Legislative AST, Zero-Loss Clause Chunker, Neo4j Batch Ingestion | Pydantic v2, Deterministic Regex-First Graph Extraction, Cypher UNWIND | **Production Ready** |
 | [03. Hybrid GraphRAG Architecture: Qdrant, Neo4j & Cross-Encoder](file:///c:/PROJECTS/LexiGuard/docs/03_hybrid_graphrag_qdrant_neo4j.md) | 3-Stage Hybrid Retrieval, Reciprocal Rank Fusion, Entity Fast-Path | Qdrant (BGE-M3 + BM25 FastEmbed ONNX), Neo4j Multi-Hop UNWIND, BGE-Reranker-v2-m3 | **Production Ready** |
+| [04. Multi-Agent Workflow & Self-Correcting State Machine](file:///c:/PROJECTS/LexiGuard/docs/04_fastmcp_multiagent_langgraph.md) | Autonomous Auditing, FastMCP Tools, Hallucination Self-Reflection | LangGraph StateGraph, FastMCP Server, Qdrant Hybrid HNSW, Table Arithmetic Engine | **Production Ready** |
 
 ---
 
@@ -37,6 +38,11 @@ Live Neo4j knowledge graph topology showing containment and cross-referencing st
 Retrieval operations utilize a coordinated three-stage pipeline combining exact citation regex parsing (Entity Fast-Path), vector Reciprocal Rank Fusion, batched Cypher UNWIND graph traversals, and cross-encoder reranking:
 
 ![3-Stage Hybrid Legal GraphRAG Retrieval Architecture](assets/hybrid_graphrag_retrieval.png)
+
+### 2.4 Multi-Agent Workflow & Self-Correcting State Machine
+Contractual auditing operates via a cyclic 4-agent LangGraph state machine combining autonomous FastMCP tool execution, arithmetic verification, and citation hallucination grading:
+
+![LexiGuard Multi-Agent Workflow and Self-Correction State Machine](assets/multiagent_langgraph_workflow.png)
 
 ---
 
