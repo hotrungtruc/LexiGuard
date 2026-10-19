@@ -15,6 +15,7 @@
 [**The 3 Audit Pillars**](#-the-three-pillars-of-contract-vulnerability) •
 [**Enterprise Value**](#-enterprise-business-value--roi) •
 [**System Architecture**](#️-system-architecture) •
+[**Technical Docs**](docs/README.md) •
 [**Quick Start**](#-getting-started) •
 [**Roadmap**](#-roadmap)
 
@@ -280,6 +281,11 @@ LexiGuard/
 ├── .env.example                   # Environment configuration template
 ├── README.md                      # Architecture, benchmarks, and project documentation
 │
+├── docs/                          # Detailed subsystem technical specifications & architecture docs
+│   ├── README.md                  # Documentation index across all 5 development phases
+│   ├── 01_ocr_and_vision_pipeline.md # Two-Branch OCR (Docling + Two-Stage CPU VietOCR + Decree 30 R-XYCut)
+│   └── 01_data_schema_and_hierarchical_graph_ingestion.md # Pydantic v2 Schema, Chunker & Neo4j Triples
+│
 ├── data/
 │   ├── raw_laws/                  # Statutory legal corpus (Labor Code 2019, Civil Code 2015)
 │   ├── sample_contracts/          # Benchmark contracts with deliberate legal traps
@@ -293,15 +299,17 @@ LexiGuard/
 ├── src/
 │   ├── core/
 │   │   ├── config.py              # Pydantic BaseSettings environment management
+│   │   ├── schemas.py             # Pydantic v2 Core Legal AST, Chunks & Graph Schemas
 │   │   └── logging.py             # Structured JSON logging & Langfuse tracing integration
 │   │
 │   ├── ingestion/
 │   │   ├── image_preprocessor.py  # Multi-page collage splitting & Lanczos4 + CLAHE enhancement
 │   │   ├── docling_parser.py      # IBM Docling layout & TableFormer table extraction
-│   │   ├── ocr_engine.py          # Hybrid OCR coordinator (Docling + VLM + PDF Reconstructor)
+│   │   ├── decree30_xycut.py      # Decree 30/2020 Spatial Zones Map & Recursive XY-Cut Engine
+│   │   ├── two_stage_ocr.py       # CPU Two-Stage OCR (PaddleOCR DBNet++ + VietOCR Transformer)
+│   │   ├── ocr_engine.py          # Quality Assessment Gate & Two-Branch OCR Orchestrator
 │   │   ├── legal_chunker.py       # Chapter -> Article -> Clause syntax segmentation
-│   │   ├── graph_extractor.py     # Cross-statutory relation extractor (Neo4j triples)
-│   │   └── README.md              # Dedicated OCR architecture, benchmarks & test report
+│   │   └── graph_extractor.py     # Cross-statutory relation extractor (Neo4j triples)
 │   │
 │   ├── retrieval/
 │   │   ├── qdrant_store.py        # Qdrant Hybrid Search (bge-m3 Dense + BM25 Sparse)

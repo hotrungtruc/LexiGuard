@@ -33,3 +33,4 @@ checkpoints/
 # Temporary files
 *.tmp
 _temp_*
+scratch/
