@@ -364,13 +364,13 @@ def main():
     output_dir = Path("data/extracted_laws")
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Initialize Parser with selected device and engine
+    # Initialize Parser with selected device and engine (auto hardware tuned)
     docling_parser = DoclingParser(
         do_ocr=True,
         do_table_structure=False,
         ocr_engine=args.engine,
         device=args.device,
-        num_threads=8
+        num_threads=None,
     )
     chunker = LegalChunker()
     extractor = LegalGraphExtractor()

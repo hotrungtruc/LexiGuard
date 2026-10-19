@@ -3,12 +3,19 @@ Core System Configuration using Pydantic BaseSettings
 """
 
 from typing import Optional
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from src.core.hardware import hardware_profile, HardwareProfile
 
 class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
+
+    # Hardware & Compute Optimization (Centralized Profile)
+    OLLAMA_NUM_THREADS: int = Field(default_factory=lambda: hardware_profile.optimal_ollama_threads)
+    OCR_NUM_THREADS: int = Field(default_factory=lambda: hardware_profile.optimal_ocr_threads)
+    DEVICE: str = Field(default_factory=lambda: hardware_profile.optimal_device)
 
     # LLM Settings (Google Gemini & Ollama Dual-LLM)
     GEMINI_API_KEY: str = ""
@@ -16,7 +23,6 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     FAST_LLM_MODEL: str = "qwen2.5:3b-instruct-q4_K_M"
     REASONING_LLM_MODEL: str = "qwen2.5:7b-instruct-q4_K_M"
-    OLLAMA_NUM_THREADS: int = 8
 
     # Qdrant Vector DB
     QDRANT_URL: str = "http://localhost:6333"
@@ -57,6 +63,11 @@ class Settings(BaseSettings):
     # API Server
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
+
+    @property
+    def hardware(self) -> HardwareProfile:
+        """Centralized hardware capabilities and compute profile."""
+        return hardware_profile
 
     model_config = SettingsConfigDict(
         env_file=".env",

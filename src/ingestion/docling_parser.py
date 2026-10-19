@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 from pydantic import BaseModel, Field
 from loguru import logger
+from src.core.hardware import hardware_profile
 
 # Try importing Docling components
 DOCLING_AVAILABLE = False
@@ -114,13 +115,18 @@ class DoclingParser:
         self.do_ocr = do_ocr
         self.do_table_structure = do_table_structure
         self.ocr_engine = ocr_engine.lower() if ocr_engine else "easyocr"
-        self.device = device.lower() if device else "auto"
+        # Centralized Hardware Profiling: dynamic GPU/CPU & optimal OCR threads
+        if not device or device.lower() == "auto":
+            self.device = hardware_profile.optimal_device
+        else:
+            self.device = device.lower()
 
-        # Auto-detect optimal thread count: leave headroom for OS/services, bounded to [1, 8]
         if num_threads is None or num_threads <= 0:
-            cpu_cores = os.cpu_count() or 4
-            self.num_threads = max(1, min(cpu_cores, 8))
-            logger.info(f"Auto-detected optimal CPU threads for Docling: {self.num_threads} (from {cpu_cores} cores)")
+            self.num_threads = hardware_profile.optimal_ocr_threads
+            logger.info(
+                f"Docling using centralized hardware profile: {self.num_threads} worker threads "
+                f"({hardware_profile.cpu_physical_cores} physical cores), device: {self.device}"
+            )
         else:
             self.num_threads = num_threads
 
