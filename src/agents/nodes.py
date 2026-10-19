@@ -26,6 +26,9 @@ from src.agents.state import (
     VulnerabilityItem,
     ContractProvenance,
     LegalGrounding,
+    VulnerabilityCategory,
+    DisputeForum,
+    DisputePrecedentInsight,
 )
 from src.mcp_server.legal_tools import (
     search_legal_provisions,
@@ -33,6 +36,93 @@ from src.mcp_server.legal_tools import (
     get_article_graph_context,
 )
 from src.retrieval.entity_extractor import LegalEntityExtractor
+
+
+def classify_vulnerability_and_precedent(text: str, citation: str) -> tuple[str, Optional[DisputePrecedentInsight]]:
+    """Maps contract wording and legal citation to realistic TAND/VIAC dispute jurisprudence."""
+    text_l = text.lower()
+    cit_l = citation.lower()
+
+    if "phạt" in text_l and ("8%" in text_l or "vi phạm" in text_l or "301" in cit_l):
+        return (
+            VulnerabilityCategory.PENALTY_EXCEEDING_STATUTORY_CAP.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.VIAC,
+                precedent_reference="Điều 301 Luật Thương mại 2005 & Thực tiễn Trọng tài VIAC",
+                judicial_tendency="Hội đồng Trọng tài VIAC và Tòa án kiên quyết giảm mức phạt vi phạm về đúng trần tối đa 8% giá trị nghĩa vụ bị vi phạm.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+    if "ước tính" in text_l or ("bồi thường" in text_l and "không cần chứng minh" in text_l):
+        return (
+            VulnerabilityCategory.UNENFORCEABLE_LIQUIDATED_DAMAGES.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.VIAC,
+                precedent_reference="Điều 302, 304 Luật Thương mại 2005",
+                judicial_tendency="VIAC bác bỏ yêu cầu bồi thường thiệt hại ước tính nếu bên yêu cầu không xuất trình được chứng từ chứng minh tổn thất thực tế trực tiếp.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+    if "trọng tài" in text_l and ("tòa án" in text_l or "hoặc" in text_l):
+        return (
+            VulnerabilityCategory.PATHOLOGICAL_ARBITRATION_CLAUSE.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.TAND,
+                precedent_reference="Nghị quyết 01/2014/NQ-HĐTP của Hội đồng Thẩm phán TANDTC",
+                judicial_tendency="Thỏa thuận trọng tài không rõ ràng hoặc vừa chọn Tòa án vừa chọn Trọng tài sẽ bị Tòa án thụ lý giải quyết nếu bị đơn không phản đối kịp thời.",
+                adjudication_risk_probability="CRITICAL",
+            )
+        )
+    if "lãi" in text_l and ("quá hạn" in text_l or "chậm trả" in text_l or "468" in cit_l or "306" in cit_l):
+        return (
+            VulnerabilityCategory.USURIOUS_OR_COMPOUND_LATE_INTEREST.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.TAND,
+                precedent_reference="Án lệ số 09/2016/AL & Nghị quyết 01/2019/NQ-HĐTP",
+                judicial_tendency="Tòa án điều chỉnh lãi suất chậm trả theo lãi suất nợ quá hạn trung bình của ít nhất 3 ngân hàng thương mại, bác bỏ thỏa thuận lãi kép.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+    if "không cạnh tranh" in text_l or "đối thủ" in text_l or "nghỉ việc" in text_l:
+        return (
+            VulnerabilityCategory.NON_COMPETE_RESTRICTION_CONFLICT.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.TAND,
+                precedent_reference="Điều 5, 10 Bộ luật Lao động 2019 & Điều 35 Hiến pháp 2013",
+                judicial_tendency="TAND có tiền lệ tuyên thỏa thuận cấm làm việc cho đối thủ cạnh tranh là vô hiệu do xâm phạm quyền tự do việc làm.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+    if "đơn phương" in text_l or "chấm dứt ngay" in text_l:
+        return (
+            VulnerabilityCategory.ABUSIVE_UNILATERAL_TERMINATION.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.TAND,
+                precedent_reference="Điều 428 Bộ luật Dân sự 2015",
+                judicial_tendency="Đơn phương chấm dứt hợp đồng không có căn cứ vi phạm nghiêm trọng hoặc không thông báo trước bị coi là hành vi đơn phương trái luật.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+    if "bất khả kháng" in text_l and ("giá" in text_l or "tỷ giá" in text_l or "thiếu vốn" in text_l):
+        return (
+            VulnerabilityCategory.INVALID_FORCE_MAJEURE_EXPANSION.value,
+            DisputePrecedentInsight(
+                target_forum=DisputeForum.VIAC,
+                precedent_reference="Điều 156 Bộ luật Dân sự 2015",
+                judicial_tendency="VIAC không công nhận biến động giá cả thị trường hoặc khó khăn tài chính là sự kiện bất khả kháng.",
+                adjudication_risk_probability="HIGH",
+            )
+        )
+
+    return (
+        VulnerabilityCategory.STATUTORY_CONFLICT.value,
+        DisputePrecedentInsight(
+            target_forum=DisputeForum.GENERAL,
+            precedent_reference=None,
+            judicial_tendency="Rủi ro tranh chấp khi bên có quyền yêu cầu cơ quan tài phán tuyên vô hiệu điều khoản bất bình đẳng.",
+            adjudication_risk_probability="MEDIUM",
+        )
+    )
 
 
 # ============================================================================
@@ -387,6 +477,10 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
             is_supported = True
 
         if is_supported:
+            v_class, disp_insight = classify_vulnerability_and_precedent(
+                f.audit_verdict + " " + f.clause_reference,
+                f.statutory_citation
+            )
             verified_items.append(
                 VulnerabilityItem(
                     finding_id=f.finding_id,
@@ -403,7 +497,8 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
                         neo4j_node_id=f.statutory_article_id,
                     ),
                     risk_tier=f.risk_tier,
-                    vulnerability_classification="Statutory Conflict",
+                    vulnerability_classification=v_class,
+                    dispute_insight=disp_insight,
                     audit_verdict=f.audit_verdict,
                     proposed_redline=f.proposed_redline,
                     negotiation_rationale=f.negotiation_rationale,
@@ -430,13 +525,17 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
 
     final_report = None
     if is_grounded or state.get("retry_count", 0) >= 1:
-        # Build finalized ContractAuditReport
+        # Build finalized ContractAuditReport with TAND/VIAC dispute summary
         health_score = max(0, 100 - (len(verified_items) * 12))
         final_report = ContractAuditReport(
             contract_name=state.get("raw_document_path", "Contract"),
             overall_health_score=health_score,
             total_clauses_reviewed=len(state.get("parsed_clauses", [])),
             findings=verified_items,
+            tand_viac_summary=(
+                f"Đã phát hiện {len(verified_items)} điểm rủi ro pháp lý theo tiền lệ án TAND và VIAC. "
+                f"Cần áp dụng Redline để phòng ngừa nguy cơ bị cơ quan tài phán tuyên vô hiệu."
+            ) if verified_items else "Hợp đồng an toàn, không phát hiện rủi ro tranh chấp nghiêm trọng.",
         )
 
     logger.info(f"HallucinationGrader: is_grounded={is_grounded}, score={accuracy_score}, unverified={unverified}")
