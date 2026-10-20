@@ -36,6 +36,11 @@ from src.mcp_server.legal_tools import (
     get_article_graph_context,
 )
 from src.retrieval.entity_extractor import LegalEntityExtractor
+from src.agents.prompts import (
+    build_clause_extractor_prompt,
+    build_loophole_auditor_prompt,
+    build_hallucination_grader_prompt,
+)
 
 
 def classify_vulnerability_and_precedent(text: str, citation: str) -> tuple[str, Optional[DisputePrecedentInsight]]:
@@ -185,11 +190,7 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
     try:
         fast_llm = get_fast_cpu_llm()
         structured_extractor = fast_llm.with_structured_output(ClauseExtractionList)
-        prompt = (
-            f"Analyze the following Vietnamese contract text. Dissect it into high-risk clauses "
-            f"(e.g., termination, penalties, damages, unilateral obligations) and extract financial tables verbatim:\n\n"
-            f"{contract_text[:8000]}"
-        )
+        prompt = build_clause_extractor_prompt(contract_text)
         res = structured_extractor.invoke(prompt)
         if isinstance(res, ClauseExtractionList) and res.clauses:
             extracted_items = res.clauses
@@ -350,23 +351,14 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
         reasoning_llm = get_reasoning_cpu_llm()
         structured_auditor = reasoning_llm.with_structured_output(AuditDraftReport)
 
-        context_summary = "\n".join([
-            f"- [{s.get('canonical_citation', '')}]: {s.get('content', '')[:120]}"
-            for s in retrieved_statutes[:8]
-        ])
-
-        clauses_summary = "\n".join([
-            f"Clause {c.get('clause_reference', '')}: {c.get('verbatim_text', '')[:150]}"
-            for c in parsed_clauses[:5]
-        ])
-
-        prompt = (
-            f"You are an Adversarial Legal Auditor under Vietnamese Law.\n"
-            f"{feedback_text}\n"
-            f"AUDIT THE FOLLOWING CONTRACT CLAUSES AGAINST STATUTORY CONTEXT:\n"
-            f"Contract Clauses:\n{clauses_summary}\n\n"
-            f"Retrieved Statutes:\n{context_summary}\n\n"
-            f"Perform: 1. Conflict analysis; 2. Determine Risk Tier (HIGH/MEDIUM/LOW); 3. Provide exact Redline text."
+        feedback = critique.get("critique_feedback") if critique and not critique.get("is_grounded", True) else None
+        prompt = build_loophole_auditor_prompt(
+            parsed_clauses=parsed_clauses,
+            retrieved_statutes=retrieved_statutes,
+            arithmetic_findings=arithmetic_findings,
+            critique_feedback=feedback,
+            include_doctrine=True,
+            include_few_shots=True,
         )
 
         res = structured_auditor.invoke(prompt)
@@ -389,6 +381,8 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
             statute_cit = matched_statute.get("canonical_citation", "Bộ luật Dân sự 2015") if matched_statute else "Điều 406 Bộ luật Dân sự 2015"
             art_id = matched_statute.get("chunk_id") if matched_statute else "VN_BLDS_2015_D406"
 
+            v_class, disp_insight = classify_vulnerability_and_precedent(txt + " " + ref, statute_cit)
+
             findings.append(
                 AuditFindingItem(
                     finding_id=f"finding_{idx:03d}",
@@ -396,6 +390,8 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                     statutory_citation=statute_cit,
                     statutory_article_id=art_id,
                     risk_tier="HIGH" if ("đơn phương" in txt.lower() or "phạt" in txt.lower()) else "MEDIUM",
+                    vulnerability_classification=v_class,
+                    precedent_reference=disp_insight.precedent_reference if disp_insight else None,
                     audit_verdict=f"Clause exposes asymmetric liability conflicting with mandatory provisions of {statute_cit}.",
                     proposed_redline=f"Các bên thỏa thuận thực hiện đúng trình tự thông báo và bồi thường theo {statute_cit}.",
                     negotiation_rationale="Cần sửa lại câu chữ để loại trừ rủi ro bị tuyên vô hiệu theo luật định.",

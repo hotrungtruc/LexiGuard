@@ -73,13 +73,17 @@ The state graph transitions sequentially across 4 autonomous agents, with condit
   - **Query Rewriting Loop**: If initial vector retrieval yields `NO_RELEVANT_DATA` or low semantic similarity (< 0.70), the node reformulates query terminology autonomously and re-executes search.
 * **Output**: Populates `retrieved_statutes` and `arithmetic_findings`.
 
-### 3.3 Node 3: `LoopholeAuditor`
+### 3.3 Node 3: `LoopholeAuditor` (Dual-Perspective Adversarial Prompting)
 * **Input**: Contract clauses paired with grounded statutory provisions and arithmetic audit findings.
-* **Responsibilities**:
-  - Compares contractual terms against mandatory statutory ceilings and civil code protections (e.g., Article 406 Civil Code 2015 adhesion contract protections, Article 125 Commercial Law 2005 penalty caps).
-  - Assesses asymmetric liabilities, missing notice periods, and conflicting obligations.
-  - Generates actionable **Redline Revisions** (`proposed_redline`) rewriting non-compliant contract language into legally enforceable clauses.
-* **Output**: Populates `audit_findings`.
+* **Dual-Perspective Cognitive Scaffolding** ([src/agents/prompts.py](file:///c:/PROJECTS/LexiGuard/src/agents/prompts.py)):
+  - **Lăng kính Thẩm phán TAND**: Kiểm soát nghiêm ngặt tính bắt buộc (*Jus cogens*), bảo vệ trật tự công và bên yếu thế (Điều 406 BLDS về hợp đồng gia nhập, Điều 5, 10 BLLĐ về quyền tự do việc làm, Án lệ 09/2016/AL về lãi nợ quá hạn). Khả năng tuyên **vô hiệu từng phần hoặc toàn phần**.
+  - **Lăng kính Hội đồng Trọng tài VIAC**: Đề cao quyền tự do ý chí (*Party Autonomy*), tôn trọng tập quán thương mại (*Lex Mercatoria*), nhưng kiên quyết áp dụng trần phạt 8% (Điều 301 LTM) và **bác bỏ yêu cầu bồi thường ước tính (liquidated damages) nếu không chứng minh được thiệt hại thực tế trực tiếp** (Điều 302, 304 LTM).
+* **Ma trận 9 Tiên đề Án lệ Bất biến**: Tích hợp các quy tắc phán quyết cốt lõi (Trần phạt 8%, Thỏa thuận trọng tài bất khả thi theo NQ 01/2014, Bác bỏ lãi kép, Vô hiệu cam kết không cạnh tranh sau nghỉ việc, Quy trình thông báo và thời hạn khắc phục 15-30 ngày theo Điều 428 BLDS).
+* **Kiến tạo Sản phẩm Đầu ra**:
+  - Phân loại lỗi theo `VulnerabilityCategory`.
+  - Soạn thảo câu chữ **Redline Thay thế** (Drop-in replacement text) chuẩn pháp lý, có thể đưa ngay vào đàm phán hợp đồng.
+  - Xây dựng **Luận cứ Đàm phán** (*Negotiation Rationale*) sắc bén để thân chủ thuyết phục đối tác.
+* **Output**: Populates `audit_findings` and `audit_draft`.
 
 ### 3.4 Node 4: `HallucinationGrader` (Self-Reflection Gate)
 * **Input**: Generated audit findings and original retrieved statutory context.
