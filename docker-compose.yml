@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lexiguard-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - QDRANT_URL=http://qdrant:6333
+      - NEO4J_URI=bolt://neo4j:7687
+      - LANGFUSE_HOST=http://langfuse-server:3000
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    networks:
+      - lexiguard-network
+
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    container_name: lexiguard-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lexiguard-network
+
+  neo4j:
+    image: neo4j:5.20.0-community
+    container_name: lexiguard-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/lexiguard_secure_password
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p lexiguard_secure_password 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lexiguard-network
+
+  langfuse-server:
+    image: langfuse/langfuse:2
+    container_name: lexiguard-langfuse
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      - NEXTAUTH_SECRET=lexiguard_secret_nextauth_phrase
+      - SALT=lexiguard_salt_secret_key
+      - NEXTAUTH_URL=http://localhost:3000
+      - TELEMETRY_ENABLED=false
+    depends_on:
+      - langfuse-db
+    networks:
+      - lexiguard-network
+
+  langfuse-db:
+    image: postgres:16-alpine
+    container_name: lexiguard-langfuse-db
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    networks:
+      - lexiguard-network
+
+volumes:
+  qdrant_data:
+  neo4j_data:
+  langfuse_db_data:
+
+networks:
+  lexiguard-network:
+    driver: bridge

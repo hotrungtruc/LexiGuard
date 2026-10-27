@@ -1,0 +1,27 @@
+{
+  "file_name": "luu-ban-nhap-tu-dong-5.jpg",
+  "width": 1080,
+  "height": 1510,
+  "total_pages": 1,
+  "metadata": {
+    "title": "V/v xin ý kiến hướng dẫn nghiệp vụ về một số vướng mắc phát sinh từ Luật Đất đai năm 2024 và Bộ luật Dân sự năm 2015",
+    "doc_number": "498/DSKT-PLDSTM&KHCN",
+    "issuing_authority": "Cục Pháp luật dân sự - kinh tế",
+    "parent_authority": "Bộ Tư pháp",
+    "doc_type": "Công văn hướng dẫn nghiệp vụ",
+    "date": "13/05/2026",
+    "recipient": "Hội Công chứng viên thành phố Hải Phòng",
+    "legal_bases": [
+      "Luật Hôn nhân và gia đình năm 2014 (Điều 33, Điều 40)",
+      "Luật Đất đai năm 2024 (Khoản 4 Điều 135)",
+      "Bộ luật Dân sự năm 2015",
+      "Nghị định số 151/2025/NĐ-CP ngày 12/6/2025 của Chính phủ"
+    ]
+  },
+  "ocr_engine": "Hybrid (Docling Layout + Multimodal Vision)",
+  "bounding_boxes": [
+    {"box_id": "box_01", "label": "Agency", "bbox": [100.0, 70.0, 480.0, 120.0], "text": "CỤC PHÁP LUẬT DÂN SỰ - KINH TẾ"},
+    {"box_id": "box_02", "label": "National_Motto", "bbox": [520.0, 70.0, 980.0, 120.0], "text": "CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM"},
+    {"box_id": "box_03", "label": "Doc_Number", "bbox": [120.0, 130.0, 460.0, 160.0], "text": "Số: 498/DSKT-PLDSTM&KHCN"}
+  ]
+}

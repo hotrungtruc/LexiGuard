@@ -1,0 +1,42 @@
+{
+  "file_name": "SCAN CV GUI BO VV TU VAN PHAP LUAT.jpg",
+  "width": 700,
+  "height": 986,
+  "total_pages": 5,
+  "metadata": {
+    "title": "Đơn kiến nghị về hoạt động đại diện, tư vấn pháp luật",
+    "doc_number": "120/2019/ĐLS",
+    "issuing_authority": "Đoàn Luật sư Thành phố Hồ Chí Minh",
+    "parent_authority": "UBND Thành phố Hồ Chí Minh",
+    "doc_type": "Đơn kiến nghị",
+    "date": "20/06/2019",
+    "signer": "Luật sư Nguyễn Văn Trung (Chủ nhiệm Đoàn Luật sư TP.HCM)",
+    "target_enterprise": "Công ty TNHH Tư vấn bất động sản Thuận Thiên",
+    "disputed_official_letter": "Công văn số 1736/BKHĐT-ĐKKD ngày 07/3/2017 của Bộ Kế hoạch và Đầu tư",
+    "legal_bases": [
+      "Luật Luật sư 2006, sửa đổi bổ sung năm 2012 (Điều 4, Điều 10, Điều 11, Điều 28)",
+      "Nghị quyết 65/2006/NQ-QH11 ngày 29/6/2006 của Quốc hội về thi hành Luật Luật sư",
+      "Luật Ban hành văn bản quy phạm pháp luật số 80/2015/QH13 (Điều 3, Điều 16)",
+      "Luật Doanh nghiệp 2014 (Điều 3)",
+      "Luật Đầu tư 2014 (Khoản 2 Điều 4, Phụ lục 4)",
+      "Quyết định số 27/2018/QĐ-TTg ngày 06/7/2018 của Thủ tướng Chính phủ",
+      "Chỉ thị số 33-CT/TW ngày 30/3/2009 của Ban Bí thư Trung ương Đảng",
+      "Luật Trợ giúp pháp lý số 11/2017/QH14 (Điều 10, Điều 19, Điều 27)",
+      "Nghị định số 77/2008/NĐ-CP và Nghị định số 05/2012/NĐ-CP về tư vấn pháp luật",
+      "Nghị định số 110/2013/NĐ-CP ngày 24/9/2013 xử phạt vi phạm hành chính trong lĩnh vực tư pháp"
+    ],
+    "petitions": [
+      "Thủ tướng chỉ đạo Bộ KHĐT và Bộ Tư pháp thực hiện nghiêm Nghị quyết 65/2006/NQ-QH11, thu hồi Công văn 1736/BKHĐT-ĐKKD.",
+      "Sở KHĐT TP.HCM thu hồi giấy chứng nhận đăng ký kinh doanh ngành tư vấn pháp luật cấp cho Công ty Thuận Thiên.",
+      "Sở Tư pháp TP.HCM thanh tra, kiểm tra và xử phạt vi phạm hành chính đối với Công ty Thuận Thiên."
+    ]
+  },
+  "ocr_engine": "Hybrid (Docling Layout + Multimodal Vision)",
+  "bounding_boxes": [
+    {"box_id": "box_header_01", "label": "Issuing_Agency", "bbox": [50.0, 30.0, 350.0, 80.0], "text": "ĐOÀN LUẬT SƯ THÀNH PHỐ HỒ CHÍ MINH"},
+    {"box_id": "box_header_02", "label": "National_Motto", "bbox": [360.0, 30.0, 680.0, 80.0], "text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM"},
+    {"box_id": "box_doc_num", "label": "Doc_Number", "bbox": [80.0, 95.0, 280.0, 120.0], "text": "Số: 120/2019/ĐLS"},
+    {"box_id": "box_title", "label": "Title", "bbox": [250.0, 160.0, 480.0, 195.0], "text": "ĐƠN KIẾN NGHỊ"},
+    {"box_id": "box_signer", "label": "Signer", "bbox": [450.0, 850.0, 670.0, 920.0], "text": "Luật sư Nguyễn Văn Trung"}
+  ]
+}
