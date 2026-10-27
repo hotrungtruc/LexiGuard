@@ -2,7 +2,12 @@
 Core System Configuration using Pydantic BaseSettings
 """
 
-from typing import Optional
+import asyncio
+import os
+# Prevent pandas/pyarrow timezone initialization from causing native access violation on Windows
+os.environ.setdefault("PYARROW_IGNORE_TIMEZONE", "1")
+
+from typing import Optional, Dict, Any, List
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.hardware import hardware_profile, HardwareProfile
@@ -148,17 +153,21 @@ async def check_async_qdrant_connection(
     """
     should_close = False
     if client is None:
+        if not circuit_breaker.is_available("qdrant"):
+            return False
         client = get_async_qdrant_client()
         should_close = True
 
     try:
-        collections = await client.get_collections()
+        collections = await asyncio.wait_for(client.get_collections(), timeout=2.0)
         logger.info(
             f"Successfully connected to Qdrant. Found {len(collections.collections)} collections."
         )
+        circuit_breaker.record_success("qdrant")
         return True
     except Exception as exc:
         logger.warning(f"AsyncQdrantClient connection check failed: {exc}")
+        circuit_breaker.record_failure("qdrant", exc)
         return False
     finally:
         if should_close:
@@ -174,15 +183,19 @@ async def check_async_neo4j_connection(
     """
     should_close = False
     if driver is None:
+        if not circuit_breaker.is_available("neo4j"):
+            return False
         driver = get_async_neo4j_driver()
         should_close = True
 
     try:
-        await driver.verify_connectivity()
+        await asyncio.wait_for(driver.verify_connectivity(), timeout=2.0)
         logger.info("Successfully connected to Neo4j Knowledge Graph.")
+        circuit_breaker.record_success("neo4j")
         return True
     except Exception as exc:
         logger.warning(f"AsyncGraphDatabase connection check failed: {exc}")
+        circuit_breaker.record_failure("neo4j", exc)
         return False
     finally:
         if should_close:
@@ -233,4 +246,87 @@ class AsyncConnectionManager:
             logger.info("Closed AsyncGraphDatabase driver pool.")
 
 
+class DatabaseCircuitBreaker:
+    """
+    Resilient circuit breaker for external database services (Qdrant & Neo4j).
+    Prevents cascading TCP connection timeouts when databases are unreachable,
+    enabling instant fallback to local offline knowledge repositories.
+    """
+
+    def __init__(self, recovery_timeout: float = 60.0):
+        self.recovery_timeout = recovery_timeout
+        self._states: Dict[str, Dict[str, Any]] = {}
+
+    def is_available(self, service: str) -> bool:
+        """Checks if a service is healthy or ready for a probe."""
+        info = self._states.get(service)
+        if not info:
+            return True
+        state = info.get("state", "CLOSED")
+        if state == "CLOSED":
+            return True
+        elif state == "OPEN":
+            import time
+            now = time.monotonic()
+            if now - info.get("last_failure", 0.0) >= self.recovery_timeout:
+                info["state"] = "HALF_OPEN"
+                logger.info(f"Circuit breaker for '{service}' transitioned to HALF_OPEN (probing connection).")
+                return True
+            return False
+        elif state == "HALF_OPEN":
+            return True
+        return True
+
+    def record_success(self, service: str) -> None:
+        """Records a successful operation, resetting the circuit breaker."""
+        if service in self._states:
+            if self._states[service].get("state") != "CLOSED":
+                logger.info(f"Circuit breaker for '{service}' transitioned to CLOSED (service recovered).")
+            self._states[service] = {"state": "CLOSED", "last_failure": 0.0, "failures": 0}
+
+    def record_failure(self, service: str, error: Optional[Exception] = None) -> None:
+        """Records a failure and trips the circuit breaker to OPEN."""
+        import time
+        now = time.monotonic()
+        prev = self._states.get(service, {})
+        failures = prev.get("failures", 0) + 1
+        self._states[service] = {
+            "state": "OPEN",
+            "last_failure": now,
+            "failures": failures,
+            "last_error": str(error) if error else "",
+        }
+        logger.warning(
+            f"Circuit breaker for '{service}' TRIPPED to OPEN (failures={failures}). "
+            f"Bypassing live calls for {self.recovery_timeout}s. Reason: {error}"
+        )
+
+    def reset(self, service: Optional[str] = None) -> None:
+        """Manually reset circuit breaker state."""
+        if service:
+            self._states.pop(service, None)
+        else:
+            self._states.clear()
+
+
+circuit_breaker = DatabaseCircuitBreaker()
 async_connection_manager = AsyncConnectionManager()
+
+
+def run_coroutine_sync(coro_fn, *args, **kwargs):
+    """
+    Safely executes an async coroutine factory from synchronous context.
+    Eliminates 'event loop already running' crashes by isolating execution inside a dedicated worker thread.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            return executor.submit(lambda: asyncio.run(coro_fn(*args, **kwargs))).result()
+    else:
+        return asyncio.run(coro_fn(*args, **kwargs))
+

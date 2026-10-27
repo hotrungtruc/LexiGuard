@@ -207,4 +207,6 @@ Run the unit and integration test suite:
 python -m pytest tests/test_chunker.py tests/test_schema_sync.py -v
 ```
 
-All **46/46 unit tests** pass with 100% test pass rate across the workspace.
+The focused deterministic benchmark suite currently passes **11/11 tests**.
+Full graph-ingestion validation still requires the configured Neo4j/Qdrant
+services and should be reported separately from the evaluator unit tests.

@@ -9,6 +9,7 @@ Orchestrates 4 specialized nodes:
 """
 
 import asyncio
+from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional
 from loguru import logger
@@ -26,7 +27,8 @@ from src.agents.state import (
     VulnerabilityItem,
     ContractProvenance,
     LegalGrounding,
-    VulnerabilityCategory,
+    LegalRuleMetadata,
+    UNCLASSIFIED_VULNERABILITY,
     DisputeForum,
     DisputePrecedentInsight,
 )
@@ -35,6 +37,7 @@ from src.mcp_server.legal_tools import (
     verify_table_arithmetic,
     get_article_graph_context,
 )
+from src.core.legal_norm import canonical_law_slug
 from src.retrieval.entity_extractor import LegalEntityExtractor
 from src.agents.prompts import (
     build_clause_extractor_prompt,
@@ -43,91 +46,41 @@ from src.agents.prompts import (
 )
 
 
-def classify_vulnerability_and_precedent(text: str, citation: str) -> tuple[str, Optional[DisputePrecedentInsight]]:
-    """Maps contract wording and legal citation to realistic TAND/VIAC dispute jurisprudence."""
-    text_l = text.lower()
-    cit_l = citation.lower()
+# ============================================================================
+# DYNAMIC VULNERABILITY TAXONOMY & PRECEDENT INSIGHT HELPER
+# ============================================================================
 
-    if "phạt" in text_l and ("8%" in text_l or "vi phạm" in text_l or "301" in cit_l):
-        return (
-            VulnerabilityCategory.PENALTY_EXCEEDING_STATUTORY_CAP.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.VIAC,
-                precedent_reference="Điều 301 Luật Thương mại 2005 & Thực tiễn Trọng tài VIAC",
-                judicial_tendency="Hội đồng Trọng tài VIAC và Tòa án kiên quyết giảm mức phạt vi phạm về đúng trần tối đa 8% giá trị nghĩa vụ bị vi phạm.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
-    if "ước tính" in text_l or ("bồi thường" in text_l and "không cần chứng minh" in text_l):
-        return (
-            VulnerabilityCategory.UNENFORCEABLE_LIQUIDATED_DAMAGES.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.VIAC,
-                precedent_reference="Điều 302, 304 Luật Thương mại 2005",
-                judicial_tendency="VIAC bác bỏ yêu cầu bồi thường thiệt hại ước tính nếu bên yêu cầu không xuất trình được chứng từ chứng minh tổn thất thực tế trực tiếp.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
-    if "trọng tài" in text_l and ("tòa án" in text_l or "hoặc" in text_l):
-        return (
-            VulnerabilityCategory.PATHOLOGICAL_ARBITRATION_CLAUSE.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.TAND,
-                precedent_reference="Nghị quyết 01/2014/NQ-HĐTP của Hội đồng Thẩm phán TANDTC",
-                judicial_tendency="Thỏa thuận trọng tài không rõ ràng hoặc vừa chọn Tòa án vừa chọn Trọng tài sẽ bị Tòa án thụ lý giải quyết nếu bị đơn không phản đối kịp thời.",
-                adjudication_risk_probability="CRITICAL",
-            )
-        )
-    if "lãi" in text_l and ("quá hạn" in text_l or "chậm trả" in text_l or "468" in cit_l or "306" in cit_l):
-        return (
-            VulnerabilityCategory.USURIOUS_OR_COMPOUND_LATE_INTEREST.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.TAND,
-                precedent_reference="Án lệ số 09/2016/AL & Nghị quyết 01/2019/NQ-HĐTP",
-                judicial_tendency="Tòa án điều chỉnh lãi suất chậm trả theo lãi suất nợ quá hạn trung bình của ít nhất 3 ngân hàng thương mại, bác bỏ thỏa thuận lãi kép.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
-    if "không cạnh tranh" in text_l or "đối thủ" in text_l or "nghỉ việc" in text_l:
-        return (
-            VulnerabilityCategory.NON_COMPETE_RESTRICTION_CONFLICT.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.TAND,
-                precedent_reference="Điều 5, 10 Bộ luật Lao động 2019 & Điều 35 Hiến pháp 2013",
-                judicial_tendency="TAND có tiền lệ tuyên thỏa thuận cấm làm việc cho đối thủ cạnh tranh là vô hiệu do xâm phạm quyền tự do việc làm.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
-    if "đơn phương" in text_l or "chấm dứt ngay" in text_l:
-        return (
-            VulnerabilityCategory.ABUSIVE_UNILATERAL_TERMINATION.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.TAND,
-                precedent_reference="Điều 428 Bộ luật Dân sự 2015",
-                judicial_tendency="Đơn phương chấm dứt hợp đồng không có căn cứ vi phạm nghiêm trọng hoặc không thông báo trước bị coi là hành vi đơn phương trái luật.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
-    if "bất khả kháng" in text_l and ("giá" in text_l or "tỷ giá" in text_l or "thiếu vốn" in text_l):
-        return (
-            VulnerabilityCategory.INVALID_FORCE_MAJEURE_EXPANSION.value,
-            DisputePrecedentInsight(
-                target_forum=DisputeForum.VIAC,
-                precedent_reference="Điều 156 Bộ luật Dân sự 2015",
-                judicial_tendency="VIAC không công nhận biến động giá cả thị trường hoặc khó khăn tài chính là sự kiện bất khả kháng.",
-                adjudication_risk_probability="HIGH",
-            )
-        )
+def rule_metadata_for(
+    statute: Optional[Dict[str, Any]],
+    precedent: Optional[Dict[str, Any]] = None,
+) -> LegalRuleMetadata:
+    """Read an opaque rule descriptor from retrieved knowledge-base records."""
+    merged: Dict[str, Any] = {}
+    for record in (statute or {}, precedent or {}):
+        metadata = record.get("metadata")
+        if isinstance(metadata, dict):
+            merged.update(metadata)
+        merged.update({k: v for k, v in record.items() if k in {
+            "category_id", "category_label", "risk_tier", "forum",
+            "precedent_reference", "judicial_tendency", "redline_template",
+        }})
+    return LegalRuleMetadata.model_validate(merged)
 
-    return (
-        VulnerabilityCategory.STATUTORY_CONFLICT.value,
-        DisputePrecedentInsight(
-            target_forum=DisputeForum.GENERAL,
-            precedent_reference=None,
-            judicial_tendency="Rủi ro tranh chấp khi bên có quyền yêu cầu cơ quan tài phán tuyên vô hiệu điều khoản bất bình đẳng.",
-            adjudication_risk_probability="MEDIUM",
-        )
+
+def dispute_insight_for(
+    metadata: LegalRuleMetadata, fallback_text: str
+) -> Optional[DisputePrecedentInsight]:
+    """Convert optional DB rule metadata to the public report model."""
+    if not any((metadata.forum, metadata.precedent_reference, metadata.judicial_tendency)):
+        return None
+    forum = metadata.forum if metadata.forum in {"TAND", "VIAC", "GENERAL"} else "GENERAL"
+    return DisputePrecedentInsight(
+        target_forum=forum,
+        precedent_reference=metadata.precedent_reference,
+        judicial_tendency=metadata.judicial_tendency or fallback_text,
+        adjudication_risk_probability=metadata.risk_tier,
     )
+
 
 
 # ============================================================================
@@ -172,8 +125,14 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
     # If raw path points to a file, read it; otherwise check parsed_clauses
     if raw_path:
         try:
-            with open(raw_path, "r", encoding="utf-8") as f:
-                contract_text = f.read()
+            path_obj = Path(raw_path)
+            if path_obj.suffix.lower() == ".pdf":
+                import pypdf
+                reader = pypdf.PdfReader(str(path_obj))
+                contract_text = "\n\n".join([page.extract_text() or "" for page in reader.pages])
+            else:
+                with open(raw_path, "r", encoding="utf-8") as f:
+                    contract_text = f.read()
         except Exception as e:
             logger.warning(f"Could not read raw_document_path '{raw_path}': {e}")
 
@@ -204,7 +163,7 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
 
         for line in lines:
             line_s = line.strip()
-            m = re.match(r'^(?:#+\s*)?(?:Điều|ĐIỀU)\s+(\d+)', line_s)
+            m = re.match(r'^(?:#+\s*)?(?:(?:Điều|ĐIỀU)\s+(\d+)|\[(\d+)\]|(?:Mục|MỤC)\s+(\d+))', line_s)
             if m:
                 if buf:
                     text_blob = "\n".join(buf).strip()
@@ -221,7 +180,12 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
                     )
                     c_id += 1
                     buf = []
-                current_ref = f"Điều {m.group(1)}"
+                if m.group(1):
+                    current_ref = f"Điều {m.group(1)}"
+                elif m.group(2):
+                    current_ref = f"Mục [{m.group(2)}]"
+                else:
+                    current_ref = f"Mục {m.group(3)}"
             buf.append(line)
 
         if buf:
@@ -237,6 +201,21 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
                     table_markdown=text_blob if is_tbl else None,
                 )
             )
+
+        # Fallback to paragraph chunking if no structured markers found
+        if not extracted_items and contract_text.strip():
+            paras = [p.strip() for p in contract_text.split("\n\n") if len(p.strip()) > 80]
+            for p_idx, p_text in enumerate(paras[:10], start=1):
+                extracted_items.append(
+                    ExtractedClauseItem(
+                        clause_id=f"clause_{p_idx:03d}",
+                        clause_reference=f"Đoạn {p_idx}",
+                        verbatim_text=p_text[:800],
+                        risk_category="General",
+                        is_table="|" in p_text,
+                        table_markdown=p_text if "|" in p_text else None,
+                    )
+                )
 
     parsed_dicts = [item.model_dump() for item in extracted_items]
     logger.info(f"ClauseExtractor isolated {len(parsed_dicts)} clause(s) / table(s).")
@@ -254,18 +233,22 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 2: Autonomous legal research via FastMCP tools.
     Zero LLM overhead: calls search_legal_provisions, verify_table_arithmetic,
-    and get_article_graph_context directly with query rewriting fallback.
+    and get_article_graph_context directly, dynamically extracting statutory provisions
+    and linked judicial precedents from the Knowledge Graph / Database.
     """
     logger.info("Executing Node 2: LegalResearcher (FastMCP Tools)...")
     parsed_clauses = state.get("parsed_clauses", [])
 
     all_statutes: List[Dict[str, Any]] = []
+    all_precedents: List[Dict[str, Any]] = []
     arithmetic_findings: List[Dict[str, Any]] = []
+    seen_precedent_ids = set()
 
     async def _async_research():
-        nonlocal all_statutes, arithmetic_findings
+        nonlocal all_statutes, all_precedents, arithmetic_findings
 
         for clause in parsed_clauses:
+            ref = clause.get("clause_reference", "")
             text = clause.get("verbatim_text", "")
             is_table = clause.get("is_table", False)
             table_md = clause.get("table_markdown")
@@ -276,40 +259,76 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
                 audit_res = verify_table_arithmetic(table_data=target_table)
                 if audit_res.get("discrepancies"):
                     for d in audit_res["discrepancies"]:
-                        d["clause_reference"] = clause.get("clause_reference", "")
+                        d["clause_reference"] = ref
                         arithmetic_findings.append(d)
 
             # 2. Search statutory provisions via FastMCP search_legal_provisions
             search_res = await search_legal_provisions(query=text[:250], top_k=3, active_only=True)
             provisions = search_res.get("provisions", [])
 
-            # Query Rewriting Loop: if no data found, rewrite query terms
+            # Universal Query Rewriting Loop: if no data found, strip boilerplate and expand legal concepts
             if not provisions:
-                rewritten_query = text[:150]
-                # Replace colloquial expressions with statutory terms
-                replacements = [
-                    (r'\bgiam lương\b', 'khấu trừ tiền lương'),
-                    (r'\bphạt tiền\b', 'phạt vi phạm'),
-                    (r'\bnghỉ việc ngay\b', 'đơn phương chấm dứt hợp đồng lao động'),
+                rewritten_query = text[:200]
+                # 1. Strip transactional/contractual preamble boilerplate
+                boilerplate_patterns = [
+                    r'\b(?:hai\s+bên|các\s+bên)\s+(?:đồng\s+ý|thỏa\s+thuận|cam\s+kết)(?:\s+rằng)?\b',
+                    r'\b(?:trong\s+mọi\s+trường\s+hợp|trong\s+trường\s+hợp\s+nào)\b',
+                    r'\b(?:trừ\s+khi\s+có\s+thỏa\s+thuận\s+khác)\b',
+                    r'\b(?:vô\s+điều\s+kiện|ngay\s+lập\s+tức)\b',
                 ]
-                for pat, rep in replacements:
+                for bp in boilerplate_patterns:
+                    rewritten_query = re.sub(bp, ' ', rewritten_query, flags=re.IGNORECASE)
+
+                # 2. Universal cross-domain statutory concept normalization
+                legal_concept_expansions = [
+                    # Commercial / Obligations / Financial
+                    (r'\bphạt\s+tiền\b', 'phạt vi phạm'),
+                    (r'\bbồi\s+thường\s+tối\s+đa\b', 'giới hạn trách nhiệm bồi thường thiệt hại'),
+                    (r'\bhủy\s+hợp\s+đồng\s+ngay\b', 'đơn phương chấm dứt thực hiện hợp đồng'),
+                    (r'\blãi\s+mẹ\s+đẻ\s+lãi\s+con\b', 'tính lãi trên nợ lãi chậm trả'),
+                    (r'\bkhông\s+thể\s+thực\s+hiện\s+do\s+giá\s+tăng\b', 'hoàn cảnh thay đổi cơ bản sự kiện bất khả kháng'),
+                    # Labor / Employment
+                    (r'\bgiam\s+lương\b', 'khấu trừ tiền lương'),
+                    (r'\bquỹ\s+giữ\s+chân\b', 'khấu trừ tiền lương'),
+                    (r'\bnghỉ\s+việc\s+ngay\b', 'đơn phương chấm dứt hợp đồng lao động'),
+                    (r'\bcấm\s+làm\s+cho\s+đối\s+thủ\b', 'thỏa thuận không cạnh tranh tự do việc làm'),
+                    # Tech / IP / Data Protection
+                    (r'\blộ\s+thông\s+tin\s+khách\s+hàng\b', 'bảo vệ dữ liệu cá nhân bí mật kinh doanh'),
+                    (r'\băn\s+cắp\s+mã\s+nguồn\b', 'xâm phạm quyền tác giả quyền sở hữu trí tuệ'),
+                    # Corporate Governance
+                    (r'\bký\s+thay\s+sếp\b', 'thẩm quyền đại diện theo pháp luật'),
+                ]
+                for pat, rep in legal_concept_expansions:
                     rewritten_query = re.sub(pat, rep, rewritten_query, flags=re.IGNORECASE)
 
-                logger.info(f"Query Rewriter triggered: '{text[:60]}...' -> '{rewritten_query[:60]}...'")
+                rewritten_query = re.sub(r'\s+', ' ', rewritten_query).strip()
+                logger.info(f"Universal Legal Query Rewriter triggered: '{text[:60]}...' -> '{rewritten_query[:60]}...'")
                 retry_res = await search_legal_provisions(query=rewritten_query, top_k=3, active_only=True)
                 provisions = retry_res.get("provisions", [])
 
             for p in provisions:
-                p["source_clause"] = clause.get("clause_reference", "")
+                p["source_clause"] = ref
                 all_statutes.append(p)
 
-                # 3. Pull 2-hop graph context if node_id exists
+                # 3. Pull 2-hop graph context and linked judicial precedents
                 c_id = p.get("chunk_id", "")
                 if c_id and c_id.startswith("VN_"):
                     try:
                         g_ctx = await get_article_graph_context(node_id=c_id, max_hops=2)
+                        if not isinstance(g_ctx, dict):
+                            g_ctx = {}
                         p["graph_context"] = g_ctx.get("referenced_articles", [])
                         p["graph_triples"] = g_ctx.get("graph_triples", [])
+
+                        # Extract linked judicial precedents from graph context
+                        for prec in g_ctx.get("precedents", []):
+                            pid = prec.get("precedent_id") or prec.get("precedent_number") or prec.get("title")
+                            if pid and pid not in seen_precedent_ids:
+                                seen_precedent_ids.add(pid)
+                                prec_copy = dict(prec)
+                                prec_copy["source_clause"] = ref
+                                prec_copy["applied_statute"] = c_id
+                                all_precedents.append(prec_copy)
                     except Exception as e:
                         logger.warning(f"Failed to fetch graph context for {c_id}: {e}")
 
@@ -319,9 +338,13 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(_async_research())
 
-    logger.info(f"LegalResearcher collected {len(all_statutes)} statutory provision(s) and {len(arithmetic_findings)} arithmetic issue(s).")
+    logger.info(
+        f"LegalResearcher collected {len(all_statutes)} statutory provision(s), "
+        f"{len(all_precedents)} precedent(s), and {len(arithmetic_findings)} arithmetic issue(s)."
+    )
     return {
         "retrieved_statutes": all_statutes,
+        "retrieved_precedents": all_precedents,
         "arithmetic_findings": arithmetic_findings,
     }
 
@@ -334,10 +357,12 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 3: Legal reasoning, loophole assessment, and redline revision.
     Runs on Qwen2.5-7B-Instruct for deep legal reasoning (~15-20 t/s on CPU).
+    Dynamically receives retrieved statutes and precedents from DB without hardcoded doctrine.
     """
     logger.info("Executing Node 3: LoopholeAuditor (Qwen2.5-7B)...")
     parsed_clauses = state.get("parsed_clauses", [])
     retrieved_statutes = state.get("retrieved_statutes", [])
+    retrieved_precedents = state.get("retrieved_precedents", [])
     arithmetic_findings = state.get("arithmetic_findings", [])
     critique = state.get("hallucination_grade", {})
 
@@ -355,10 +380,11 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
         prompt = build_loophole_auditor_prompt(
             parsed_clauses=parsed_clauses,
             retrieved_statutes=retrieved_statutes,
+            retrieved_precedents=retrieved_precedents,
             arithmetic_findings=arithmetic_findings,
             critique_feedback=feedback,
-            include_doctrine=True,
-            include_few_shots=True,
+            include_doctrine=False,
+            include_few_shots=False,
         )
 
         res = structured_auditor.invoke(prompt)
@@ -366,7 +392,7 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
             audit_draft = res
     except Exception as exc:
         logger.warning(f"Ollama 7B auditor unavailable ({exc}). Using deterministic audit fallback.")
-        # Fallback audit synthesizer
+        # Dynamic fallback synthesizer using retrieved statutes and precedents
         findings: List[AuditFindingItem] = []
         for idx, cl in enumerate(parsed_clauses, start=1):
             ref = cl.get("clause_reference", f"Clause {idx}")
@@ -378,10 +404,24 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                 retrieved_statutes[0] if retrieved_statutes else None
             )
 
-            statute_cit = matched_statute.get("canonical_citation", "Bộ luật Dân sự 2015") if matched_statute else "Điều 406 Bộ luật Dân sự 2015"
-            art_id = matched_statute.get("chunk_id") if matched_statute else "VN_BLDS_2015_D406"
+            statute_cit = (
+                matched_statute.get("canonical_citation", "Unspecified legal provision")
+                if matched_statute else "Unspecified legal provision"
+            )
+            art_id = matched_statute.get("chunk_id") if matched_statute else None
 
-            v_class, disp_insight = classify_vulnerability_and_precedent(txt + " " + ref, statute_cit)
+            # Match associated precedent
+            matched_prec = next(
+                (p for p in retrieved_precedents if p.get("source_clause") == ref or p.get("applied_statute") == art_id),
+                retrieved_precedents[0] if retrieved_precedents else None
+            )
+            precedent_ref = (matched_prec.get("precedent_number") or matched_prec.get("title")) if matched_prec else None
+
+            rule_metadata = rule_metadata_for(matched_statute, matched_prec)
+            disp_insight = dispute_insight_for(
+                rule_metadata,
+                "Rule metadata was supplied by the legal knowledge base.",
+            )
 
             findings.append(
                 AuditFindingItem(
@@ -389,9 +429,9 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                     clause_reference=ref,
                     statutory_citation=statute_cit,
                     statutory_article_id=art_id,
-                    risk_tier="HIGH" if ("đơn phương" in txt.lower() or "phạt" in txt.lower()) else "MEDIUM",
-                    vulnerability_classification=v_class,
-                    precedent_reference=disp_insight.precedent_reference if disp_insight else None,
+                    risk_tier=rule_metadata.risk_tier,
+                    vulnerability_classification=rule_metadata.category_id,
+                    precedent_reference=precedent_ref or (disp_insight.precedent_reference if disp_insight else None),
                     audit_verdict=f"Clause exposes asymmetric liability conflicting with mandatory provisions of {statute_cit}.",
                     proposed_redline=f"Các bên thỏa thuận thực hiện đúng trình tự thông báo và bồi thường theo {statute_cit}.",
                     negotiation_rationale="Cần sửa lại câu chữ để loại trừ rủi ro bị tuyên vô hiệu theo luật định.",
@@ -404,9 +444,12 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                 AuditFindingItem(
                     finding_id=f"finding_{a_idx:03d}",
                     clause_reference=af.get("clause_reference", "Phụ lục bảng biểu"),
-                    statutory_citation="Điều 406 Bộ luật Dân sự 2015 (Tính minh bạch của hợp đồng)",
-                    statutory_article_id="VN_BLDS_2015_D406",
+                    statutory_citation=af.get("statutory_citation", "Unspecified legal provision"),
+                    statutory_article_id=af.get("statutory_article_id"),
                     risk_tier=af.get("severity", "CRITICAL"),
+                    vulnerability_classification=af.get(
+                        "category_id", UNCLASSIFIED_VULNERABILITY
+                    ),
                     audit_verdict=af.get("legal_risk", "Sai lệch số học trong bảng biểu thanh toán."),
                     proposed_redline=f"Điều chỉnh tổng số tiền thành {af.get('expected_value', 0):,.0f} VNĐ theo đúng công thức.",
                     negotiation_rationale="Khắc phục sai lệch số học để tránh tranh chấp quyết toán hợp đồng.",
@@ -416,7 +459,7 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
         audit_draft = AuditDraftReport(
             contract_name="Contract Audit Draft",
             findings=findings,
-            summary_notes="Preliminary audit report synthesized via fallback rules.",
+            summary_notes="Preliminary audit report synthesized via dynamic database grounding.",
         )
 
     logger.info(f"LoopholeAuditor compiled draft with {len(audit_draft.findings)} finding(s).")
@@ -427,55 +470,194 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
 
 
 # ============================================================================
-# 4. NODE 4: HallucinationGrader (Qwen2.5-3B)
+# 4. NODE 4: HallucinationGrader (Qwen2.5-3B + Deterministic Law/Article Verifier)
 # ============================================================================
+
+LAW_CODE_PATTERNS = [
+    (re.compile(r'\b(?:bộ\s+luật\s+dân\s+sự|blds)(?:\s*2015)?\b', re.IGNORECASE), "VN_BLDS_2015"),
+    (re.compile(r'\b(?:bộ\s+luật\s+lao\s+động|blld)(?:\s*2019)?\b', re.IGNORECASE), "VN_BLLD_2019"),
+    (re.compile(r'\b(?:luật\s+thương\s+mại|ltm)(?:\s*2005)?\b', re.IGNORECASE), "VN_LTM_2005"),
+    (re.compile(r'\b(?:luật\s+doanh\s+nghiệp|ldn)(?:\s*2020)?\b', re.IGNORECASE), "VN_LDN_2020"),
+    (re.compile(r'\b(?:luật\s+trọng\s+tài\s+thương\s+mại|ltttm)(?:\s*2010)?\b', re.IGNORECASE), "VN_LTTTM_2010"),
+    (re.compile(r'\b(?:luật\s+đất\s+đai|ldd)(?:\s*2024|\s*2013)?\b', re.IGNORECASE), "VN_LDD"),
+    (re.compile(r'\b(?:luật\s+nhà\s+ở)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LNO"),
+    (re.compile(r'\b(?:luật\s+kinh\s+doanh\s+bất\s+động\s+sản|lkdbds)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LKDBDS"),
+]
+
+
+def _extract_explicit_law_code(
+    text: str,
+    dynamic_statutes: Optional[List[Dict[str, Any]]] = None,
+) -> Optional[str]:
+    """
+    Detects explicit statutory code from text dynamically without hardcoded limits.
+    Matches against retrieved statutes in state, common shortcuts, and universal patterns.
+    """
+    if not text:
+        return None
+
+    # 1. Match against known active statutes in the current audit context
+    if dynamic_statutes:
+        for s in dynamic_statutes:
+            title = s.get("law_title") or s.get("canonical_citation") or ""
+            if title and title.lower() in text.lower():
+                s_law = _extract_law_code_from_statute(s)
+                if s_law:
+                    return s_law
+
+    # 2. Match against registered law shortcut patterns
+    for pattern, code in LAW_CODE_PATTERNS:
+        if pattern.search(text):
+            return code
+
+    # 3. Universal dynamic statute resolver
+    spans = LegalEntityExtractor(default_law_code="")._find_law_spans(text)
+    if spans:
+        return spans[0][2]
+
+    return None
+
+
+def _extract_law_code_from_statute(statute: Dict[str, Any]) -> Optional[str]:
+    """Extracts statutory code from chunk_id, law_id, canonical_citation, or title."""
+    chunk_id = statute.get("chunk_id", "")
+    if chunk_id:
+        m = re.match(r'^(VN_[A-Z0-9]+(?:_\d{4})?)', chunk_id)
+        if m:
+            return m.group(1)
+
+    law_id = statute.get("law_id", "")
+    if law_id:
+        return canonical_law_slug(law_id)
+
+    canon = statute.get("canonical_citation", "")
+    code = _extract_explicit_law_code(canon)
+    if code:
+        return code
+
+    code_from_title = _extract_explicit_law_code(statute.get("title", "") or statute.get("law_title", ""))
+    if code_from_title:
+        return code_from_title
+
+    return None
+
+
+def _is_citation_grounded(
+    cit_text: str,
+    article_id: Optional[str],
+    retrieved_statutes: List[Dict[str, Any]],
+) -> bool:
+    """
+    Rigorously verifies if a finding citation is grounded in retrieved context.
+    Prevents cross-statute hallucination across arbitrary legislative domains.
+    """
+    if not retrieved_statutes:
+        # Fallback when no statutes retrieved in state
+        return True
+
+    cit_norm = cit_text.strip().lower()
+    cit_law = _extract_explicit_law_code(cit_text, dynamic_statutes=retrieved_statutes)
+
+    # Extract article number from citation text
+    m_art = re.search(r'(?:điều|dieu|đ\.?)\s*(\d+)', cit_text, re.IGNORECASE)
+    cit_art_num = int(m_art.group(1)) if m_art else None
+
+    # Check against each retrieved statute
+    for s in retrieved_statutes:
+        s_chunk_id = s.get("chunk_id", "")
+        s_canon = s.get("canonical_citation", "").lower()
+        s_content = s.get("content", "").lower()
+        s_art_num = s.get("article_num")
+        if s_art_num is not None:
+            try:
+                s_art_num = int(s_art_num)
+            except (ValueError, TypeError):
+                s_art_num = None
+
+        s_law = _extract_law_code_from_statute(s)
+
+        # 1. Direct Neo4j node match if article_id provided
+        if article_id and s_chunk_id and (article_id == s_chunk_id or article_id in s.get("graph_context", [])):
+            if cit_law and s_law and cit_law != s_law:
+                continue
+            return True
+
+        # 2. If citation specifies a law code, it MUST match statute's law code
+        if cit_law:
+            if s_law and cit_law != s_law:
+                # Different laws! Reject match even if article numbers coincide
+                continue
+            if cit_art_num is not None:
+                if s_art_num is not None and s_art_num == cit_art_num:
+                    return True
+                if f"điều {cit_art_num}" in s_canon or f"điều {cit_art_num}" in s_content:
+                    return True
+            else:
+                if cit_norm in s_canon or s_canon in cit_norm or cit_norm in s_content:
+                    return True
+        else:
+            # Citation did not explicitly specify law (e.g. 'Điều 4')
+            if cit_art_num is not None and s_art_num is not None and s_art_num == cit_art_num:
+                return True
+            if cit_norm in s_canon or s_canon in cit_norm or cit_norm in s_content:
+                return True
+
+    return False
+
 
 def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 4: Verifies citations in audit findings against grounded retrieved context.
-    Runs on Qwen2.5-3B-Instruct for fast boolean/string verification (~40 t/s on CPU).
+    Executes fast structured verification via Qwen2.5-3B-Instruct with deterministic
+    legal entity & anti-hallucination guard fallback.
     """
     logger.info("Executing Node 4: HallucinationGrader (Qwen2.5-3B)...")
     audit_draft = state.get("audit_draft")
     findings = audit_draft.findings if audit_draft else []
     retrieved_statutes = state.get("retrieved_statutes", [])
 
-    # Set of valid citations and article numbers in context
-    valid_citations = set()
-    valid_articles = set()
-
-    for s in retrieved_statutes:
-        cit = s.get("canonical_citation", "")
-        if cit:
-            valid_citations.add(cit.lower())
-        art_num = s.get("article_num")
-        if art_num:
-            valid_articles.add(str(art_num))
-        content = s.get("content", "").lower()
-        valid_citations.add(content)
+    # Step 1: Optional LLM Grading attempt if Ollama 3B is available
+    llm_unverified: Optional[List[str]] = None
+    try:
+        fast_llm = get_fast_cpu_llm()
+        structured_grader = fast_llm.with_structured_output(HallucinationGrade)
+        prompt = build_hallucination_grader_prompt(
+            findings=[f.model_dump() for f in findings],
+            retrieved_statutes=retrieved_statutes,
+        )
+        grade_res = structured_grader.invoke(prompt)
+        if isinstance(grade_res, HallucinationGrade):
+            llm_unverified = grade_res.unverified_citations
+    except Exception as exc:
+        logger.debug(f"Fast LLM grader unavailable ({exc}). Using deterministic entity validator.")
 
     unverified: List[str] = []
     verified_items: List[VulnerabilityItem] = []
 
     for f in findings:
         cit = f.statutory_citation.strip()
-        # Verify if citation or article number is mentioned in context
-        m = re.search(r'(?:điều|dieu)\s*(\d+)', cit, re.IGNORECASE)
-        art_str = m.group(1) if m else ""
+        art_id = f.statutory_article_id
 
-        is_supported = False
-        if any(cit.lower() in v for v in valid_citations):
-            is_supported = True
-        elif art_str and (art_str in valid_articles or any(f"điều {art_str}" in v for v in valid_citations)):
-            is_supported = True
-        elif not retrieved_statutes:
-            # If no statutes available (empty context), treat as grounded in fallback
-            is_supported = True
+        # Must pass deterministic grounded test
+        is_supported = _is_citation_grounded(cit, art_id, retrieved_statutes)
+
+        # If LLM ran and explicitly flagged this citation as unverified, respect LLM check as well
+        if llm_unverified is not None and any(cit.lower() in u.lower() or u.lower() in cit.lower() for u in llm_unverified):
+            is_supported = False
 
         if is_supported:
-            v_class, disp_insight = classify_vulnerability_and_precedent(
-                f.audit_verdict + " " + f.clause_reference,
-                f.statutory_citation
+            m_art = re.search(r'(?:điều|dieu|đ\.?)\s*(\d+)', cit, re.IGNORECASE)
+            art_str = m_art.group(1) if m_art else ""
+            v_class = f.vulnerability_classification or UNCLASSIFIED_VULNERABILITY
+            disp_insight = (
+                DisputePrecedentInsight(
+                    target_forum=DisputeForum.GENERAL,
+                    precedent_reference=f.precedent_reference,
+                    judicial_tendency=f.audit_verdict,
+                    adjudication_risk_probability=f.risk_tier,
+                )
+                if f.precedent_reference
+                else None
             )
             verified_items.append(
                 VulnerabilityItem(

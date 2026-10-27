@@ -24,17 +24,17 @@ def generate_deterministic_uuid(identifier: str) -> str:
 class LegalHierarchyLevel(str, Enum):
     """Statutory structural hierarchy levels according to VN Law on Promulgation of Legal Documents."""
     LAW = "LAW"
-    PART = "PART"             # Phần
-    CHAPTER = "CHAPTER"       # Chương
-    SECTION = "SECTION"       # Mục
-    SUB_SECTION = "SUB_SECTION" # Tiểu mục
-    ARTICLE = "ARTICLE"       # Điều
-    CLAUSE = "CLAUSE"         # Khoản
-    POINT = "POINT"           # Điểm
+    PART = "PART"             # Part
+    CHAPTER = "CHAPTER"       # Chapter
+    SECTION = "SECTION"       # Section
+    SUB_SECTION = "SUB_SECTION" # Sub-section
+    ARTICLE = "ARTICLE"       # Article
+    CLAUSE = "CLAUSE"         # Clause
+    POINT = "POINT"           # Point
 
 
 class LegalPoint(BaseModel):
-    """Represents a specific point (Điểm a, b, c...) within a statutory clause."""
+    """Represents a specific point within a statutory clause."""
     model_config = ConfigDict(extra="ignore")
 
     point_id: str = Field(description="Point identifier (e.g. 'a', 'b', 'c')")
@@ -43,30 +43,30 @@ class LegalPoint(BaseModel):
 
 
 class LegalClause(BaseModel):
-    """Represents an individual clause (Khoản 1, 2, 3...) within an article."""
+    """Represents an individual clause within an article."""
     model_config = ConfigDict(extra="ignore")
 
     clause_num: int = Field(description="Clause number (1, 2, 3...)")
     content: str = Field(description="Full text of the clause including its points")
-    points: List[LegalPoint] = Field(default_factory=list, description="Sub-points (Điểm) if present")
-    canonical_citation: str = Field(description="e.g. 'Khoản 1 Điều 115 Bộ luật Lao động 2019'")
+    points: List[LegalPoint] = Field(default_factory=list, description="Sub-points if present")
+    canonical_citation: str = Field(description="Canonical legal citation")
 
 
 class LegalArticle(BaseModel):
-    """Represents a statutory Article (Điều) containing clauses and terms."""
+    """Represents a statutory article containing clauses and terms."""
     model_config = ConfigDict(extra="ignore")
 
     article_num: int = Field(description="Article number (e.g. 115, 328)")
-    title: str = Field(description="Title / heading of the article (e.g. 'Nghỉ lễ, tết', 'Đặt cọc')")
+    title: str = Field(description="Title or heading of the article")
     full_text: str = Field(description="Verbatim combined text of all clauses in this article")
     clauses: List[LegalClause] = Field(default_factory=list, description="List of structured clauses")
-    canonical_citation: str = Field(description="e.g. 'Điều 115 Bộ luật Lao động 2019'")
+    canonical_citation: str = Field(description="Canonical legal citation")
     page_start: Optional[int] = Field(default=None, description="Starting page in original document")
     page_end: Optional[int] = Field(default=None, description="Ending page in original document")
 
 
 class LegalSection(BaseModel):
-    """Represents a statutory Section (Mục)."""
+    """Represents a statutory section."""
     model_config = ConfigDict(extra="ignore")
 
     section_num: Optional[str] = Field(default=None, description="Section numeral (e.g. '1', '2')")
@@ -79,7 +79,7 @@ class LegalChapter(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     chapter_num: str = Field(description="Chapter numeral (e.g. 'I', 'II', 'VII')")
-    title: str = Field(description="Chapter heading (e.g. 'HỢP ĐỒNG LAO ĐỘNG')")
+    title: str = Field(description="Chapter heading")
     sections: List[LegalSection] = Field(default_factory=list)
     articles: List[LegalArticle] = Field(default_factory=list)
 
@@ -88,8 +88,8 @@ class LegalPart(BaseModel):
     """Represents a statutory Part (Phần)."""
     model_config = ConfigDict(extra="ignore")
 
-    part_num: str = Field(description="Part numeral (e.g. 'THỨ NHẤT', 'I')")
-    title: str = Field(description="Part heading (e.g. 'QUY ĐỊNH CHUNG')")
+    part_num: str = Field(description="Part numeral")
+    title: str = Field(description="Part heading")
     chapters: List[LegalChapter] = Field(default_factory=list)
 
 
@@ -98,7 +98,7 @@ class LegalDocument(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     law_id: str = Field(description="Unique code identifier (e.g. 'bo-luat-dan-su-2015')")
-    title: str = Field(description="Official title (e.g. 'Bộ luật Dân sự 2015')")
+    title: str = Field(description="Official title")
     official_number: Optional[str] = Field(default=None, description="Official statute number (e.g. '91/2015/QH13')")
     promulgation_date: Optional[str] = Field(default=None, description="Date of enactment")
     effective_date: Optional[str] = Field(default=None, description="Effective date")
@@ -124,7 +124,7 @@ class LegalChunk(BaseModel):
         description="Deterministic unique ID: {LAW_CODE}_D{ARTICLE:03d}_K{CLAUSE:02d}"
     )
     law_id: str = Field(description="Statute identifier (e.g. 'bo-luat-lao-dong-2019')")
-    law_title: str = Field(description="Statute name (e.g. 'Bộ luật Lao động 2019')")
+    law_title: str = Field(description="Statute name")
     part_num: Optional[str] = None
     part_title: Optional[str] = None
     chapter_num: str = Field(description="Chapter numeral (e.g. 'VII')")
@@ -144,7 +144,7 @@ class LegalChunk(BaseModel):
 
     cross_references: List[str] = Field(
         default_factory=list,
-        description="Extracted citations to other articles (e.g. ['Điều 112', 'Điều 115'])"
+        description="Extracted citations to other articles"
     )
     is_active: bool = Field(
         default=True,
@@ -238,13 +238,13 @@ class LegalChunk(BaseModel):
 class GraphRelationType(str, Enum):
     """Standardized relationship types for Legal Knowledge Graph."""
     CONTAINS = "CONTAINS"                       # Structural containment (Law -> Chapter -> Article -> Clause)
-    REFERENCES = "REFERENCES"                   # Generic cross-reference (Căn cứ theo, Quy định tại...)
-    EXCEPTION_TO = "EXCEPTION_TO"               # Exception / carve-out (Trừ trường hợp quy định tại...)
-    CITES_CLAUSE = "CITES_CLAUSE"               # Specific clause reference (Chiếu theo Khoản X...)
-    DEFINED_IN = "DEFINED_IN"                   # Definitional anchor (Khái niệm được xác định tại...)
-    MANDATES_GUIDANCE = "MANDATES_GUIDANCE"     # Detailed specification / decree mandate (Quy định chi tiết...)
-    APPLIES_STATUTE = "APPLIES_STATUTE"         # Precedent applies statutory article (Án lệ áp dụng điều luật)
-    HAS_PRECEDENT = "HAS_PRECEDENT"             # Article has applicable judicial precedent (Có án lệ liên quan)
+    REFERENCES = "REFERENCES"                   # Generic cross-reference
+    EXCEPTION_TO = "EXCEPTION_TO"               # Exception or carve-out
+    CITES_CLAUSE = "CITES_CLAUSE"               # Specific clause reference
+    DEFINED_IN = "DEFINED_IN"                   # Definitional anchor
+    MANDATES_GUIDANCE = "MANDATES_GUIDANCE"     # Detailed specification or decree mandate
+    APPLIES_STATUTE = "APPLIES_STATUTE"         # Precedent applies a statutory article
+    HAS_PRECEDENT = "HAS_PRECEDENT"             # Article has an applicable judicial precedent
 
     # Backward-compatible aliases for legacy references
     THAM_CHIEU_DEN = "REFERENCES"
@@ -281,7 +281,7 @@ class GraphNode(BaseModel):
         props["law_id"] = self.law_id
         props["qdrant_point_id"] = self.qdrant_point_id
 
-        # Format properties as Cypher map literal
+        # Format properties as Cypher literal
         set_statements = []
         for k, v in props.items():
             if v is not None:
@@ -292,11 +292,36 @@ class GraphNode(BaseModel):
                     set_statements.append(f"n.{k} = {'true' if v else 'false'}")
                 elif isinstance(v, (int, float)):
                     set_statements.append(f"n.{k} = {v}")
+                elif isinstance(v, (list, tuple)):
+                    clean_items = []
+                    for item in v:
+                        if isinstance(item, str):
+                            escaped_item = item.replace("'", "\\'").replace("\n", " ")
+                            clean_items.append(f"'{escaped_item}'")
+                        elif isinstance(item, bool):
+                            clean_items.append("true" if item else "false")
+                        elif isinstance(item, (int, float)):
+                            clean_items.append(str(item))
+                    list_literal = f"[{', '.join(clean_items)}]"
+                    set_statements.append(f"n.{k} = {list_literal}")
 
         set_clause = ", ".join(set_statements)
         if set_clause:
             return f"MERGE (n:{self.node_type} {{node_id: '{self.node_id}'}}) ON CREATE SET {set_clause};"
         return f"MERGE (n:{self.node_type} {{node_id: '{self.node_id}'}});"
+
+    def to_cypher_params(self) -> Dict[str, Any]:
+        """Generate parameterized dictionary for clean Cypher execution without injection risks."""
+        props = dict(self.properties)
+        props["name"] = self.name
+        props["law_id"] = self.law_id
+        props["qdrant_point_id"] = self.qdrant_point_id
+        props["node_id"] = self.node_id
+        return {
+            "node_id": self.node_id,
+            "node_type": self.node_type,
+            "props": props,
+        }
 
 
 class GraphEdge(BaseModel):
@@ -335,21 +360,21 @@ class LegalGraphExtractionResult(BaseModel):
 
 class LegalPrecedent(BaseModel):
     """
-    Represents a judicial precedent or court judgment (Án lệ / Bản án thực tế)
+    Represents a judicial precedent or court judgment
     in the Vietnamese Legal System, linked to statutory articles in Neo4j.
     """
     model_config = ConfigDict(extra="ignore")
 
     precedent_id: str = Field(description="Deterministic ID (e.g. 'VN_AL_01_2016')")
-    precedent_number: str = Field(description="Official precedent identifier (e.g. 'Án lệ số 01/2016/AL')")
+    precedent_number: str = Field(description="Official precedent identifier")
     title: str = Field(description="Case title / topic heading")
     court: str = Field(
         default="Hội đồng Thẩm phán Tòa án nhân dân tối cao",
         description="Adjudicating court body"
     )
     promulgation_date: Optional[str] = Field(default=None, description="Date of precedent adoption")
-    case_summary: str = Field(description="Tóm tắt tình huống án lệ thực tế")
-    legal_rule: str = Field(description="Khái quát nội dung quy tắc án lệ (Ratio Decidendi)")
+    case_summary: str = Field(description="Summary of the actual precedent scenario")
+    legal_rule: str = Field(description="Summary of the precedent rule (ratio decidendi)")
     applied_statutes: List[str] = Field(
         default_factory=list,
         description="Node IDs of statutory articles applied (e.g. ['VN_BLDS_2015_D004'])"

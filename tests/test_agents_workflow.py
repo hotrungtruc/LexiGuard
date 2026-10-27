@@ -51,7 +51,7 @@ def test_dual_llm_initialization():
 
 def test_extract_clauses_node_parsing():
     sample_contract = """
-# HỢP ĐỒNG DỊCH VỤ PHÁP LÝ
+# LEGAL SERVICES CONTRACT
 
 Điều 1. Phạm vi công việc
 Bên B cung cấp dịch vụ rà soát hợp đồng cho Bên A.
@@ -284,6 +284,49 @@ def test_hallucination_grader_fail_triggers_self_correction_retry():
     max_state = {**state, **out, "retry_count": 2}
     branch_max = decide_post_grading_branch(max_state)
     assert branch_max == "export_report"
+
+
+def test_hallucination_grader_rejects_cross_statute_mismatch():
+    """Confirms cross-statute hallucination (matching article num but wrong law) is rejected."""
+    draft = AuditDraftReport(
+        contract_name="Test Cross-Statute",
+        findings=[
+            AuditFindingItem(
+                finding_id="f_cross",
+                clause_reference="Điều 8 Phạt vi phạm",
+                statutory_citation="Điều 301 Bộ luật Dân sự 2015",
+                audit_verdict="Mức phạt 8% theo Điều 301 BLDS",
+            )
+        ],
+    )
+    state: AgentState = {
+        "raw_document_path": "contract.pdf",
+        "parsed_clauses": [{"clause_reference": "Điều 8", "verbatim_text": "Phạt 20%"}],
+        "current_clause_index": 0,
+        "retrieved_statutes": [
+            {
+                "chunk_id": "VN_LTM_2005_D301",
+                "canonical_citation": "Điều 301 Luật Thương mại 2005",
+                "article_num": 301,
+                "content": "Mức phạt đối với vi phạm nghĩa vụ hợp đồng do các bên thoả thuận nhưng không quá 8%",
+            }
+        ],
+        "arithmetic_findings": [],
+        "preliminary_findings": [],
+        "verified_findings": [],
+        "audit_draft": draft,
+        "hallucination_grade": None,
+        "retry_count": 0,
+        "final_report": None,
+        "errors": [],
+    }
+
+    out = grade_hallucination_node(state)
+    grade: HallucinationGrade = out["hallucination_grade"]
+    assert grade.is_grounded is False
+    assert "Điều 301 Bộ luật Dân sự 2015" in grade.unverified_citations
+    assert len(out["verified_findings"]) == 0
+
 
 
 # ============================================================================

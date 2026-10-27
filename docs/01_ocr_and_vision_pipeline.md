@@ -1,7 +1,7 @@
 # LexiGuard Multimodal Document AI & OCR Pipeline
 
 ## High-Precision Vietnamese Legal Document Parsing, Spatial Provenance, and Structural Layout Extraction
-Powered by IBM Docling (DocLayNet, TableFormer) and GPU-Accelerated EasyOCR (Vietnamese `vi` + English `en`).
+Powered by IBM Docling (DocLayNet, TableFormer) with optional OCR acceleration and spatial provenance.
 
 ---
 
@@ -11,9 +11,9 @@ The `src/ingestion` module provides an enterprise-grade document ingestion pipel
 
 The pipeline provides high accuracy, consistent diacritic fidelity, and architectural simplicity:
 - **Layout Segmentation & Document Structure**: IBM Docling with the DocLayNet deep learning model parses paragraphs, section headers, statutory titles, and footnotes into a clean semantic hierarchy.
-- **Optical Character Recognition (OCR)**: Embedded EasyOCR configured for bilingual Vietnamese and English (`lang=['vi', 'en']`, `scale=2.0`) running on CUDA GPUs, achieving 100% Vietnamese diacritic preservation.
+- **Optical Character Recognition (OCR)**: Docling OCR is configured for Vietnamese and English when OCR is enabled. Accelerator selection is runtime-dependent; CUDA is preferred when available, with CPU fallback.
 - **Table Matrix Extraction**: IBM Docling TableFormer extracts complex administrative and compensation tables into normalized Markdown and coordinate-anchored cell matrices.
-- **Incremental Batch Slicing**: High-capacity multi-page statutes (up to 100+ scanned pages) are sliced into configurable 15-page batches with automatic CUDA VRAM deallocation, ensuring 0% out-of-memory failure rates.
+- **Incremental Batch Slicing**: High-capacity multi-page statutes (up to 100+ scanned pages) can be sliced into configurable batches with cleanup between slices. This reduces memory pressure but does not guarantee zero native-extension failures.
 
 ![Multimodal Legal OCR Pipeline Architecture](assets/single_branch_ocr_pipeline.png)
 
@@ -46,7 +46,7 @@ Every extracted element preserves its spatial bounding box:
 ## 3. Engineering Implementation Details
 
 ### 3.1 DoclingParser Configuration
-Located in [src/ingestion/docling_parser.py](file:///c:/PROJECTS/LexiGuard/src/ingestion/docling_parser.py), `DoclingParser` initializes the IBM Docling `DocumentConverter` with CUDA GPU acceleration and EasyOCR options:
+Located in [src/ingestion/docling_parser.py](../src/ingestion/docling_parser.py), `DoclingParser` lazy-loads the IBM Docling `DocumentConverter` only when a document is parsed. This keeps deterministic unit tests independent from native OCR extensions:
 
 ```python
 pipeline_options = PdfPipelineOptions()
@@ -91,7 +91,9 @@ The pipeline was benchmarked and validated on the official scanned statutory cor
 | **Bộ luật Lao động 2019** (`bo-luat-lao-dong-2019.pdf`) | 83 pages | 6 batches | 168,356 chars | 1,426 elements | ~9.8 s / page | 2,210 MB |
 | **Combined Corpus** | **177 pages** | **13 batches** | **363,752 chars** | **3,261 elements** | **10.1 s / page (avg)** | **< 2.3 GB** |
 
-### 4.2 Verified Terminal Output
+### 4.2 Historical Corpus Run
+
+The following output is a historical corpus run and should not be interpreted as a current production SLA. Re-run it in the validated native integration environment before publishing performance claims.
 ```
 2026-10-19 11:36:20.856 | INFO | Splitting bo-luat-dan-su-2015.pdf (94 pages) into batches of 15 pages...
 2026-10-19 11:36:20.856 | INFO | [bo-luat-dan-su-2015.pdf] Processing OCR batch 1/7 (pages 1-15)...
@@ -154,4 +156,11 @@ The pipeline is verified with unit tests in [tests/test_ocr_pdfs.py](file:///c:/
 ```bash
 pytest tests/test_ocr_pdfs.py tests/test_docling_parser.py -v
 ```
-All tests execute without warnings, verifying coordinate integrity, batch concatenation, and character preservation.
+The deterministic ingestion/table benchmark is safe for the default test run. Native Docling/OCR tests must be run explicitly:
+
+```powershell
+$env:LEXIGUARD_RUN_DOCLING_INTEGRATION = "1"
+python -m pytest tests/test_docling_parser.py tests/test_ocr_pdfs.py -q
+```
+
+On Windows, validate the pandas/pyarrow environment before enabling this mode..

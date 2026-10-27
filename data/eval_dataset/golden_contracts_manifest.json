@@ -1,0 +1,267 @@
+{
+  "manifest_version": "1.0.0",
+  "description": "LexiGuard 4-Tier Test Matrix Ground Truth Manifest for automated evaluation",
+  "total_test_contracts": 5,
+  "contracts": [
+    {
+      "file_name": "01_HDLD_Cong_Nghe_Digital.pdf",
+      "tier": "Tier 1 - Digital Full Labor & Arithmetic Traps",
+      "contract_no": "101/2026/HĐLĐ-TECH",
+      "contract_type": "LABOR",
+      "is_scanned": false,
+      "deskew_rotation_deg": 0.0,
+      "total_clauses": 5,
+      "total_traps": 3,
+      "expected_risk_category": "HIGH",
+      "ground_truth_traps": [
+        {
+          "trap_id": "TRAP_05_LABOR_PROBATION_EXCESS",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "45/2019/QH14_ART_25",
+            "45/2019/QH14_ART_26",
+            "45/2019/QH14_ART_27"
+          ],
+          "precedent_ref": "Bản án số 02/2025/LĐ-ST",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Thử việc trình độ đại học tối đa 60 ngày (Khoản 2 Điều 25 BLLĐ); lương thử việc tối thiểu 85% (Điều 26 BLLĐ); hủy bỏ thử việc không cần báo trước và không bồi thường (Khoản 2 Điều 27 BLLĐ 2019)."
+        },
+        {
+          "trap_id": "TRAP_14_TABLE_ARITHMETIC_SALARY",
+          "has_loophole": true,
+          "vulnerability_type": "TABLE_ARITHMETIC_ERROR",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "45/2019/QH14_ART_127",
+            "45/2019/QH14_ART_94",
+            "45/2019/QH14_ART_98",
+            "45/2019/QH14_ART_62"
+          ],
+          "precedent_ref": "Bản án 77/2024/LĐ-ST & 04/2023/LĐ-PT",
+          "mcp_tool_trigger": "verify_table_arithmetic",
+          "legal_reasoning": "Lỗi cộng sai bảng lương (23tr thành 21tr). Vi phạm điều cấm phạt tiền cắt lương (Khoản 2 Điều 127 BLLĐ); OT trả 100% trái Điều 98; đòi chi phí đào tạo không có hợp đồng trái Điều 62 BLLĐ 2019."
+        },
+        {
+          "trap_id": "TRAP_03_LABOR_STEALTH_TERMINATION",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "45/2019/QH14_ART_36",
+            "45/2019/QH14_ART_41",
+            "45/2019/QH14_ART_10",
+            "AN_LE_69_2023_AL",
+            "HIEN_PHAP_2013_ART_35"
+          ],
+          "precedent_ref": "Bản án 12/2023/LĐ-PT & Bản án 03/2023/LĐ-PT (đối chiếu Án lệ 69/2023/AL)",
+          "mcp_tool_trigger": "get_article_graph_context",
+          "legal_reasoning": "Ngụy trang sa thải theo Khoản 3 Điều 34 để lách Điều 36 BLLĐ. Điều khoản NCA cấm tràn lan tại khách hàng gộp trong HĐLĐ xâm phạm tự do việc làm theo Điều 10 BLLĐ 2019 và Hiến pháp 2013."
+        }
+      ]
+    },
+    {
+      "file_name": "02_HDDV_Phan_Mem_Stealth_Digital.pdf",
+      "tier": "Tier 2 - Commercial Stealth Financial & Arbitration Traps",
+      "contract_no": "0107211/TNAPP-HĐKT/2026",
+      "contract_type": "COMMERCIAL",
+      "is_scanned": false,
+      "deskew_rotation_deg": 0.0,
+      "total_clauses": 4,
+      "total_traps": 3,
+      "expected_risk_category": "HIGH",
+      "ground_truth_traps": [
+        {
+          "trap_id": "TRAP_15_TABLE_ARITHMETIC_PROJECT",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "36/2005/QH11_ART_301",
+            "91/2015/QH13_ART_423",
+            "91/2015/QH13_ART_425",
+            "91/2015/QH13_ART_519"
+          ],
+          "precedent_ref": "Bản án 15/2020/KDTM-PT & VIAC #054 & Bản án 32/2022/KDTM-PT",
+          "mcp_tool_trigger": "verify_table_arithmetic",
+          "legal_reasoning": "Bẫy số học cộng vống 10 triệu đồng. Phạt 8% trên Tổng HĐ khi chỉ vi phạm 10% hạng mục cuối và phạt chồng phạt vi phạm Điều 301 LTM. Tách rời hợp đồng thuê server khi app lỗi trái Điều 423, 425 BLDS 2015."
+        },
+        {
+          "trap_id": "TRAP_11_COMMERCIAL_ANATOCISM_INTEREST",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_357",
+            "91/2015/QH13_ART_468",
+            "91/2015/QH13_ART_418",
+            "91/2015/QH13_ART_419",
+            "91/2015/QH13_ART_360"
+          ],
+          "precedent_ref": "Bản án 04/2024/KDTM-PT & QĐGĐT 09/2020/KDTM-GĐT & Bản án 85/2024/KDTM-PT",
+          "mcp_tool_trigger": "get_article_graph_context",
+          "legal_reasoning": "Lãi 0,06%/ngày (21,9%/năm) vượt trần 20%/năm và cấm tính lãi kép (Điều 357, 468 BLDS); Liquidated Damages không cần chứng minh thiệt hại trái Điều 419 BLDS; miễn trừ trách nhiệm cho lỗi cố ý vi phạm Khoản 2 Điều 360 BLDS."
+        },
+        {
+          "trap_id": "TRAP_12_COMMERCIAL_DEFECTIVE_ARBITRATION",
+          "has_loophole": true,
+          "vulnerability_type": "AMBIGUOUS_LOOPHOLE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_156",
+            "91/2015/QH13_ART_405",
+            "91/2015/QH13_ART_429",
+            "54/2010/QH12_ART_4",
+            "54/2010/QH12_ART_43"
+          ],
+          "precedent_ref": "QĐGĐT 05/2021/KDTM-GĐT & QĐ 111/2023/QĐ-PQTT",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Mở rộng bất khả kháng trái Điều 156 BLDS; giải thích HĐ mẫu bất lợi cho bên yếu thế trái Khoản 2 Điều 405 BLDS; trọng tài ghi sai tên VIAC, thỏa thuận nước đôi và cho phép kháng cáo trái Điều 4, Điều 43 Luật TTTM."
+        }
+      ]
+    },
+    {
+      "file_name": "03_HDDV_Phan_Mem_Scanned_Skewed.pdf",
+      "tier": "Tier 3 - Scanned, Rotated 1.2deg & Blurred Stress Test",
+      "contract_no": "0107211/TNAPP-HĐKT/2026",
+      "contract_type": "COMMERCIAL",
+      "is_scanned": true,
+      "deskew_rotation_deg": 1.2,
+      "ocr_target": "IBM Docling OCR + TableFormer",
+      "total_clauses": 4,
+      "total_traps": 3,
+      "expected_risk_category": "HIGH",
+      "ground_truth_traps": [
+        {
+          "trap_id": "TRAP_15_TABLE_ARITHMETIC_PROJECT",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "36/2005/QH11_ART_301",
+            "91/2015/QH13_ART_423",
+            "91/2015/QH13_ART_425",
+            "91/2015/QH13_ART_519"
+          ],
+          "precedent_ref": "Bản án 15/2020/KDTM-PT & VIAC #054 & Bản án 32/2022/KDTM-PT",
+          "mcp_tool_trigger": "verify_table_arithmetic",
+          "legal_reasoning": "Bẫy số học cộng vống 10 triệu đồng. Phạt 8% trên Tổng HĐ khi chỉ vi phạm 10% hạng mục cuối và phạt chồng phạt vi phạm Điều 301 LTM. Tách rời hợp đồng thuê server khi app lỗi trái Điều 423, 425 BLDS 2015."
+        },
+        {
+          "trap_id": "TRAP_11_COMMERCIAL_ANATOCISM_INTEREST",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_357",
+            "91/2015/QH13_ART_468",
+            "91/2015/QH13_ART_418",
+            "91/2015/QH13_ART_419",
+            "91/2015/QH13_ART_360"
+          ],
+          "precedent_ref": "Bản án 04/2024/KDTM-PT & QĐGĐT 09/2020/KDTM-GĐT & Bản án 85/2024/KDTM-PT",
+          "mcp_tool_trigger": "get_article_graph_context",
+          "legal_reasoning": "Lãi 0,06%/ngày (21,9%/năm) vượt trần 20%/năm và cấm tính lãi kép (Điều 357, 468 BLDS); Liquidated Damages không cần chứng minh thiệt hại trái Điều 419 BLDS; miễn trừ trách nhiệm cho lỗi cố ý vi phạm Khoản 2 Điều 360 BLDS."
+        },
+        {
+          "trap_id": "TRAP_12_COMMERCIAL_DEFECTIVE_ARBITRATION",
+          "has_loophole": true,
+          "vulnerability_type": "AMBIGUOUS_LOOPHOLE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_156",
+            "91/2015/QH13_ART_405",
+            "91/2015/QH13_ART_429",
+            "54/2010/QH12_ART_4",
+            "54/2010/QH12_ART_43"
+          ],
+          "precedent_ref": "QĐGĐT 05/2021/KDTM-GĐT & QĐ 111/2023/QĐ-PQTT",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Mở rộng bất khả kháng trái Điều 156 BLDS; giải thích HĐ mẫu bất lợi cho bên yếu thế trái Khoản 2 Điều 405 BLDS; trọng tài ghi sai tên VIAC, thỏa thuận nước đôi và cho phép kháng cáo trái Điều 4, Điều 43 Luật TTTM."
+        }
+      ]
+    },
+    {
+      "file_name": "04_HDMB_Thiet_Bi_FDI_Digital.pdf",
+      "tier": "Tier 4 - FDI International Commercial & Liquidated Damages",
+      "contract_no": "889/2026/HĐMB-GLOBAL/TECH-SOLUTIONS",
+      "contract_type": "COMMERCIAL",
+      "is_scanned": false,
+      "deskew_rotation_deg": 0.0,
+      "total_clauses": 5,
+      "total_traps": 4,
+      "expected_risk_category": "HIGH",
+      "ground_truth_traps": [
+        {
+          "trap_id": "TRAP_07_COMMERCIAL_PENALTY_CONFUSION",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "36/2005/QH11_ART_301",
+            "36/2005/QH11_ART_302",
+            "91/2015/QH13_ART_418",
+            "91/2015/QH13_ART_419"
+          ],
+          "precedent_ref": "Bản án số 85/2024/KDTM-PT & 01/2017/KDTM-ST & 30/2019/KDTM-ST",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Nhầm lẫn giữa phạt vi phạm (trần 8% Điều 301 LTM) và bồi thường thiệt hại (Điều 302 LTM); đòi 20% tổng giá trị mà miễn chứng minh thiệt hại thực tế là trái luật."
+        },
+        {
+          "trap_id": "TRAP_10_COMMERCIAL_LIQUIDATED_DAMAGES",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_419",
+            "91/2015/QH13_ART_584",
+            "36/2005/QH11_ART_302",
+            "36/2005/QH11_ART_304"
+          ],
+          "precedent_ref": "Quyết định Giám đốc thẩm số 09/2020/KDTM-GĐT - HĐTP TAND Tối cao",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Pháp luật Việt Nam không công nhận Liquidated Damages miễn chứng minh thiệt hại thực tế (Điều 419 BLDS 2015, Điều 302 LTM 2005)."
+        },
+        {
+          "trap_id": "TRAP_COMMERCIAL_LIMITATION_AND_STATUTE",
+          "has_loophole": true,
+          "vulnerability_type": "ILLEGAL_CLAUSE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "91/2015/QH13_ART_360",
+            "91/2015/QH13_ART_429"
+          ],
+          "precedent_ref": "Bản án 18/2022/KDTM-PT",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Vô hiệu thỏa thuận miễn trừ trách nhiệm cho hành vi cố ý vi phạm (Khoản 2 Điều 360 BLDS); thời hiệu khởi kiện luật định là 03 năm (Điều 429 BLDS), không được tự ý rút ngắn còn 60 ngày."
+        },
+        {
+          "trap_id": "TRAP_12_COMMERCIAL_DEFECTIVE_ARBITRATION",
+          "has_loophole": true,
+          "vulnerability_type": "AMBIGUOUS_LOOPHOLE",
+          "risk_level": "HIGH",
+          "violates_statutes": [
+            "54/2010/QH12_ART_4",
+            "54/2010/QH12_ART_43"
+          ],
+          "precedent_ref": "Hồ sơ VIAC #055 & Điều 4 Nghị quyết 01/2014/NQ-HĐTP",
+          "mcp_tool_trigger": "search_legal_provisions",
+          "legal_reasoning": "Thỏa thuận cơ quan tài phán nước đôi và bất đối xứng ('theo sự lựa chọn của Bên A', 'VIAC hoặc Tòa án') làm thỏa thuận trọng tài không thể thực hiện được theo Điều 4 NQ 01/2014/NQ-HĐTP."
+        }
+      ]
+    },
+    {
+      "file_name": "05_HDLD_Chuan_An_Toan_Control.pdf",
+      "tier": "Tier 5 - 100% Compliant Clean Control Group (Zero-Defect)",
+      "contract_no": "202/2026/HĐLĐ-STANDARD",
+      "contract_type": "LABOR",
+      "is_scanned": false,
+      "deskew_rotation_deg": 0.0,
+      "total_clauses": 4,
+      "total_traps": 0,
+      "expected_risk_category": "LOW",
+      "ground_truth_traps": []
+    }
+  ]
+}

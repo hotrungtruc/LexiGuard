@@ -108,11 +108,11 @@ def test_graph_extractor_triples_and_cypher():
     contains_edges = [e for e in result.edges if e.relation == GraphRelationType.CONTAINS]
     assert len(contains_edges) > 0
 
-    # Verify semantic citation: Điều 2 tham chiếu Điều 1
+    # Verify semantic citation: Article 2 references Article 1.
     tham_chieu_edges = [e for e in result.edges if e.relation == GraphRelationType.THAM_CHIEU_DEN]
     assert len(tham_chieu_edges) > 0
 
-    # Verify exception citation: Điều 2 ngoại lệ của Điều 3
+    # Verify exception citation: Article 2 is an exception to Article 3.
     ngoai_le_edges = [e for e in result.edges if e.relation == GraphRelationType.NGOAI_LE_CUA]
     assert len(ngoai_le_edges) > 0
     assert any("D003" in e.target_id for e in ngoai_le_edges)
@@ -145,4 +145,3 @@ def test_ocr_markdown_bullet_and_tight_clause_parsing():
     assert art4.clauses[1].clause_num == 2
     assert art4.clauses[2].clause_num == 3
     assert art4.clauses[3].clause_num == 4
-

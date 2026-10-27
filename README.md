@@ -1,497 +1,345 @@
-<div align="center">
+# LexiGuard
 
-# 🛡️ LexiGuard
-### Autonomous Multi-Agent Contract Vulnerability Auditing & Legal Cross-Referencing System
-**Powered by Multimodal Document OCR, Hybrid GraphRAG & Multi-Agent Orchestration**
+### Autonomous Multi-Agent Contract Auditing and Legal Cross-Referencing System
+**Enterprise contract risk analysis powered by layout-aware document ingestion, hybrid GraphRAG, and self-correcting multi-agent orchestration.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![Architecture: Multi-Agent](https://img.shields.io/badge/Architecture-Multi--Agent%20Orchestration-orange.svg)](#system-architecture)
-[![Retrieval: Hybrid GraphRAG](https://img.shields.io/badge/Retrieval-Hybrid%20GraphRAG%20(KG%20%2B%20Vector)-green.svg)](#hybrid-graphrag-engine)
-[![Engine: Google Gemini](https://img.shields.io/badge/Engine-Gemini%202.0%20%2F%20Flash-8E75B2.svg)](https://deepmind.google/technologies/gemini/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Architecture: LangGraph](https://img.shields.io/badge/Architecture-LangGraph%20Multi--Agent-orange.svg)](docs/04_fastmcp_multiagent_langgraph.md)
+[![Retrieval: Hybrid GraphRAG](https://img.shields.io/badge/Retrieval-Neo4j%20%2B%20Qdrant-green.svg)](docs/03_hybrid_graphrag_qdrant_neo4j.md)
+[![Benchmark: VLegal--Bench](https://img.shields.io/badge/Benchmark-VLegal--Bench%20(95.2%25%20Acc)-brightgreen.svg)](reports/VLEGAL_BENCHMARK_REPORT.md)
 
-[**Key Rationale**](#the-core-philosophy) •
-[**3 Killer Features**](#-the-3-crown-jewel-capabilities-beyond-generic-chatbots) •
-[**The 3 Audit Pillars**](#-the-three-pillars-of-contract-vulnerability) •
-[**Enterprise Value**](#-enterprise-business-value--roi) •
-[**System Architecture**](#️-system-architecture) •
-[**Technical Docs**](docs/README.md) •
-[**Benchmark Results**](data/eval_dataset/benchmark_results_summary.md) •
-[**Quick Start**](#-getting-started) •
-[**Roadmap**](#-roadmap)
-
----
-
-</div>
-
-## 📌 Executive Summary
-
-**LexiGuard** is an enterprise-grade LegalTech AI platform designed to automate the contract review lifecycle. By ingesting complex commercial contracts, employment agreements, and corporate bylaws (scanned PDFs, images, or native documents), LexiGuard performs clause-by-clause legal cross-referencing against statutory law and regulatory frameworks.
-
-Leveraging **High-Precision Multimodal OCR**, a **Hybrid GraphRAG** engine (combining structured Legal Knowledge Graphs with dense vector embeddings), and an **Ensemble of Autonomous Verification Agents**, LexiGuard pinpoints unlawful clauses, linguistic ambiguities, and asymmetric liabilities—transforming days of tedious manual legal vetting into minutes of verifiable, actionable audit intelligence.
+[Executive Summary](#executive-summary) |
+[Core Architectural Principle](#core-architectural-principle) |
+[Key Capabilities](#key-capabilities) |
+[System Architecture](#system-architecture) |
+[Empirical Benchmarks](#empirical-benchmarks) |
+[Repository Structure](#repository-structure) |
+[Quickstart](#quickstart) |
+[API Reference](#api-reference) |
+[Documentation](#technical-documentation) |
+[Legal Disclaimer](#legal-disclaimer)
 
 ---
 
-## 💡 The Core Philosophy: Why Target "Contract Vulnerabilities vs. Statutory Law"?
+## Executive Summary
 
-A foundational design decision of LexiGuard is its explicit focus on **auditing private contracts against governing statutory law**, rather than attempting to detect "loopholes in sovereign legislation."
+LexiGuard is an enterprise LegalTech platform engineered to automate the contract review lifecycle. When organizations execute commercial contracts, service agreements, employment contracts, and corporate bylaws, manual clause-by-clause vetting against statutory laws is slow, error-prone, and expensive.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   THE ARCHITECTURAL DICHOTOMY                          │
-├───────────────────────────────────┬────────────────────────────────────┤
-│ ❌ "Gaps in Sovereign Law"        │ ✅ "Contract Auditing vs. Law"     │
-├───────────────────────────────────┼────────────────────────────────────┤
-│ • Unbounded, macro-level domain   │ • Bounded, deterministic problem   │
-│ • Political & legislative intent  │ • Concrete contractual obligations │
-│ • Prone to high LLM hallucination │ • Direct statutory cross-check     │
-│ • No immediate business utility   │ • High ROI, immediate enterprise   │
-│                                   │   risk mitigation & cost savings   │
-└───────────────────────────────────┴────────────────────────────────────┘
-```
+LexiGuard ingests complex native and scanned documents (PDF, DOCX, images) and performs clause-by-clause legal cross-referencing against sovereign legislation. The system combines:
 
-### 1. Macro-Legislative Ambiguity vs. Deterministic Grounding
-Sovereign legal codes (such as Commercial Codes, Civil Codes, and Labor Regulations) are drafted with broad, macroeconomic foresight. Identifying a "loophole" in government legislation requires legislative policy analysis and sociological context. For Large Language Models (LLMs), attempting to critique the law itself leads to unbounded reasoning paths, speculation, and high hallucination rates.
-
-### 2. High-Value, Verifiable Contractual Boundary
-Contracts, bylaws, and service agreements represent **finite, legally binding private pacts** governed by mandatory public statutes. When an enterprise uploads a 50-page vendor contract, the problem space is crisp, deterministic, and verifiable:
-- *Does Clause 8.2 violate statutory caps on liquidated damages?*
-- *Is the termination clause missing mandatory cure-period notices?*
-- *Are warranty disclaimers legally enforceable under governing consumer protection laws?*
-
-By grounding LLMs on **statutory articles as source-of-truth benchmarks**, LexiGuard eliminates speculative reasoning and delivers mathematically reproducible compliance checks.
+1. **Multimodal Document Layout Parsing**: Structural segmentation preserving article numbering, indentation, tables, and spatial bounding boxes.
+2. **Hybrid GraphRAG**: Simultaneous dense vector retrieval (Qdrant) and deterministic knowledge graph traversal (Neo4j) to capture hierarchical statutory structures and cross-code amendments.
+3. **Autonomous Multi-Agent Orchestration**: A cyclic, self-correcting state machine (LangGraph) that inspects clauses, audits financial table arithmetic, drafts statutory redlines, and enforces anti-hallucination citation verification.
 
 ---
 
-## 💎 The 3 Crown-Jewel Capabilities: Beyond Generic Chatbots
+## Core Architectural Principle
 
-Traditional LLMs provide lengthy, vague paragraphs of conversational text that legal teams cannot operationalize. LexiGuard is purpose-built with **three high-precision, enterprise-grade capabilities**:
+### Bounded Contract Auditing vs. Unbounded Legal Speculation
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                               LEXIGUARD CROWN JEWELS                                    │
-├───────────────────────────────┬─────────────────────────────┬───────────────────────────┤
-│ 1. Playbook Deviation &       │ 2. Automated Redlining &    │ 3. Anti-Hallucination     │
-│    Structured Risk Scoring    │    Direct Legal Drafting    │    Citation Traceability  │
-├───────────────────────────────┼─────────────────────────────┼───────────────────────────┤
-│ • Structured tabular audit    │ • Ready-to-use drop-in      │ • Exact PDF page & line   │
-│ • Clause-by-clause breakdown  │   amendment clauses         │   bounding-box metadata   │
-│ • High / Medium / Low tiers   │ • Statutory-backed diffs    │ • Neo4j / Qdrant citations│
-└───────────────────────────────┴─────────────────────────────┴───────────────────────────┘
-```
+A foundational design tenet of LexiGuard is its strict focus on **auditing private contractual provisions against governing statutory baselines**, rather than attempting ungrounded policy analysis of sovereign legislation:
 
-### 1. 📊 Playbook Deviation Analysis & Risk Scoring (*Phân tích sai lệch & Chấm điểm rủi ro*)
-Instead of verbose, conversational paragraphs, LexiGuard parses the contract into an actionable, structured audit matrix. Every single clause is assessed against standard corporate legal playbooks and assigned a clear, standardized severity tier:
+| Dimension | Speculative Legal Critique | Grounded Contract Auditing (LexiGuard) |
+| :--- | :--- | :--- |
+| **Problem Scope** | Unbounded macro-policy reasoning | Bounded, deterministic statutory compliance |
+| **Truth Grounding** | Subjective, speculative, open-ended | Explicit statutory articles, caps, and mandatory clauses |
+| **Model Hallucination** | High risk of hallucinated doctrine | Controlled via exact bidirectional database citations |
+| **Enterprise Utility** | Theoretical policy commentary | Immediate risk reduction, automated redlines, and ROI |
 
-* 🔴 **HIGH RISK (`CRITICAL`)**: Unlawful or void provisions (*Trái luật / Vô hiệu*) breaching statutory limits, lacking mandatory provisions, or exposing the company to regulatory invalidation.
-* 🟡 **MEDIUM RISK (`WARNING`)**: Drafting loopholes, open-ended timelines, or semantic ambiguities (*Lỗ hổng câu chữ / Mơ hồ*) that a counterparty could exploit to evade contractual liability.
-* 🟢 **LOW RISK (`COMPLIANT`)**: Valid, balanced, and commercially standard clauses (*An toàn / Hợp chuẩn*).
-
-#### 📋 Structured Audit Matrix Example
-| Clause ID | Clause Heading | Contract Excerpt | Risk Tier | Vulnerability Classification | Violation / Risk Summary |
-| :---: | :--- | :--- | :---: | :--- | :--- |
-| **Sec 9.4** | Liquidated Damages | *"Penalty of 20% of total Agreement Value for any delivery delay..."* | 🔴 **HIGH** | Statutory Breach (Void) | Violates Article 301, Commercial Law 2005 (Mandatory 8% cap on breach penalties). |
-| **Sec 5.2** | Deposit Refund | *"Party A shall refund the security deposit after handover is finished..."* | 🟡 **MEDIUM** | Drafting Ambiguity (Exploitable) | No maximum deadline for refund; exposes Party B to capital lock-in and liquidity risk. |
-| **Sec 14.1**| Dispute Resolution | *"Disputes shall be submitted to VIAC in Ho Chi Minh City..."* | 🟢 **LOW** | Compliant (Enforceable) | Clear arbitral forum, designated rules, and enforceable jurisdiction. |
+By anchoring large language models to statutory articles stored in verified knowledge graphs and vector databases, LexiGuard transforms contract vetting into a deterministic, verifiable workflow.
 
 ---
 
-### 2. ✍️ Automated Redlining & Direct Legal Drafting (*Đề xuất sửa câu chữ trực tiếp*)
-Most legal AI tools stop at diagnosing problems (e.g., stating *"Clause 5.2 fails to specify a refund deadline, risking capital lock-in"*), leaving the lawyer to manually draft a fix. 
+## Key Capabilities
 
-**LexiGuard's Redline Agent generates ready-to-negotiate, drop-in replacement clauses** complete with diff blocks and legal justification grounded in statutory law:
+### 1. Structured Risk Scoring and Playbook Deviation
 
-#### 📝 Example: Instant Contract Redline Output
-> **Identified Vulnerability:** Section 5.2 fails to establish a binding timeline for deposit restitution, allowing Party A to withhold funds indefinitely without triggering default.
+LexiGuard decomposes agreements into an actionable audit matrix. Every clause is assessed and classified into standardized severity tiers:
+
+- **Critical (High Risk)**: Provisions that violate mandatory statutory rules, render a clause null and void, or expose the entity to regulatory penalties (e.g., liquidated damages exceeding statutory limits).
+- **Warning (Medium Risk)**: Drafting ambiguities, open-ended deadlines, or asymmetric obligations that counterparties can exploit.
+- **Compliant (Low Risk)**: Balanced, enforceable, and standard provisions aligned with corporate playbooks.
+
+### 2. Automated Redlining and Direct Legal Drafting
+
+Beyond diagnosing defects, LexiGuard produces ready-to-negotiate replacement clauses with diff blocks and legal justifications grounded in governing statutes:
 
 ```diff
 - Section 5.2. Deposit Return: Party A shall return the entire security deposit to Party B after the premises handover inspection is finished.
-+ Section 5.2. Deposit Return: Party A shall refund 100% of the security deposit to Party B within seven (07) business days following the mutual execution of the handover acceptance minute. In the event Party A fails to refund within the stipulated timeline, Party A shall pay late-payment interest on the overdue sum calculated at the default interest rate under Article 357 and Article 468 of the 2015 Civil Code, without prejudice to Party B's right to claim compensation under Article 328 of the 2015 Civil Code.
++ Section 5.2. Deposit Return: Party A shall refund 100% of the security deposit to Party B within seven (07) business days following mutual execution of the handover acceptance minute. In the event Party A fails to refund within this timeline, Party A shall pay late-payment interest on the overdue sum under Articles 357 and 468 of the Civil Code 2015, without prejudice to Party B's right to compensation under Article 328 of the Civil Code 2015.
 ```
-* **Negotiation Rationale:** Protects cash flow, enforces a strict 7-day cure window, and cites Civil Code Articles 328/357/468 to eliminate pushback during counterparty negotiations.
+
+### 3. Dual-Ended Provenance and Citation Verification
+
+To prevent hallucinated citations, every finding links document coordinates to statutory database identifiers:
+
+- **Document Source Provenance**: File name, page number, line range, and spatial bounding box coordinates `[x0, y0, x1, y1]`.
+- **Statutory Authority Grounding**: Neo4j node ID, Qdrant point UUID, official law title, article number, and verbatim legislative text.
+
+### 4. Deterministic Table Arithmetic Auditing
+
+Financial annexes and compensation schedules are audited deterministically:
+- Row-level multiplication (Quantity x Unit Price).
+- Column-level summations and discount calculations.
+- Value Added Tax (VAT) rate verification against statutory tax schedules.
 
 ---
 
-### 3. 🔍 Anti-Hallucination Citation Traceability (*Truy vết trích dẫn chống ảo giác*)
-In legal workflows, hallucinated citations or unverified assertions create catastrophic liability. LexiGuard enforces a **Strict Dual-Ended Provenance Protocol**—no finding is rendered without bidirectional metadata linking the physical document directly to the statutory database:
+## System Architecture
 
-```
-┌───────────────────────────────────────┐          ┌───────────────────────────────────────┐
-│       CONTRACT INPUT PROVENANCE       │          │       STATUTORY KNOWLEDGE BASE        │
-├───────────────────────────────────────┤          ├───────────────────────────────────────┤
-│ • File: Commercial_Lease_2026.pdf     │  Audit   │ • DB: Neo4j Legal Knowledge Graph     │
-│ • Page: 8, Lines: 14 – 22             │  Proof   │ • Node: Civil_Code_2015 -> Art_328    │
-│ • Bounding Box: [72.0, 312.4, 510.5]  │ ◄──────► │ • Vector: Qdrant Point UUID #8f3d1    │
-│ • Hash: sha256:7b91c...e84a           │          │ • Legal Text: Article 328, Clause 2   │
-└───────────────────────────────────────┘          └───────────────────────────────────────┘
-```
-
-#### 🏷️ Rich Metadata Payload per Finding
-```json
-{
-  "finding_id": "LG-2026-VULN-0042",
-  "clause_reference": "Section 5.2 (Deposit Return)",
-  "contract_provenance": {
-    "source_file": "Commercial_Lease_Agreement_Final.pdf",
-    "page_number": 8,
-    "line_range": "14-22",
-    "bounding_box": {"x0": 72.0, "y0": 312.4, "x1": 510.5, "y1": 368.2},
-    "verbatim_text": "Party A shall return the entire security deposit to Party B after the premises handover inspection is finished."
-  },
-  "legal_grounding": {
-    "statute_title": "Civil Code of Vietnam (Law No. 91/2015/QH13)",
-    "article": "Article 328 (Deposit)",
-    "clause": "Clause 2",
-    "database_sources": {
-      "neo4j_node_id": "STATUTE:VN:CC2015:ART328:C2",
-      "qdrant_point_id": "8f3d1b90-4a8e-42c2-b715-e018d6a894fc",
-      "retrieval_similarity_score": 0.942
-    }
-  },
-  "risk_tier": "MEDIUM",
-  "audit_verdict": "Absence of statutory temporal performance milestone creates unilateral liquidity risk."
-}
-```
-
----
-
-## 🎯 The Three Pillars of Contract Vulnerability
-
-LexiGuard inspects every draft across three specialized legal vulnerability dimensions:
-
-```
-                              ┌───────────────────────────────────┐
-                              │     LexiGuard Audit Pillars       │
-                              └─────────────────┬─────────────────┘
-                                                │
-         ┌──────────────────────────────┬───────┴──────────────────────────────┐
-         ▼                              ▼                                      ▼
-┌────────────────────────┐   ┌────────────────────────┐   ┌────────────────────────┐
-│   1. Compliance &      │   │ 2. Drafting Ambiguities│   │  3. Asymmetric Risk    │
-│      Nullity Check     │   │    & Exploitation      │   │     & Exposure         │
-├────────────────────────┤   ├────────────────────────┤   ├────────────────────────┤
-│ • Mandatory law breaches│  │ • Unbounded quantifiers│   │ • One-sided penalties  │
-│ • Automatically void   │   │ • Unclear timelines    │   │ • Skewed indemnities   │
-│   clauses              │   │ • Loose Force Majeure  │   │ • Unilateral rights of │
-│ • Regulatory fines     │   │ • Loophole exploitation│   │   termination          │
-└────────────────────────┘   └────────────────────────┘   └────────────────────────┘
-```
-
-### 1. Statutory Compliance & Nullity Check (*Điều khoản trái luật / vô hiệu*)
-Identifies provisions that breach imperative legal statutes, rendering them null, void, or subject to administrative penalties:
-- **Liquidated Damages Caps**: Flags penalties exceeding statutory ceilings (e.g., Article 301 of Vietnam's Commercial Law capping breach penalties at 8% of the breached obligation value).
-- **Labor Code Violations**: Catches unauthorized wage withholding, excessive probationary periods, or unlawful non-compete covenants that infringe upon statutory employee rights.
-- **Consumer & Data Protection**: Pinpoints mandatory disclosure omissions and GDPR/PDPA compliance failures.
-
-### 2. Drafting Ambiguities & Semantic Loopholes (*Lỗ hổng chữ nghĩa / Từ ngữ mơ hồ*)
-Detects vague language, undefined qualifiers, and open-ended obligations that counterparties can weaponize to evade liability:
-- **Indefinite Quantifiers**: Flags phrases such as *"reasonable efforts"*, *"promptly"*, *"acceptable standard"*, or *"material impact"* where strict numerical metrics or deadlines are required.
-- **Omission of Fallback Conditions**: Detects incomplete dispute escalations, silent governing laws, and ambiguous delivery milestones.
-- **Weaponized Force Majeure**: Uncovers overly broad pandemic, economic slowdown, or governmental intervention clauses drafted to excuse non-performance.
-
-### 3. Asymmetric Risk & Unbalanced Liabilities (*Điểm yếu bất lợi / Rủi ro bất cân xứng*)
-Performs an adversarial red-team assessment of reciprocal rights and duties:
-- **Unbalanced Penalty Structures**: Detects contracts mandating hefty late-payment penalties on Party B while remaining completely silent on sanctions if Party A delays milestones or approvals.
-- **One-Sided Indemnification**: Highlights uncapped liability on the vendor with zero reciprocal indemnification from the buyer.
-- **Unilateral Termination Power**: Identifies termination-for-convenience clauses reserved exclusively for one party without equitable notice or compensation mechanisms.
-
----
-
-## 💼 Enterprise Business Value & ROI
-
-For corporate legal departments, procurement teams, and law firms, contract review is an expensive operational bottleneck. LexiGuard delivers tangible enterprise impact:
-
-| Metric | Traditional Legal Review | LexiGuard Automated Pipeline | Enterprise Impact |
-| :--- | :--- | :--- | :--- |
-| **Review Turnaround Time** | 2 – 5 Business Days | **< 60 Seconds** per 30-page contract | **98% reduction** in review latency; accelerates deal velocity. |
-| **Direct Review Costs** | $300 – $700+ / hour (External counsel) | **Fraction of a cent** per page | **Up to 80% reduction** in routine document auditing expenditure. |
-| **Omission / Human Error Rate** | Variable (Fatigue-prone across 100+ pages) | **Deterministic & Systematic** | Exhaustive cross-referencing against all relevant statutory articles. |
-| **Negotiation Leverage** | Ad-hoc counter-proposals | **Automated Redlines & Legal Justifications** | Generates instant, citation-backed counter-amendments for negotiations. |
-| **Institutional Knowledge** | Siloed in individual senior counsel | **Centralized Legal Knowledge Graph** | Standardizes corporate risk appetite across global procurement teams. |
-
----
-
-## 🏗️ System Architecture
-
-LexiGuard fuses multimodal vision models, knowledge graphs, and multi-agent systems into a streamlined workflow:
+LexiGuard integrates four specialized subsystems into an asynchronous pipeline:
 
 ```mermaid
 graph TD
-    subgraph Ingestion ["1. Multimodal Document Ingestion"]
-        Doc[Scanned PDF / Image / Docx] --> OCR[Docling Layout Parser + Optional OCR]
-        OCR --> Struct[Clause Segmentation & Table Extraction]
+    subgraph Ingestion ["1. Document Ingestion & Vision AI"]
+        Doc[Scanned PDF / Image / DOCX] --> Layout[Docling Layout Segmentation]
+        Layout --> Table[TableFormer Matrix Extractor]
+        Table --> Chunks[Hierarchical Clause Synthesizer]
     end
 
-    subgraph RAG ["2. Hybrid GraphRAG Retrieval"]
-        Struct --> QueryGen[Grounded Query Builder]
-        QueryGen --> VDB[(Qdrant Dense + Sparse)]
-        QueryGen --> KG[(Neo4j Knowledge Graph)]
-        VDB --> RRF[Hybrid / RRF Fusion]
-        KG --> Expand[Graph Expansion]
-        RRF --> Filter[Active-Law Filter]
-        Expand --> Filter
-        Filter --> Context[Optional Cross-Encoder Reranking]
+    subgraph RAG ["2. Hybrid GraphRAG Engine"]
+        Chunks --> FastPath[Entity Fast-Path Extractor]
+        FastPath --> Qdrant[(Qdrant Hybrid Search: Dense + Sparse)]
+        FastPath --> Neo4j[(Neo4j Knowledge Graph)]
+        Qdrant --> RRF[Reciprocal Rank Fusion]
+        Neo4j --> Expansion[Batched UNWIND Cypher Expansion]
+        RRF --> Reranker[Cross-Encoder Reranker]
+        Expansion --> Reranker
     end
 
-    subgraph Agents ["3. LangGraph Audit Workflow"]
-        Struct --> Extract[ClauseExtractor]
-        Extract --> Research[LegalResearcher]
-        Context --> Research
-        Research --> Audit[LoopholeAuditor]
-        Audit --> Grade[HallucinationGrader]
-        Grade -- "fail; bounded retry" --> Audit
+    subgraph Agents ["3. LangGraph Multi-Agent State Machine"]
+        Reranker --> Extractor[Node 1: ClauseExtractor]
+        Extractor --> Researcher[Node 2: LegalResearcher]
+        Researcher --> Auditor[Node 3: LoopholeAuditor]
+        Auditor --> Grader[Node 4: HallucinationGrader]
+        Grader -- "Unverified citation (retry < 2)" --> Researcher
     end
 
-    subgraph Outputs ["4. Delivery & Interactive Interface"]
-        Grade -- "pass" --> Report[Verified JSON Audit Report]
-        Grade --> Chat[Grounded Legal Q&A / API Output]
+    subgraph Output ["4. Interfaces & Delivery"]
+        Grader -- "Verified (pass = 1.0)" --> AuditReport[Verified JSON Audit Report]
+        Grader --> API[FastAPI SSE Streaming Endpoint]
+        Grader --> UI[Chainlit Interactive Copilot]
     end
 ```
 
-### 🧠 The Core Technological Innovations
+### Subsystem Breakdown
 
-#### 1. Multimodal Document Ingestion & Layout-Aware OCR
-Legal documents are rarely clean plain text; they arrive as skewed scans, stamps, multi-column layouts, and nested annexes.
-- **Vision-Language Parsing**: Converts scanned documents into markdown hierarchies, preserving clause numbering (`1.1.2`, `Article 4(a)`), signatures, and tabular data.
-- **Syntactic Tree Construction**: Builds a parsed syntax tree where each clause inherits scope, parties, and governing definitions.
+1. **Multimodal Document AI (`src/ingestion`)**:
+   - Layout parsing using IBM Docling and DocLayNet to isolate chapters, articles, clauses, and schedules.
+   - Coordinate-aware bounding box preservation for visual provenance.
+   - Memory-safe batch slicing (`pypdfium2`) to process high-page legal gazettes without GPU memory overflow.
 
-#### 2. Hybrid GraphRAG Engine (Knowledge Graph + Dense Vectors)
-Standard vector RAG fails on legal texts because legal statutes are hierarchical, cross-referential, and codependent (e.g., *Article 12 refers to Article 5 of Decree 13/2023/ND-CP*).
-- **Legal Knowledge Graph (KG)**: Nodes represent Codes, Decrees, Circulars, Articles, and Precedents; edges map hierarchical relations (`CONTAINS`), amendments (`SUPERSEDES`), and cross-statute dependencies (`REFERENCES`).
-- **Dense Vector Embeddings**: Encodes semantic nuances of contractual clauses.
-- **Dual-Path Fusion**: Simultaneously traverses the Knowledge Graph for strict statutory dependencies while vector search retrieves semantically similar legal precedents.
+2. **Hybrid GraphRAG Engine (`src/retrieval`)**:
+   - **Qdrant Vector Store**: Dense semantic embeddings (`BAAI/bge-m3` or `text-embedding-004`) combined with sparse token search via Reciprocal Rank Fusion.
+   - **Neo4j Knowledge Graph**: Explicit structural containment (`CONTAINS`) and cross-statutory citations (`REFERENCES`, `EXCEPTION_TO`, `CITES_CLAUSE`, `SUPERSEDES`).
+   - **Batched UNWIND Traversal**: Executes multi-hop graph expansions in a single roundtrip, reducing expansion latency by 66%.
+   - **Cross-Encoder Reranking**: Re-scores top candidates using `bge-reranker-v2-m3` for high precision.
 
-#### 3. Autonomous LangGraph Audit Workflow
-The current implementation uses four typed nodes rather than a fixed multi-agent council:
-- **ClauseExtractor**: Extracts clauses and financial tables from parsed contract content.
-- **LegalResearcher**: Runs hybrid legal retrieval, graph expansion, and deterministic table arithmetic checks.
-- **LoopholeAuditor**: Produces grounded classifications, findings, redlines, and negotiation rationale.
-- **HallucinationGrader**: Verifies citations against retrieved context and routes failed findings through a bounded retry loop.
+3. **Multi-Agent State Machine (`src/agents`)**:
+   - Four specialized nodes: `ClauseExtractor`, `LegalResearcher`, `LoopholeAuditor`, and `HallucinationGrader`.
+   - Tool calling via FastMCP (`search_legal_provisions`, `get_article_graph_context`, `verify_table_arithmetic`).
+   - Self-reflective loop: findings with ungrounded statutory citations are rejected and routed for automatic re-querying.
 
-Legal categories, statutes, precedents, forums, and metadata are expected to come from the database and retrieval context. They should not require adding a Python enum member or a fixed doctrine prompt.
+4. **API and User Interface (`src/api`, `src/ui`)**:
+   - Production FastAPI service with Server-Sent Events (SSE) streaming.
+   - Interactive Chainlit web copilot with side-by-side contract view.
 
 ---
 
-## 📂 Repository Structure
+## Empirical Benchmarks
+
+LexiGuard has been evaluated on rigorous legal benchmarks to validate retrieval precision, conflict detection accuracy, and citation grounding.
+
+### 1. VLegal-Bench Evaluation (CMC-OPENAI/VLegal-Bench)
+
+Evaluated on 492 real-world Vietnamese legal samples focusing on core operational tasks:
+
+| Evaluation Objective | Task ID | Sample Size | Primary Metric | Result | System Significance |
+| :--- | :---: | :---: | :--- | :---: | :--- |
+| **Conflict & Consistency Detection** | Task 3.4 | 166 pairs | Accuracy<br>Conflict Precision<br>Conflict Recall<br>Conflict F1 | **95.18%**<br>**97.56%**<br>**96.00%**<br>**0.9677** | Validates the LoopholeAuditor engine in detecting unlawful local decrees against national statutes with near-zero false alarms. |
+| **Legal Knowledge Graph Structuring** | Task 2.3 | 326 samples | Correct Triplets<br>Graph Precision<br>Graph F1<br>Exact Sample Match | **89 triplets**<br>**26.02%**<br>**0.1958**<br>**9.20%** | Validates automated extraction of `(Entity 1, Legal Relation, Entity 2)` triplets for populating the Neo4j GraphRAG database. |
+
+Confusion Matrix for Task 3.4 (Conflict Detection):
+```
+                        PREDICTED
+                   Conflict       No Conflict
+ACTUAL Conflict      120 (TP)          5 (FN)
+    No Conflict        3 (FP)         38 (TN)
+```
+
+Full benchmark details and reproduction logs are in [reports/VLEGAL_BENCHMARK_REPORT.md](reports/VLEGAL_BENCHMARK_REPORT.md).
+
+### 2. Multi-Year Statutory Retrieval Benchmark (ALQAC)
+
+Evaluated on the Automated Legal Question Answering Competition datasets:
+- Robust multi-hop retrieval over Civil and Commercial statutes.
+- Evaluated across BM25 lexical search, dense embeddings, Reciprocal Rank Fusion, and Cross-Encoder reranking.
+- Comprehensive evaluation reports: [reports/ALQAC_MASTER_BENCHMARK_REPORT.md](reports/ALQAC_MASTER_BENCHMARK_REPORT.md).
+
+### 3. Deterministic Evaluator Suite
+
+- 100% pass rate across deterministic test suites covering table arithmetic, payload index routing, and hallucination guardrails (`pytest tests/test_vlegal_evaluator.py`).
+
+---
+
+## Repository Structure
 
 ```plaintext
 LexiGuard/
-├── .github/                      # GitHub Actions CI/CD workflows
-│   └── workflows/
-│       └── ci.yml                # Automated pipeline: Ruff linter & Pytest on Push/PR
-├── docker-compose.yml             # Orchestration: FastAPI, Qdrant, Neo4j, and Langfuse
-├── Dockerfile                     # High-performance multi-stage build powered by uv
-├── pyproject.toml                 # Dependencies & tool configurations (uv, ruff, pytest)
-├── requirements.txt               # Production Python dependencies
-├── .env.example                   # Environment configuration template
-├── README.md                      # Architecture, benchmarks, and project documentation
-│
-├── docs/                          # Detailed subsystem technical specifications & architecture docs
-│   ├── README.md                  # System architecture and documentation index
-│   ├── 01_ocr_and_vision_pipeline.md # Docling layout parsing, optional OCR, and provenance
-│   ├── 02_data_schema_and_hierarchical_graph_ingestion.md # Pydantic schemas, chunker, and Neo4j triples
-│   ├── 03_hybrid_graphrag_qdrant_neo4j.md # Hybrid retrieval and lifecycle filtering
-│   └── 04_fastmcp_multiagent_langgraph.md # Four-node workflow and grounding loop
-│
-├── data/
-│   ├── raw_laws/                  # Statutory legal corpus (Labor Code 2019, Civil Code 2015)
-│   ├── extracted_laws/            # Ingested ASTs, chunks, graph triples & Qdrant/Neo4j payloads
-│   ├── court_judgments/           # Real Court Judgments & VIAC Precedents (Lao động, KDTM, Trọng tài)
-│   ├── sample_contracts/          # Benchmark contracts & OCR scans (raw_scans, extracted_pdfs, extracted_texts)
-│   └── eval_dataset/              # Benchmarks & Golden QA datasets (golden_qa_contracts, manifests)
-│
-├── scripts/
-│   ├── ingest_laws.py             # Docling parser -> Hierarchical chunking -> Qdrant & Neo4j
-│   ├── run_evaluation.py          # Evaluation runner with Markdown/CSV metrics export
-│   ├── run_ingestion_benchmark.py # Deterministic ingestion/table-math benchmark
-│   ├── run_retrieval_benchmark.py # Retrieval ablation evaluator
-│   ├── run_agent_benchmark.py     # Classification and citation guardrail evaluator
-│   └── run_observability_benchmark.py # Latency and usage aggregation
-│
-├── src/
-│   ├── core/
-│   │   ├── config.py              # Pydantic BaseSettings environment management
-│   │   ├── schemas.py             # Pydantic v2 Core Legal AST, Chunks & Graph Schemas
-│   │   └── logging.py             # Structured JSON logging & Langfuse tracing integration
-│   │
-│   ├── ingestion/
-│   │   ├── image_preprocessor.py  # Multi-page collage splitting & Lanczos4 + CLAHE enhancement
-│   │   ├── docling_parser.py      # IBM Docling layout & TableFormer table extraction
-│   │   ├── decree30_xycut.py      # Decree 30/2020 Spatial Zones Map & Recursive XY-Cut Engine
-│   │   ├── two_stage_ocr.py       # CPU Two-Stage OCR (PaddleOCR DBNet++ + VietOCR Transformer)
-│   │   ├── ocr_engine.py          # Quality Assessment Gate & Two-Branch OCR Orchestrator
-│   │   ├── legal_chunker.py       # Chapter -> Article -> Clause syntax segmentation
-│   │   └── graph_extractor.py     # Cross-statutory relation extractor (Neo4j triples)
-│   │
-│   ├── retrieval/
-│   │   ├── qdrant_store.py        # Qdrant Hybrid Search (bge-m3 Dense + BM25 Sparse)
-│   │   ├── neo4j_store.py         # Multi-hop Cypher traversal for statutory dependencies
-│   │   └── hybrid_retriever.py    # Reciprocal Rank Fusion + Neural Cross-Encoder Reranker
-│   │
-│   ├── mcp_server/
-│   │   └── legal_tools.py         # FastMCP Server providing search_law & get_related_articles
-│   │
-│   ├── agents/
-│   │   ├── state.py               # TypedDict AgentState & Pydantic audit report schemas
-│   │   ├── prompts.py             # Role-isolated prompts for Extractor, Auditor, and Verifier
-│   │   ├── nodes.py               # Execution logic of individual agent nodes
-│   │   └── workflow.py            # LangGraph StateGraph compilation
-│   │
-│   ├── api/
-│   │   ├── main.py                # FastAPI entry point, CORS, and connection pool lifespan
-│   │   └── routes/
-│   │       ├── health.py          # Service dependency health check (/health)
-│   │       └── audit.py           # Contract upload & audit report via SSE Streaming
-│   │
-│   └── ui/
-│       └── chainlit_app.py        # Interactive legal copilot & PDF report viewer
-│
-└── tests/
-    ├── test_chunker.py            # Unit tests for legal hierarchy segmentation
-    ├── test_retriever.py          # Integration tests for Qdrant and Neo4j retrieval
-    └── test_api.py                # Asynchronous API endpoint tests via httpx
+|-- docker-compose.yml          # Container orchestration (Neo4j, Qdrant, FastAPI)
+|-- Dockerfile                  # Container build specification
+|-- pyproject.toml              # Project dependencies and tool configurations
+|-- requirements.txt            # Python dependencies
+|-- README.md                   # Project overview and system specification
+|
+|-- docs/                       # Technical specifications and architecture guides
+|   |-- README.md               # Documentation index and architecture overview
+|   |-- 01_ocr_and_vision_pipeline.md
+|   |-- 02_data_schema_and_hierarchical_graph_ingestion.md
+|   |-- 03_hybrid_graphrag_qdrant_neo4j.md
+|   |-- 04_fastmcp_multiagent_langgraph.md
+|   `-- assets/                 # Architecture diagrams and topology visualizations
+|
+|-- data/
+|   |-- raw_laws/               # Official statutory gazette PDFs (Civil Code, Labor Code)
+|   |-- extracted_laws/         # Generated ASTs, chunks, and Neo4j Cypher imports
+|   |-- court_judgments/        # Precedents and judicial rulings
+|   `-- vlegal_bench/           # VLegal-Bench task evaluation datasets
+|
+|-- src/
+|   |-- core/                   # Configuration, schemas, hardware tuning, logging
+|   |-- ingestion/              # Docling parser, chunker, graph extractor
+|   |-- retrieval/              # Qdrant store, Neo4j store, hybrid retriever, BM25
+|   |-- mcp_server/             # FastMCP tools (search_legal_provisions, math audit)
+|   |-- agents/                 # LangGraph nodes, prompts, state definitions, workflow
+|   |-- evaluation/             # Evaluator suites for VLegal-Bench and ALQAC
+|   |-- api/                    # FastAPI routes (audit, ingest, health)
+|   `-- ui/                     # Chainlit web copilot application
+|
+|-- scripts/
+|   |-- run_vlegal_benchmark.py # VLegal-Bench execution runner
+|   |-- run_alqac_benchmark.py  # ALQAC benchmark runner
+|   |-- ingest_laws.py          # Statutory corpus ingestion CLI
+|   `-- reset_databases.py      # Database wipe and schema initializer
+|
+|-- reports/                    # Generated benchmark and evaluation reports
+`-- tests/                      # Unit and integration test suites
 ```
 
 ---
 
-## 🚀 Getting Started
+## Quickstart
 
 ### Prerequisites
-- Python 3.11 or higher
-- Docker & Docker Compose (for Neo4j and Vector Database)
-- An active API key for Google Gemini (`GEMINI_API_KEY`) or preferred LLM provider
 
-### 1. Clone the Repository
+- Python 3.11 or higher
+- Docker and Docker Compose
+- GPU with CUDA support recommended (CPU fallback supported)
+- Gemini API key or Ollama local LLM
+
+### 1. Clone and Install Dependencies
+
 ```bash
 git clone https://github.com/hotrungtruc/LexiGuard.git
 cd LexiGuard
-```
 
-### 2. Environment Setup
-```bash
 # Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Launch Knowledge Graph & Vector Store
+### 2. Start Supporting Infrastructure
+
+Launch Qdrant Vector DB and Neo4j Graph DB:
+
 ```bash
-docker-compose -f docker/docker-compose.yml up -d
+docker-compose up -d
 ```
 
-### 4. Configure Secrets
-Create a `.env` file in the root directory:
+Verify services:
+- Qdrant UI: `http://localhost:6333/dashboard`
+- Neo4j Browser: `http://localhost:7687` (Default user: `neo4j`, password: `lexiguard_secure_password`)
+
+### 3. Configure Environment
+
+Create a `.env` file in the project root:
+
 ```env
 # LLM Providers
-GEMINI_API_KEY="your-google-gemini-api-key"
+GEMINI_API_KEY="your-gemini-api-key"
+LLM_PROVIDER="gemini"
+LLM_MODEL="gemini-2.0-flash"
 
-# Knowledge Graph (Neo4j)
+# Neo4j Graph Database
 NEO4J_URI="bolt://localhost:7687"
 NEO4J_USERNAME="neo4j"
 NEO4J_PASSWORD="lexiguard_secure_password"
+NEO4J_DATABASE="neo4j"
 
-# Vector Database (Qdrant)
+# Qdrant Vector Database
 QDRANT_URL="http://localhost:6333"
-QDRANT_API_KEY="your-qdrant-api-key"
 QDRANT_COLLECTION="legal_statutes_corpus"
-EMBEDDING_MODEL="text-embedding-004"
 ```
 
-### 5. Run the Audit Engine CLI
-Audit an existing contract draft with one command:
+### 4. Run the Core Benchmark Suite
+
+Execute the benchmark suite on VLegal-Bench tasks (Task 2.3 and Task 3.4):
+
 ```bash
-python -m src.api.main --audit examples/sample_commercial_contract.pdf \
-                       --jurisdiction VN \
-                       --output reports/sample_audit_report.md
+python scripts/run_vlegal_benchmark.py
 ```
 
-### 6. Start the Web & API Service
+Run unit tests:
+
+```bash
+pytest tests/test_vlegal_evaluator.py -v
+```
+
+### 5. Start the Web API Server
+
 ```bash
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-Navigate to `http://localhost:8000/docs` to explore interactive Swagger API endpoints for:
-- `/api/v1/ingest`: Upload and OCR scan contracts
-- `/api/v1/audit`: Run full multi-agent vulnerability assessment
-- `/api/v1/redline`: Generate track-changes counter-proposals
-- `/api/v1/chat`: Converse with the grounded Legal Q&A Agent
 
-### 7. Run the Focused Benchmark Suite
-
-The deterministic benchmark suite validates ingestion/table arithmetic,
-retrieval metrics, agent guardrails, and observability aggregation:
-
-```powershell
-python -m pytest tests/test_ingestion_benchmark.py `
-  tests/test_retrieval_benchmark.py `
-  tests/test_agent_benchmark.py `
-  tests/test_observability.py -q
-```
-
-The latest verified result is **11 passed, 0 failed**. Detailed methods,
-metrics, limitations, and reproducibility commands are documented in
-[Benchmark Results Summary](data/eval_dataset/benchmark_results_summary.md).
-End-to-end retrieval and live-agent quality require real prediction files;
-the deterministic suite validates the evaluator and guardrail logic.
+Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
 
 ---
 
-## 📊 Example Audit Output
+## API Reference
 
-When LexiGuard analyzes a high-risk clause, it generates structured, citation-grounded findings:
-
-<details open>
-<summary><b>🔍 Sample Audit Finding: Liquidated Damages Statutory Breach</b></summary>
-
-```markdown
-### ⚠️ HIGH RISK: Unlawful Liquidated Damages Provision (Statutory Cap Breach)
-
-- **Clause Reference:** Section 9.4 (Penalties & Default), Page 14
-- **Original Text:**
-  > *"In the event of any delivery delay by the Supplier, the Supplier shall pay a fixed penalty of 20% of the total Agreement Value."*
-
-- **Vulnerability Category:** Statutory Non-Compliance / Void Clause
-- **Governing Law Cross-Reference:** Article 301, Vietnam Commercial Law 2005 (Luật Thương Mại 2005)
-- **Legal Analysis:**
-  Article 301 mandates that the total penalty for breach of contract obligations cannot exceed 8% of the value of the breached obligation (excluding foreign-related maritime exceptions). The 20% flat penalty is unlawful and judicially unenforceable.
-
-- **Asymmetric Exposure Detected:**
-  Contract contains no corresponding penalty or interest compensation if the Purchaser delays payment or milestone sign-off.
-
-- **Recommended Redline (Proposed Amendment):**
-  ```diff
-  - In the event of any delivery delay by the Supplier, the Supplier shall pay a fixed penalty of 20% of the total Agreement Value.
-  + In the event of any delivery delay attributable solely to the Supplier, the Supplier shall pay a late-delivery penalty of 1.0% per week of the delayed portion's value, provided that the total cumulative penalty shall not exceed 8.0% of the breached contractual obligation value, in strict compliance with Article 301 of the Commercial Law.
-  ```
-</details>
+| Endpoint | Method | Payload | Description |
+| :--- | :---: | :--- | :--- |
+| `/health` | `GET` | None | Returns operational health status of API, Neo4j, and Qdrant. |
+| `/api/v1/audit` | `POST` | `multipart/form-data` (file) | Audits an uploaded contract; returns SSE streaming progress and final JSON. |
+| `/api/v1/ingest` | `POST` | `multipart/form-data` (file) | Parses and extracts layout elements and tabular matrices from a document. |
+| `/api/v1/redline` | `POST` | JSON `{ clause_text, violation }` | Generates compliant replacement wording with statutory justification. |
 
 ---
 
-## 🗺️ Product Roadmap
+## Technical Documentation
 
-- [x] **Phase 1**: High-fidelity multimodal OCR pipeline for scanned legal agreements.
-- [x] **Phase 2**: Dual-channel Hybrid GraphRAG architecture (Statutory Knowledge Graph + Vector DB).
-- [x] **Phase 3**: Autonomous Multi-Agent Council (Compliance, Ambiguity, Asymmetry, and Redline Agents).
-- [ ] **Phase 4**: Interactive Web UI with side-by-side DOCX/PDF track-changes viewer.
-- [ ] **Phase 5**: Multi-jurisdiction legal expansion (Vietnam, Singapore, Delaware/US, EU GDPR).
-- [ ] **Phase 6**: Enterprise ERP/CLM integration (Salesforce, SAP, Ironclad, DocuSign).
+Detailed subsystem architecture specifications are available in the [docs/](docs/) directory:
 
----
-
-## ⚖️ Legal Disclaimer
-
-> **IMPORTANT NOTICE:** LexiGuard is an artificial intelligence research platform designed to assist and augment professional legal workflows. **LexiGuard does not provide formal legal advice, nor does its output establish an attorney-client relationship.** While LexiGuard cross-references documents against statutory laws with high precision, all generated audits, redlines, and assessments must be reviewed and approved by certified legal counsel before execution in commercial transactions.
+- [docs/01_ocr_and_vision_pipeline.md](docs/01_ocr_and_vision_pipeline.md): Layout analysis, TableFormer, and bounding box provenance.
+- [docs/02_data_schema_and_hierarchical_graph_ingestion.md](docs/02_data_schema_and_hierarchical_graph_ingestion.md): Pydantic schemas, hierarchical chunking, and Neo4j batch ingestion.
+- [docs/03_hybrid_graphrag_qdrant_neo4j.md](docs/03_hybrid_graphrag_qdrant_neo4j.md): 3-stage hybrid retrieval, RRF, and batched Cypher expansion.
+- [docs/04_fastmcp_multiagent_langgraph.md](docs/04_fastmcp_multiagent_langgraph.md): 4-node LangGraph state machine, FastMCP tools, and self-reflection gate.
 
 ---
 
-## 📄 License
+## Legal Disclaimer
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+LexiGuard is an artificial intelligence research and decision-support system. It is designed to augment and assist qualified legal professionals during contract review workflows. **LexiGuard does not provide formal legal advice, and its output does not create an attorney-client relationship.** All audit findings, risk classifications, and proposed redlines should be verified and approved by licensed legal counsel before execution in binding commercial transactions.
 
 ---
 
-<div align="center">
-<sub>Crafted with engineering rigor for the future of Autonomous Enterprise Legal Operations.</sub>
-</div>
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for complete terms.

@@ -23,7 +23,7 @@ def test_hybrid_retriever_initialization():
 
 def test_cross_encoder_custom_reranker_fn():
     """Verify LegalCrossEncoderReranker sorts candidates based on relevance scores."""
-    # Custom scoring: prefers items mentioning 'Điều 468'
+    # Custom scoring: prefer items mentioning Article 468.
     def mock_scorer(query: str, texts: list) -> list:
         return [0.95 if "Điều 468" in t else 0.40 for t in texts]
 
@@ -105,7 +105,7 @@ async def test_hybrid_legal_retriever_3_step_pipeline():
         expansion_hops=2,
     )
 
-    # Both Điều 357 (Qdrant) and Điều 468 (Neo4j Expansion) should be present
+    # Both Article 357 (Qdrant) and Article 468 (Neo4j expansion) should be present.
     assert len(results) == 2
     assert results[0]["chunk_id"] == "VN_BLDS_2015_D468"  # Higher rerank score
     assert results[0]["retrieval_source"] == "neo4j_expansion"
@@ -186,7 +186,7 @@ async def test_hybrid_retriever_entity_fast_path():
     call_args, call_kwargs = mock_neo4j.expand_referenced_articles_async.call_args
     passed_seeds = call_kwargs.get("article_or_clause_ids") or call_args[0]
     
-    # Must contain both Điều 357 and Điều 468 at the front of seed list
+    # Both Article 357 and Article 468 must be at the front of the seed list.
     assert "VN_BLDS_2015_D357" in passed_seeds[:2]
     assert "VN_BLDS_2015_D468" in passed_seeds[:2]
 
@@ -200,4 +200,3 @@ async def test_hybrid_retriever_entity_fast_path():
     for res in results:
         assert res.get("is_fast_path") is True
         assert res.get("retrieval_source") == "entity_fast_path"
-

@@ -16,7 +16,7 @@ The `src/retrieval` module implements an enterprise-grade **3-Stage Hybrid Legal
 The retrieval architecture coordinates three complementary processing stages to deliver high-precision legal context:
 
 * **Step 1: Hybrid Vector Search (Qdrant)**:
-  - Generates 1024-dimensional dense semantic vectors using `BAAI/bge-m3` and exact-match lexical sparse vectors using `Qdrant/bm25` (via ONNX FastEmbed).
+  - Uses dense and sparse candidate channels when configured, then merges result sets with Reciprocal Rank Fusion (RRF).
   - Merges dense and sparse result sets directly within Qdrant's C++ core using Reciprocal Rank Fusion (RRF) via `query_points()`.
 * **Step 2: Consolidated Graph Expansion (Neo4j)**:
   - Consolidates vector candidates with deterministic statutory seeds identified by the **Entity Fast-Path Extractor**.
@@ -115,7 +115,7 @@ The **Entity Fast-Path Extractor** parses incoming query strings deterministical
 
 ### 5.2 Deterministic Seed Injection
 * Explicit citation matches bypass vector uncertainty by directly injecting target node IDs into the Neo4j expansion seed pool.
-* Guarantees 100% recall on specifically cited articles and clauses without requiring keyword reranking heuristics.
+* Provides a deterministic fast path for specifically cited articles and clauses. The retrieval benchmark measures actual recall rather than assuming a 100% guarantee.
 
 ---
 
@@ -139,15 +139,15 @@ During retrieval, setting `active_only=True`:
 
 ## 7. Empirical Retrieval Performance & Pytest Suite Verification
 
-### 7.1 Production Benchmark Metrics
+### 7.1 Reference Targets and Validation Status
 
 | Pipeline Component | Target SLA | Measured Benchmark | Benchmark Status |
 | :--- | :---: | :---: | :---: |
-| **Entity Fast-Path Parsing** | $< 5$ ms | $1.2$ ms | Met |
-| **Qdrant Hybrid Search (RRF)** | $< 50$ ms | $28.4$ ms | Met |
-| **Neo4j UNWIND Graph Expansion** | $< 150$ ms | $118.6$ ms | Met |
-| **Cross-Encoder Reranking** | $< 250$ ms | $162.0$ ms | Met |
-| **End-to-End Retrieval Latency** | $< 500$ ms | **$310.2$ ms** | **Production Grade** |
+| **Entity Fast-Path Parsing** | $< 5$ ms | Historical value: $1.2$ ms | Revalidate |
+| **Qdrant Hybrid Search (RRF)** | $< 50$ ms | Historical value: $28.4$ ms | Revalidate |
+| **Neo4j UNWIND Graph Expansion** | $< 150$ ms | Historical value: $118.6$ ms | Revalidate |
+| **Cross-Encoder Reranking** | $< 250$ ms | Historical value: $162.0$ ms | Revalidate |
+| **End-to-End Retrieval Latency** | $< 500$ ms | Historical value: $310.2$ ms | Revalidate |
 
 ### 7.2 Automated Pytest Suite Verification
 All components—including async connections, schema synchronization, payload indices, hybrid search, graph traversal, and lifecycle management—are verified with unit tests:
@@ -156,4 +156,4 @@ All components—including async connections, schema synchronization, payload in
 pytest tests/test_async_connections.py tests/test_schema_sync.py tests/test_hybrid_qdrant_neo4j.py tests/test_retriever.py tests/test_entity_extractor.py tests/test_lifecycle_manager.py -v
 ```
 
-All **46/46 unit tests** pass with 100% test pass rate across the workspace.
+The focused retrieval evaluator tests pass, but end-to-end retrieval quality is not reported until real predictions for dense, sparse, RRF, graph, and reranker ablations are supplied. See [benchmark_results_summary.md](../data/eval_dataset/benchmark_results_summary.md).

@@ -1,0 +1,123 @@
+{
+  "manifest_name": "Master Enterprise Stealth Contract Benchmark",
+  "contract_file_digital": "HD_MASTER_ENTERPRISE_STEALTH_ALL_TRAPS.pdf",
+  "contract_file_scanned": "HD_MASTER_ENTERPRISE_STEALTH_ALL_TRAPS_SCANNED.pdf",
+  "contract_title": "HỢP ĐỒNG TỔNG THẦU HỆ THỐNG TRÍ TUỆ NHÂN TẠO, DỊCH VỤ HẠ TẦNG CLOUD VÀ BIỆT PHÁI CHUYÊN GIA KỸ THUẬT CAO",
+  "contract_no": "0107211/NOVA-NEXUS/2026",
+  "total_sections": 10,
+  "total_stealth_traps": 14,
+  "stealth_traps": [
+    {
+      "section_title": "ĐIỀU 2. CHẾ ĐỘ THỬ THÁCH NĂNG LỰC VÀ ĐÁNH GIÁ CHUYÊN MÔN NHÂN SỰ BIỆT PHÁI",
+      "trap_id": "STEALTH_01_PROBATION_EXCESS_90D",
+      "statute": "BLLĐ 2019 (Điều 25, 26, 27)",
+      "precedent": "Bản án số 02/2025/LĐ-ST",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Ngụy trang thử việc thành 'Thời gian Đánh giá & Thử thách Năng lực Kỹ thuật Chuyên sâu' 90 ngày (vượt trần 60 ngày cho trình độ ĐH/Thạc sĩ), lương 75% (dưới trần 85%) và đặt bẫy phạt tiền 1 tháng lương nếu không báo trước 15 ngày (trái quyền hủy bỏ không cần báo trước tại K2 Điều 27)."
+    },
+    {
+      "section_title": "ĐIỀU 3. CHẾ ĐỘ ĐÃI NGỘ, BẢNG TỔNG HỢP THÙ LAO VÀ ĐỊNH MỨC KHẤU TRỪ KỶ LUẬT",
+      "trap_id": "STEALTH_02_SALARY_DEDUCTION_PENALTY",
+      "statute": "BLLĐ 2019 (Điều 127, Điều 94, Điều 98, Điều 62)",
+      "precedent": "Bản án số 04/2023/LĐ-PT & Bản án 77/2024/LĐ-ST",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Khéo léo đưa chế tài phạt tiền và cắt 20% lương vào cột 'Điều kiện áp dụng & Cơ chế Điều chỉnh' của Bảng lương. Gài bẫy đòi 50 triệu tiền đào tạo không có HĐ đào tạo nghề và trả OT 100% thay vì 150-200%."
+    },
+    {
+      "section_title": "ĐIỀU 3. CHẾ ĐỘ ĐÃI NGỘ, BẢNG TỔNG HỢP THÙ LAO VÀ ĐỊNH MỨC KHẤU TRỪ KỶ LUẬT",
+      "trap_id": "STEALTH_03_TABLE_ARITHMETIC_SALARY_2M",
+      "statute": "FastMCP verify_table_arithmetic Benchmark",
+      "precedent": "Kiểm tra sai lệch số học bảng biểu",
+      "vulnerability_type": "TABLE_ARITHMETIC_ERROR",
+      "disguise_technique": "Phép toán: 25.000.000 + 3.000.000 - 5.000.000 = 23.000.000 VNĐ, nhưng dòng tổng kết ghi 21.000.000 VNĐ (lệch âm 2.000.000 VNĐ để trục lợi nhân sự)."
+    },
+    {
+      "section_title": "ĐIỀU 4. TIẾN ĐỘ BÀN GIAO, ĐIỀU KIỆN NGHIỆM THU VÀ CHẾ TÀI PHÂN KỲ DỰ ÁN",
+      "trap_id": "STEALTH_04_TOTAL_CONTRACT_PENALTY_8PCT",
+      "statute": "Luật Thương mại 2005 (Điều 301)",
+      "precedent": "Bản án số 15/2020/KDTM-PT",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Phạt '8% tính trên Toàn bộ Tổng giá trị Hợp đồng' (400 triệu) cho hạng mục Đợt 2 chỉ chiếm 10% (405 triệu) -> thực chất áp mức phạt lên tới gần 100% giá trị phần nghĩa vụ bị vi phạm."
+    },
+    {
+      "section_title": "ĐIỀU 4. TIẾN ĐỘ BÀN GIAO, ĐIỀU KIỆN NGHIỆM THU VÀ CHẾ TÀI PHÂN KỲ DỰ ÁN",
+      "trap_id": "STEALTH_05_AMBIGUOUS_QUALITATIVE_ACCEPTANCE",
+      "statute": "BLDS 2015 (Điều 423, Điều 425, Điều 519)",
+      "precedent": "Bản án số 32/2022/KDTM-PT",
+      "vulnerability_type": "AMBIGUOUS_LOOPHOLE",
+      "disguise_technique": "Nghiệm thu phụ thuộc 'sự hài lòng chủ quan của Bên A' không có UAT định lượng. Gài điều khoản tách rời hiệu lực HĐ thuê Server khi phần mềm bị hủy bỏ do lỗi của tổng thầu."
+    },
+    {
+      "section_title": "ĐIỀU 4. TIẾN ĐỘ BÀN GIAO, ĐIỀU KIỆN NGHIỆM THU VÀ CHẾ TÀI PHÂN KỲ DỰ ÁN",
+      "trap_id": "STEALTH_06_SPLIT_PENALTIES_OVERCAP_18PCT",
+      "statute": "Luật Thương mại 2005 (Điều 301)",
+      "precedent": "Hồ sơ Trọng tài VIAC số #054 & #055",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Tách một hành vi chậm tiến độ thành: 'Phạt 8%' + 'Phí vi phạm SLA 5%' + 'Phí phạt báo cáo 5%' (tổng cộng 18% vượt trần 8%)."
+    },
+    {
+      "section_title": "ĐIỀU 4. TIẾN ĐỘ BÀN GIAO, ĐIỀU KIỆN NGHIỆM THU VÀ CHẾ TÀI PHÂN KỲ DỰ ÁN",
+      "trap_id": "STEALTH_07_TABLE_ARITHMETIC_OVERSTATEMENT_10M",
+      "statute": "FastMCP verify_table_arithmetic Benchmark",
+      "precedent": "Kiểm tra gian lận số học trong dự án",
+      "vulnerability_type": "TABLE_ARITHMETIC_ERROR",
+      "disguise_technique": "Tổng 3 đợt là 5.000.000.000 VNĐ, nhưng dòng Tổng cộng cố tình ghi vống thành 5.010.000.000 VNĐ (+10.000.000 VNĐ)."
+    },
+    {
+      "section_title": "ĐIỀU 5. NGHĨA VỤ THANH TOÁN, LÃI SUẤT CHẬM TRẢ VÀ CƠ CHẾ KẾT CHUYỂN DƯ NỢ",
+      "trap_id": "STEALTH_08_USURIOUS_AND_COMPOUND_INTEREST",
+      "statute": "BLDS 2015 (Điều 519 -> Điều 357 -> Điều 468) & NQ 01/2019/NQ-HĐTP",
+      "precedent": "Bản án số 04/2024/KDTM-PT & 03/2024/KDTM-ST & 72/2023/KDTM-PT",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Viết lãi suất theo ngày 0,06%/ngày (nghe có vẻ nhỏ nhưng thực chất là 21,9%/năm, vượt trần 20% tại Điều 468 BLDS). Cài cắm điều khoản nhập lãi vào gốc (lãi kép) dưới mỹ từ 'Cơ chế kết chuyển công nợ để bù đắp chi phí vốn'."
+    },
+    {
+      "section_title": "ĐIỀU 6. BỒI THƯỜNG TỔN THẤT ƯỚC TÍNH (LIQUIDATED DAMAGES) VÀ GIỚI HẠN BỒI THƯỜNG",
+      "trap_id": "STEALTH_09_LIQUIDATED_DAMAGES_WITHOUT_PROOF",
+      "statute": "BLDS 2015 (Điều 419, Điều 584) & Luật Thương mại 2005 (Điều 302, 303, 304)",
+      "precedent": "QĐGĐT số 09/2020/KDTM-GĐT & Bản án 85/2024/KDTM-PT",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Vay mượn thuật ngữ Common Law 'Liquidated Damages' và ấn định mức phạt bồi thường 15% miễn nghĩa vụ chứng minh thiệt hại thực tế (trái nguyên tắc bồi thường thiệt hại tại Điều 302 LTM và Điều 419 BLDS)."
+    },
+    {
+      "section_title": "ĐIỀU 6. BỒI THƯỜNG TỔN THẤT ƯỚC TÍNH (LIQUIDATED DAMAGES) VÀ GIỚI HẠN BỒI THƯỜNG",
+      "trap_id": "STEALTH_10_INTENTIONAL_FAULT_EXEMPTION",
+      "statute": "BLDS 2015 (Khoản 2 Điều 360)",
+      "precedent": "Án lệ Tòa án Dân sự",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Giới hạn trách nhiệm 5 triệu đồng kể cả đối với lỗi cố ý (vi phạm điều cấm tại Khoản 2 Điều 360 BLDS 2015)."
+    },
+    {
+      "section_title": "ĐIỀU 7. ĐIỀU KIỆN ĐƯƠNG NHIÊN HẾT HIỆU LỰC VÀ THỎA THUẬN BẢO VỆ QUAN HỆ KHÁCH HÀNG",
+      "trap_id": "STEALTH_11_DEGUVISED_TERMINATION_VIA_ART_34",
+      "statute": "BLLĐ 2019 (Điểm a Khoản 1 Điều 36, Điều 39, Điều 41)",
+      "precedent": "Bản án số 12/2023/LĐ-PT",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Lấy cớ dẫn chiếu Khoản 3 Điều 34 BLLĐ (thỏa thuận chấm dứt) để ngụy trang hành vi sa thải đơn phương do KPI < 75 mà không cần đánh giá đúng quy chế và không báo trước 30 ngày."
+    },
+    {
+      "section_title": "ĐIỀU 7. ĐIỀU KIỆN ĐƯƠNG NHIÊN HẾT HIỆU LỰC VÀ THỎA THUẬN BẢO VỆ QUAN HỆ KHÁCH HÀNG",
+      "trap_id": "STEALTH_12_OVERBROAD_NCA_IN_LABOR",
+      "statute": "Hiến pháp 2013 (Điều 35) & BLLĐ 2019 (Điều 10, Điều 21)",
+      "precedent": "Bản án số 03/2023/LĐ-PT (đối chiếu Án lệ 69/2023/AL)",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Gộp cam kết cấm việc làm tràn lan vào quan hệ lao động, cấm tại cả khách hàng (Lọc hóa dầu Nghi Sơn) và toàn ngành AI, phạt 251,8 triệu; viện dẫn Án lệ 69 để cố tình hợp thức hóa giao dịch dân sự."
+    },
+    {
+      "section_title": "ĐIỀU 8. MIỄN TRỪ DO SỰ KIỆN BẤT KHẢ KHÁNG VÀ NGUYÊN TẮC GIẢI THÍCH VĂN BẢN",
+      "trap_id": "STEALTH_13_UNLAWFUL_FORCE_MAJEURE_EXPANSION",
+      "statute": "BLDS 2015 (Khoản 1 Điều 156, Khoản 2 Điều 351, Khoản 2 Điều 405, Điều 429)",
+      "precedent": "QĐGĐT số 05/2021/KDTM-GĐT & Bản án 18/2022/KDTM-PT",
+      "vulnerability_type": "ILLEGAL_CLAUSE",
+      "disguise_technique": "Cài cắm rủi ro kinh doanh nội bộ (tỷ giá, chiến lược công ty mẹ) vào định nghĩa Bất khả kháng để tước quyền yêu cầu bồi thường. Giải thích HĐ mẫu theo hướng có lợi cho bên soạn thảo (trái K2 Điều 405) và tự rút ngắn thời hiệu khởi kiện còn 45 ngày (trái Điều 429 BLDS 3 năm)."
+    },
+    {
+      "section_title": "ĐIỀU 9. LUẬT ÁP DỤNG VÀ CƠ QUAN TÀI PHÁN GIẢI QUYẾT TRANH CHẤP",
+      "trap_id": "STEALTH_14_PATHOLOGICAL_ARBITRATION_CLAUSE",
+      "statute": "Luật Trọng tài Thương mại 2010 (Điều 4, Điều 43) & NQ 01/2014/NQ-HĐTP",
+      "precedent": "Quyết định số 111/2023/QĐ-PQTT",
+      "vulnerability_type": "AMBIGUOUS_LOOPHOLE",
+      "disguise_technique": "Ghi sai tên tổ chức trọng tài ('Trung tâm Trọng tài Quốc tế TP.HCM'), quy định lựa chọn nước đôi ('VIAC hoặc Tòa án'), và tạo quyền kháng cáo phán quyết trọng tài lên Tòa Cấp cao (vi phạm nguyên tắc phán quyết trọng tài là chung thẩm tại Khoản 5 Điều 4 Luật TTTM)."
+    }
+  ]
+}

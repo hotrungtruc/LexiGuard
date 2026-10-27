@@ -28,7 +28,7 @@ from qdrant_client.models import (
     VectorParams,
 )
 
-from src.core.config import get_async_qdrant_client, settings
+from src.core.config import get_async_qdrant_client, settings, run_coroutine_sync
 from src.core.schemas import (
     DENSE_VECTOR_DIM,
     DENSE_VECTOR_NAME,
@@ -401,20 +401,7 @@ class QdrantStore:
         """
         Synchronous wrapper for hybrid search.
         """
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # In active loop (e.g. Jupyter or nested loop)
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(
-                        asyncio.run,
-                        self.hybrid_search_async(query, top_k=top_k, active_only=active_only)
-                    )
-                    return future.result()
-            return loop.run_until_complete(self.hybrid_search_async(query, top_k=top_k, active_only=active_only))
-        except RuntimeError:
-            return asyncio.run(self.hybrid_search_async(query, top_k=top_k, active_only=active_only))
+        return run_coroutine_sync(self.hybrid_search_async, query, top_k=top_k, active_only=active_only)
 
     async def update_statute_active_status_async(
         self,
@@ -451,22 +438,7 @@ class QdrantStore:
         is_active: bool = False,
     ) -> bool:
         """Synchronous wrapper for update_statute_active_status_async."""
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    return executor.submit(
-                        asyncio.run,
-                        self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-                    ).result()
-            return loop.run_until_complete(
-                self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-            )
-        except RuntimeError:
-            return asyncio.run(
-                self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-            )
+        return run_coroutine_sync(self.update_statute_active_status_async, law_id=law_id, is_active=is_active)
 
     async def update_point_active_status_async(
         self,
@@ -501,22 +473,7 @@ class QdrantStore:
         is_active: bool = False,
     ) -> bool:
         """Synchronous wrapper for update_point_active_status_async."""
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    return executor.submit(
-                        asyncio.run,
-                        self.update_point_active_status_async(chunk_id_or_node_id=chunk_id_or_node_id, is_active=is_active)
-                    ).result()
-            return loop.run_until_complete(
-                self.update_point_active_status_async(chunk_id_or_node_id=chunk_id_or_node_id, is_active=is_active)
-            )
-        except RuntimeError:
-            return asyncio.run(
-                self.update_point_active_status_async(chunk_id_or_node_id=chunk_id_or_node_id, is_active=is_active)
-            )
+        return run_coroutine_sync(self.update_point_active_status_async, chunk_id_or_node_id=chunk_id_or_node_id, is_active=is_active)
 
     async def close(self) -> None:
         """Release underlying AsyncQdrantClient connection."""

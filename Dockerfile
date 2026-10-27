@@ -36,10 +36,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy virtualenv from builder
 COPY --from=builder /app/.venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app" \
+    PYARROW_IGNORE_TIMEZONE="1" \
+    PYTHONUNBUFFERED=1
 
-# Copy source code and configurations
+# Copy source code, fallback data, and configurations
 COPY src/ /app/src/
+COPY data/ /app/data/
 COPY pyproject.toml /app/
 
 EXPOSE 8000

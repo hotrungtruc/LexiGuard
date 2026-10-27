@@ -34,3 +34,8 @@ checkpoints/
 *.tmp
 _temp_*
 scratch/
+
+# Benchmark raw datasets (downloadable via scripts)
+data/vlegal_bench/
+data/alqac/
+

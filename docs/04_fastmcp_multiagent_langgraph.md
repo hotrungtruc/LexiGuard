@@ -73,16 +73,14 @@ The state graph transitions sequentially across 4 autonomous agents, with condit
   - **Query Rewriting Loop**: If initial vector retrieval yields `NO_RELEVANT_DATA` or low semantic similarity (< 0.70), the node reformulates query terminology autonomously and re-executes search.
 * **Output**: Populates `retrieved_statutes` and `arithmetic_findings`.
 
-### 3.3 Node 3: `LoopholeAuditor` (Dual-Perspective Adversarial Prompting)
+### 3.3 Node 3: `LoopholeAuditor` (Retrieved-Context-Only Auditing)
 * **Input**: Contract clauses paired with grounded statutory provisions and arithmetic audit findings.
-* **Dual-Perspective Cognitive Scaffolding** ([src/agents/prompts.py](file:///c:/PROJECTS/LexiGuard/src/agents/prompts.py)):
-  - **Lăng kính Thẩm phán TAND**: Kiểm soát nghiêm ngặt tính bắt buộc (*Jus cogens*), bảo vệ trật tự công và bên yếu thế (Điều 406 BLDS về hợp đồng gia nhập, Điều 5, 10 BLLĐ về quyền tự do việc làm, Án lệ 09/2016/AL về lãi nợ quá hạn). Khả năng tuyên **vô hiệu từng phần hoặc toàn phần**.
-  - **Lăng kính Hội đồng Trọng tài VIAC**: Đề cao quyền tự do ý chí (*Party Autonomy*), tôn trọng tập quán thương mại (*Lex Mercatoria*), nhưng kiên quyết áp dụng trần phạt 8% (Điều 301 LTM) và **bác bỏ yêu cầu bồi thường ước tính (liquidated damages) nếu không chứng minh được thiệt hại thực tế trực tiếp** (Điều 302, 304 LTM).
-* **Ma trận 9 Tiên đề Án lệ Bất biến**: Tích hợp các quy tắc phán quyết cốt lõi (Trần phạt 8%, Thỏa thuận trọng tài bất khả thi theo NQ 01/2014, Bác bỏ lãi kép, Vô hiệu cam kết không cạnh tranh sau nghỉ việc, Quy trình thông báo và thời hạn khắc phục 15-30 ngày theo Điều 428 BLDS).
-* **Kiến tạo Sản phẩm Đầu ra**:
-  - Phân loại lỗi theo `VulnerabilityCategory`.
-  - Soạn thảo câu chữ **Redline Thay thế** (Drop-in replacement text) chuẩn pháp lý, có thể đưa ngay vào đàm phán hợp đồng.
-  - Xây dựng **Luận cứ Đàm phán** (*Negotiation Rationale*) sắc bén để thân chủ thuyết phục đối tác.
+* **Grounded-context policy** ([src/agents/prompts.py](../src/agents/prompts.py)): The auditor must use retrieved statutes, precedents, forum metadata, and database-defined categories supplied in the current state. It must not invent a taxonomy, forum, doctrine, or citation when the retrieved context is insufficient.
+* **Dynamic legal knowledge**: New laws, precedents, vulnerability categories, and metadata are consumed through retrieval results. They must not require adding a Python enum member or editing a fixed doctrine matrix.
+* **Deliverable Generation**:
+  - Classify findings using canonical database category identifiers.
+  - Draft legally compliant **Drop-in Redline Replacements** ready for direct insertion into contract negotiations.
+  - Formulate rigorous **Negotiation Rationales** to substantiate counter-proposals with statutory authority.
 * **Output**: Populates `audit_findings` and `audit_draft`.
 
 ### 3.4 Node 4: `HallucinationGrader` (Self-Reflection Gate)
@@ -113,7 +111,7 @@ The multi-agent workflow coordinates tool executions through standardized FastMC
 
 ### 5.1 Query Rewriting Loop (Node 2)
 When contractual language uses colloquial or non-standard economic terms (e.g., *"tiền phạt giữ chân"* or *"giam lương"*), initial statutory vector queries may return low-relevance results:
-* The query rewriter detects low confidence and maps terms to formal legal doctrine (*"khấu trừ tiền lương"* under Article 102 Labour Code 2019).
+* The query rewriter may reformulate terminology when retrieval confidence is low, but the replacement query must remain grounded in available law metadata and retrieved results.
 * Re-executes `search_legal_provisions` with refined semantic phrasing and payload constraints.
 
 ### 5.2 Citation Grounding Verification Loop (Node 4)
@@ -172,4 +170,13 @@ pytest tests/test_mcp_server.py -v
 pytest tests/ -v
 ```
 
-All unit tests and integration tests pass with 100% test pass rate across the workspace.
+Run the focused benchmark suite before claiming quality metrics:
+
+```powershell
+python -m pytest tests/test_ingestion_benchmark.py `
+  tests/test_retrieval_benchmark.py `
+  tests/test_agent_benchmark.py `
+  tests/test_observability.py -q
+```
+
+These deterministic evaluator tests validate the benchmark implementation. End-to-end retrieval and agent quality require real prediction files; see [benchmark_results_summary.md](../data/eval_dataset/benchmark_results_summary.md).

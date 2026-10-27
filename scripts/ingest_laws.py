@@ -15,7 +15,12 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
-# Add project root to sys.path
+# Configure UTF-8 for console output on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -27,6 +32,9 @@ from src.core.schemas import LegalChunk, LegalDocument, LegalGraphExtractionResu
 from src.ingestion.docling_parser import DoclingParser
 from src.ingestion.legal_chunker import LegalChunker
 from src.ingestion.graph_extractor import LegalGraphExtractor
+
+
+from src.core.legal_norm import canonical_law_slug
 
 
 RAW_LAWS_CONFIG = [
@@ -56,15 +64,30 @@ def ingest_single_law(
 ) -> Dict[str, Any]:
     """
     Processes a single raw law PDF through GPU-accelerated OCR layout extraction.
+    Fully domain-agnostic: supports any Vietnamese statute, decree, circular, or rulebook.
     """
     raw_dir = Path("data/raw_laws")
-    pdf_path = raw_dir / config["filename"]
+    raw_filename = config.get("filename", "")
+    target_path = Path(raw_filename)
+    if target_path.exists():
+        pdf_path = target_path
+    elif (raw_dir / raw_filename).exists():
+        pdf_path = raw_dir / raw_filename
+    else:
+        pdf_path = target_path
 
     if not pdf_path.exists():
         raise FileNotFoundError(f"Missing required raw law PDF: {pdf_path}")
 
+    law_id = config.get("law_id") or pdf_path.stem
+    law_title = config.get("law_title") or law_id.replace("-", " ").title()
+    code = config.get("code") or canonical_law_slug(law_id)
+    config["law_id"] = law_id
+    config["law_title"] = law_title
+    config["code"] = code
+
     page_budget_desc = f"{max_pages} pages" if max_pages and max_pages > 0 else "FULL DOCUMENT (All Pages)"
-    logger.info(f"===> Ingesting [{config['law_title']}]...")
+    logger.info(f"===> Ingesting [{config['law_title']}] (Code: {code})...")
     logger.info(f"Target file: {pdf_path.name} | Page processing budget: {page_budget_desc} | Batch size: {batch_size}")
 
     # 1. OCR Layout Parsing (GPU/CUDA if available, else CPU)
@@ -341,6 +364,29 @@ def main():
         help="Page batch size for incremental OCR processing and progress tracking (default: 15 pages)"
     )
     parser_args.add_argument(
+        "--pdf",
+        type=str,
+        default=None,
+        help="Path to an arbitrary legal statute PDF (e.g. data/raw_laws/luat-an-ninh-mang-2018.pdf)"
+    )
+    parser_args.add_argument(
+        "--law-title",
+        type=str,
+        default=None,
+        help="Human-readable title of the legal instrument (e.g. 'Luật An ninh mạng 2018')"
+    )
+    parser_args.add_argument(
+        "--law-id",
+        type=str,
+        default=None,
+        help="Custom statutory identifier slug (e.g. 'luat-an-ninh-mang-2018')"
+    )
+    parser_args.add_argument(
+        "--scan-all-raw-laws",
+        action="store_true",
+        help="Scan and ingest ALL PDF statutes found inside data/raw_laws/"
+    )
+    parser_args.add_argument(
         "--no-neo4j-sync",
         action="store_true",
         help="Skip direct synchronization to Neo4j database"
@@ -354,11 +400,33 @@ def main():
 
     max_pages = None if (args.all_pages or args.max_pages == 0) else args.max_pages
 
+    # Determine list of statutory configurations to ingest
+    configs_to_ingest: List[Dict[str, Any]] = []
+    if args.pdf:
+        pdf_path = Path(args.pdf)
+        configs_to_ingest.append({
+            "filename": str(pdf_path),
+            "law_title": args.law_title or pdf_path.stem.replace("-", " ").title(),
+            "law_id": args.law_id or pdf_path.stem,
+            "code": canonical_law_slug(args.law_id or pdf_path.stem),
+        })
+    elif args.scan_all_raw_laws:
+        raw_dir = Path("data/raw_laws")
+        for p in raw_dir.glob("*.pdf"):
+            configs_to_ingest.append({
+                "filename": p.name,
+                "law_title": p.stem.replace("-", " ").title(),
+                "law_id": p.stem,
+                "code": canonical_law_slug(p.stem),
+            })
+    else:
+        configs_to_ingest = list(RAW_LAWS_CONFIG)
+
     logger.info("=================================================================")
     logger.info("Starting LexiGuard Full Legal Corpus Ingestion Pipeline...")
     logger.info(f"Accelerator Device: {args.device} | OCR Engine: {args.engine} | Batch Size: {args.batch_size}")
     logger.info(f"Page Scope: {'ALL PAGES (Complete Statutory Codes)' if max_pages is None else f'{max_pages} pages'}")
-    logger.info("Target Statutes: Bộ luật Dân sự 2015 & Bộ luật Lao động 2019")
+    logger.info(f"Target Statutes ({len(configs_to_ingest)}): {[c['law_title'] for c in configs_to_ingest]}")
     logger.info("=================================================================")
 
     output_dir = Path("data/extracted_laws")
@@ -381,7 +449,7 @@ def main():
     total_nodes = 0
     total_edges = 0
 
-    for cfg in RAW_LAWS_CONFIG:
+    for cfg in configs_to_ingest:
         res = ingest_single_law(
             config=cfg,
             parser=docling_parser,

@@ -1,8 +1,8 @@
 """
 Docling Parser: Advanced OCR & Document Layout Extraction using IBM Docling
 =============================================================================
-Bóc tách PDF (kể cả trang scan và bảng biểu lương/phạt) sang Markdown
-kèm siêu dữ liệu tọa độ không gian (page_no, bbox, char_offsets).
+Extract PDFs, including scanned pages and financial tables, into Markdown
+with spatial metadata (page_no, bbox, char_offsets).
 """
 
 import os
@@ -12,24 +12,42 @@ from pydantic import BaseModel, Field
 from loguru import logger
 from src.core.hardware import hardware_profile
 
-# Try importing Docling components
+# Prevent pandas/pyarrow timezone initialization from loading an incompatible
+# native path on Windows before Docling starts its conversion pipeline.
+os.environ.setdefault("PYARROW_IGNORE_TIMEZONE", "1")
+
+# Docling is loaded lazily because its pandas/pyarrow native dependencies can
+# crash the interpreter during test discovery on some Windows environments.
 DOCLING_AVAILABLE = False
-try:
-    from docling.document_converter import DocumentConverter, PdfFormatOption
-    from docling.datamodel.base_models import InputFormat
-    from docling.datamodel.pipeline_options import (
-        PdfPipelineOptions,
-        TableStructureOptions,
-        AcceleratorOptions,
-        AcceleratorDevice,
-        RapidOcrOptions,
-        EasyOcrOptions,
-        OcrMode,
-    )
+_DOCLING_LOAD_ATTEMPTED = False
+
+
+def _load_docling_components() -> bool:
+    """Load Docling only when a real document conversion is requested."""
+    global DOCLING_AVAILABLE, _DOCLING_LOAD_ATTEMPTED
+    if _DOCLING_LOAD_ATTEMPTED:
+        return DOCLING_AVAILABLE
+    _DOCLING_LOAD_ATTEMPTED = True
+    try:
+        global DocumentConverter, PdfFormatOption, InputFormat
+        global PdfPipelineOptions, TableStructureOptions, AcceleratorOptions
+        global AcceleratorDevice, RapidOcrOptions, EasyOcrOptions, OcrMode
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import (
+            PdfPipelineOptions,
+            TableStructureOptions,
+            AcceleratorOptions,
+            AcceleratorDevice,
+            RapidOcrOptions,
+            EasyOcrOptions,
+            OcrMode,
+        )
+    except (ImportError, OSError) as exc:
+        logger.warning("Docling native components unavailable; fallback mode enabled: {}", exc)
+        return False
     DOCLING_AVAILABLE = True
-except ImportError:
-    DOCLING_AVAILABLE = False
-    logger.warning("IBM Docling is not installed in the current environment. Fallback mode enabled.")
+    return True
 
 
 class BoundingBox(BaseModel):
@@ -132,14 +150,14 @@ class DoclingParser:
 
         self._converter = None
 
-        if DOCLING_AVAILABLE:
-            self._init_docling_converter()
-        else:
-            logger.info("DoclingParser initialized in fallback mode (Docling library not found).")
+        logger.info("DoclingParser initialized; native components load on first valid parse.")
 
     def _init_docling_converter(self):
         """Initializes IBM Docling DocumentConverter with optimized PDF pipeline options."""
         try:
+            if not _load_docling_components():
+                self._converter = None
+                return
             import torch
 
             # 1. Device selection: Auto-detect GPU/CUDA or fallback to CPU
@@ -230,6 +248,9 @@ class DoclingParser:
             f"(threads={self.num_threads}, max_pages={max_pages}, page_range={page_range}, batch_size={batch_size})"
         )
 
+        if self._converter is None:
+            self._init_docling_converter()
+
         if DOCLING_AVAILABLE and self._converter is not None:
             # Batch slicing for large PDF documents to optimize VRAM and report progress
             if path.suffix.lower() == ".pdf" and batch_size and batch_size > 0 and page_range is None:
@@ -295,15 +316,19 @@ class DoclingParser:
                         if page_range is not None:
                             start_idx, end_idx = page_range
                             pages_to_slice = list(range(max(0, start_idx), min(total_doc_pages, end_idx)))
-                            slice_name = f"_temp_slice_{path.stem}_range_{start_idx}_{end_idx}.pdf"
                         else:
                             pages_to_slice = list(range(min(total_doc_pages, max_pages)))
-                            slice_name = f"_temp_slice_{path.stem}_{max_pages}.pdf"
 
                         if len(pages_to_slice) < total_doc_pages:
+                            import tempfile
                             slice_doc = pdfium.PdfDocument.new()
                             slice_doc.import_pages(src_doc, pages_to_slice)
-                            temp_slice_path = path.parent / slice_name
+                            fd, temp_str = tempfile.mkstemp(
+                                suffix=".pdf",
+                                prefix=f"lexiguard_slice_{path.stem}_",
+                            )
+                            os.close(fd)
+                            temp_slice_path = Path(temp_str)
                             slice_doc.save(str(temp_slice_path))
                             target_path = temp_slice_path
                     except Exception as slice_err:

@@ -19,6 +19,7 @@ from src.agents.nodes import (
     grade_hallucination_node,
     decide_post_grading_branch,
 )
+from src.core.observability import observe
 
 
 def create_lexiguard_graph():
@@ -55,3 +56,24 @@ def create_lexiguard_graph():
 
 
 lexiguard_agent = create_lexiguard_graph()
+
+
+def invoke_observed(
+    state: AgentState,
+    *,
+    case_id: str,
+    session_id: str | None = None,
+    cache_mode: str = "unknown",
+):
+    """Invoke the agent graph with latency, usage, retry, and Langfuse metadata."""
+    return observe(
+        lambda: lexiguard_agent.invoke(state),
+        case_id=case_id,
+        session_id=session_id,
+        cache_mode=cache_mode,
+        retries=state.get("retry_count", 0),
+        metadata={
+            "raw_document_path": state.get("raw_document_path", ""),
+            "parsed_clause_count": len(state.get("parsed_clauses", [])),
+        },
+    )

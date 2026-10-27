@@ -15,6 +15,7 @@ import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 from loguru import logger
 
+from src.core.legal_norm import canonical_law_slug
 from src.core.schemas import (
     GraphEdge,
     GraphNode,
@@ -48,7 +49,9 @@ class LegalGraphExtractor:
     )
 
     CROSS_STATUTE_PATTERN = re.compile(
-        r'(?:quy\s+định\s+của|theo\s+quy\s+định\s+của|căn\s+cứ)\s+(Bộ\s+luật\s+Dân\s+sự|Bộ\s+luật\s+Lao\s+động|Luật\s+Doanh\s+nghiệp|Luật\s+Thương\s+mại|Luật\s+Đầu\s+tư|Hiến\s+pháp)',
+        r'(?:quy\s+định\s+của|theo\s+quy\s+định\s+của|căn\s+cứ\s+(?:vào)?)\s+'
+        r'((?:Bộ\s+luật|Luật|Nghị\s+định|Thông\s+tư|Quy\s+chế|Quy\s+định|Pháp\s+lệnh|Hiến\s+pháp)'
+        r'(?:\s+(?!(?:và|hoặc|tại|theo)\s+(?:điều|khoản|điểm|\d+)\b)[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)+)',
         re.IGNORECASE
     )
 
@@ -243,14 +246,17 @@ class LegalGraphExtractor:
         # 4. Cross-Statute References
         for m in self.CROSS_STATUTE_PATTERN.finditer(text):
             statute_name = m.group(1).strip()
-            statute_id = f"LAW_{re.sub(r'[^A-Za-z0-9]', '_', statute_name.upper())}"
+            statute_name = re.sub(r'[,;.\)]+$', '', statute_name).strip()
+            statute_name = re.sub(r'\s+(?:và|hoặc)\s+(?:điều|khoản).*$', '', statute_name, flags=re.IGNORECASE).strip()
+            statute_code = canonical_law_slug(statute_name)
+            statute_id = f"LAW_{statute_code}"
             if statute_id not in nodes_dict:
                 nodes_dict[statute_id] = GraphNode(
                     node_id=statute_id,
                     node_type="Law",
                     name=statute_name,
-                    law_id=statute_id.lower(),
-                    properties={"title": statute_name}
+                    law_id=statute_code.lower(),
+                    properties={"title": statute_name, "canonical_code": statute_code}
                 )
             self._add_edge(
                 edges, edge_keys,
@@ -300,17 +306,11 @@ class LegalGraphExtractor:
         statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (c:Clause) REQUIRE c.node_id IS UNIQUE;")
         statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (ch:Chapter) REQUIRE ch.node_id IS UNIQUE;")
         statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (l:Law) REQUIRE l.node_id IS UNIQUE;")
+        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Precedent) REQUIRE p.node_id IS UNIQUE;")
 
-        # Merge Nodes
+        # Merge Nodes via robust model serializer
         for node in result.nodes:
-            props = ", ".join([f"n.{k} = '{self._escape_cypher(str(v))}'" for k, v in node.properties.items()])
-            stmt = (
-                f"MERGE (n:{node.node_type} {{node_id: '{node.node_id}'}}) "
-                f"ON CREATE SET n.name = '{self._escape_cypher(node.name)}', n.law_id = '{node.law_id}'"
-            )
-            if props:
-                stmt += f", {props}"
-            statements.append(stmt + ";")
+            statements.append(node.to_cypher_merge())
 
         # Merge Edges
         for edge in result.edges:
@@ -377,14 +377,10 @@ class LegalGraphExtractor:
 
     @staticmethod
     def _get_law_code(law_id: str) -> str:
-        """Maps law ID to canonical short prefix."""
-        law_id_lower = law_id.lower()
-        if "dan-su" in law_id_lower:
-            return "VN_BLDS_2015"
-        elif "lao-dong" in law_id_lower:
-            return "VN_BLLD_2019"
-        elif "thuong-mai" in law_id_lower:
-            return "VN_LTM_2005"
-        elif "doanh-nghiep" in law_id_lower:
-            return "VN_LDN_2020"
-        return "VN_STATUTE"
+        """
+        Dynamically maps any law ID into a unique canonical short code.
+        Fully generalized across all Vietnamese legislation via canonical_law_slug.
+        """
+        if not law_id:
+            return "VN_LAW_UNKNOWN"
+        return canonical_law_slug(law_id)

@@ -3,6 +3,7 @@ Unit Tests for DoclingParser
 """
 
 from pathlib import Path
+import os
 import pytest
 from src.ingestion.docling_parser import (
     DoclingParser,
@@ -30,6 +31,8 @@ def test_parser_file_not_found():
         parser.parse("non_existent_file.pdf")
 
 def test_parse_sample_pdf_if_exists():
+    if os.environ.get("LEXIGUARD_RUN_DOCLING_INTEGRATION") != "1":
+        pytest.skip("Set LEXIGUARD_RUN_DOCLING_INTEGRATION=1 to run native Docling integration.")
     parser = DoclingParser()
     raw_law_path = Path("data/raw_laws/bo-luat-dan-su-2015.pdf")
     if raw_law_path.exists():

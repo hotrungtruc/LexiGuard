@@ -100,8 +100,15 @@ class HybridLegalRetriever:
         reranker: Optional[LegalCrossEncoderReranker] = None,
         entity_extractor: Optional[LegalEntityExtractor] = None,
         lifecycle_manager: Optional[LegalLifecycleManager] = None,
+        use_bm25_only: Optional[bool] = None,
     ):
         logger.info("Initializing HybridLegalRetriever...")
+        self.use_bm25_only = (
+            use_bm25_only
+            if use_bm25_only is not None
+            else (qdrant_store is None and neo4j_store is None)
+        )
+        self._bm25_retriever: Any = None
         self.qdrant_store: QdrantStore = qdrant_store or QdrantStore()
         self.neo4j_store: Neo4jStore = neo4j_store or Neo4jStore()
         self.reranker: LegalCrossEncoderReranker = reranker or LegalCrossEncoderReranker()
@@ -141,17 +148,24 @@ class HybridLegalRetriever:
         active_only: bool = True,
     ) -> List[Dict[str, Any]]:
         """
-        Executes the 3-step legal cross-referencing retrieval pipeline with Phase 2 Entity Fast-Path & Phase 3 Lifecycle Filtering:
-        - Fast-Path: Parses statutory citations (Điều X, Khoản Y) directly from query.
-        - Step 1: Qdrant Hybrid Search (Dense + BM25) with RRF, retrieving top 12 candidates.
-        - Step 2: Neo4j Graph Traversal (1..2 hops) prioritizing Fast-Path seeds and top Qdrant candidates.
-        - Step 3: Neural Cross-Encoder Reranking using BAAI/bge-reranker-v2-m3 to return top_k candidates.
-        - Lifecycle Filtering: When active_only=True, automatically filters out repealed statutory provisions.
+        Retrieval pipeline. When use_bm25_only=True, directly executes BM25 Lexical
+        (Vietnamese Compound N-grams) for sub-millisecond, top-precision statutory retrieval.
         """
+        if self.use_bm25_only:
+            logger.info(f"=== [BM25 Lexical Mode] Executing Compound N-grams Retrieval for: '{query[:60]}' ===")
+            if self._bm25_retriever is None:
+                from src.retrieval.bm25_retriever import BM25LexicalRetriever
+                self._bm25_retriever = BM25LexicalRetriever()
+            return self._bm25_retriever.search(
+                query=query,
+                top_k=top_k,
+                active_only=active_only,
+            )
+
         logger.info(f"=== Starting 3-Step Hybrid Legal Retrieval for query: '{query[:60]}' (active_only={active_only}) ===")
 
         # ----------------------------------------------------------------------
-        # FAST-PATH: Bóc tách số hiệu điều luật từ query (Entity Fast-Path)
+        # FAST PATH: Extract statutory article identifiers from the query.
         # ----------------------------------------------------------------------
         fast_path_node_ids = self.entity_extractor.extract_citation_node_ids(query)
         if fast_path_node_ids:
@@ -160,7 +174,7 @@ class HybridLegalRetriever:
             )
 
         # ----------------------------------------------------------------------
-        # BƯỚC 1: Qdrant Hybrid Search (RRF Dense + BM25) -> Lấy 12 kết quả
+        # STEP 1: Qdrant hybrid search (RRF dense + BM25), taking 12 results.
         # ----------------------------------------------------------------------
         logger.info(f"[Bước 1] Querying Qdrant Hybrid Search (limit={qdrant_limit}, active_only={active_only})...")
         qdrant_candidates = await self.qdrant_store.hybrid_search_async(
@@ -187,9 +201,9 @@ class HybridLegalRetriever:
         logger.info(f"[Bước 1 Hoàn tất] Qdrant thu thập {len(unified_candidates)} ứng viên hợp lệ.")
 
         # ----------------------------------------------------------------------
-        # BƯỚC 2: Neo4j Multi-Hop Expansion (Ưu tiên Fast-Path Seed Nodes)
+        # STEP 2: Neo4j multi-hop expansion, prioritizing fast-path seed nodes.
         # ----------------------------------------------------------------------
-        # Nạp trực tiếp các node Điều X từ Fast-Path lên đầu danh sách hạt giống mở rộng của Neo4j
+        # Put fast-path article nodes at the front of the Neo4j expansion seed list.
         seed_nodes = list(dict.fromkeys(fast_path_node_ids + candidate_node_ids))
         nodes_to_expand = seed_nodes[:max(6, len(fast_path_node_ids))]
 
@@ -210,7 +224,7 @@ class HybridLegalRetriever:
                 referenced_articles = expansion.get("referenced_articles", [])
                 root_entities = expansion.get("root_entities", {})
 
-                # Đảm bảo các node từ Entity Fast-Path có mặt trực tiếp trong unified_candidates (nếu còn hiệu lực)
+                # Keep fast-path entity nodes directly in unified_candidates when active.
                 for fp_id in fast_path_node_ids:
                     if fp_id in unified_candidates:
                         unified_candidates[fp_id]["is_fast_path"] = True
@@ -218,7 +232,7 @@ class HybridLegalRetriever:
                             unified_candidates[fp_id]["retrieval_source"] = "hybrid"
                     elif fp_id in root_entities:
                         root_info = root_entities[fp_id]
-                        # Tự động lọc bỏ các quy định cũ nếu active_only=True
+                        # Automatically remove inactive provisions when active_only=True.
                         if active_only and root_info.get("is_active") is False:
                             logger.info(f"[Entity Fast-Path] Bỏ qua điều khoản hết hiệu lực: '{fp_id}'")
                             continue
@@ -277,7 +291,7 @@ class HybridLegalRetriever:
                         if "precedents" not in existing or not existing["precedents"]:
                             existing["precedents"] = ref.get("precedents", [])
                     else:
-                        # New candidate discovered via graph cross-referencing (e.g. Điều 357 -> Điều 468)
+                        # New candidate discovered through graph cross-referencing.
                         ref_candidate = {
                             "point_id": ref.get("qdrant_point_id", ""),
                             "score": 0.5,  # Baseline expansion relevance
@@ -309,7 +323,7 @@ class HybridLegalRetriever:
         )
 
         # ----------------------------------------------------------------------
-        # BƯỚC 3: Cross-Encoder Reranking (BAAI/bge-reranker-v2-m3)
+        # STEP 3: Cross-encoder reranking (BAAI/bge-reranker-v2-m3).
         # ----------------------------------------------------------------------
         logger.info(f"[Bước 3] Cross-Encoder Reranking candidate pool down to top {top_k}...")
         final_ranked_candidates = self.reranker.rerank(

@@ -22,7 +22,7 @@ def test_entity_extractor_standalone_articles():
 def test_entity_extractor_chained_articles():
     extractor = LegalEntityExtractor()
 
-    # Chained articles with comma and 'và'
+    # Chained articles separated by commas and "and".
     node_ids = extractor.extract_citation_node_ids("Xem xét quy định tại Điều 357, 468 và 469")
     assert node_ids == ["VN_BLDS_2015_D357", "VN_BLDS_2015_D468", "VN_BLDS_2015_D469"]
 

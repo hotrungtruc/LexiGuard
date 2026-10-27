@@ -10,6 +10,7 @@ Exposes 3 core Model Context Protocol (MCP) tools for autonomous legal agents:
    constituent clauses, cross-references, and judicial precedents up to N hops.
 """
 
+import asyncio
 import json
 import math
 import re
@@ -26,6 +27,7 @@ except ImportError:
     except ImportError:
         from mcp.server.fastmcp import FastMCP  # type: ignore
 
+from src.core.config import async_connection_manager, circuit_breaker, settings
 from src.retrieval.entity_extractor import LegalEntityExtractor
 
 # Initialize FastMCP Server instance
@@ -49,6 +51,13 @@ class SelfQueryEngine:
     LAW_MAP = [
         (re.compile(r'\b(?:bộ\s*luật\s*dân\s*sự|dân\s*sự|blds)(?:\s*2015)?\b', re.IGNORECASE), "bo-luat-dan-su-2015"),
         (re.compile(r'\b(?:bộ\s*luật\s*lao\s*động|lao\s*động|bllđ|blld)(?:\s*2019)?\b', re.IGNORECASE), "bo-luat-lao-dong-2019"),
+        (re.compile(r'\b(?:luật\s*thương\s*mại|thương\s*mại|ltm)(?:\s*2005)?\b', re.IGNORECASE), "luat-thuong-mai-2005"),
+        (re.compile(r'\b(?:luật\s*trọng\s*tài\s*thương\s*mại|trọng\s*tài\s*thương\s*mại|ltttm)(?:\s*2010)?\b', re.IGNORECASE), "luat-trong-tai-thuong-mai-2010"),
+        (re.compile(r'\b(?:luật\s*doanh\s*nghiệp|doanh\s*nghiệp|ldn)(?:\s*2020)?\b', re.IGNORECASE), "luat-doanh-nghiep-2020"),
+        (re.compile(r'\b(?:luật\s*đất\s*đai|đất\s*đai)(?:\s*2024|\s*2013)?\b', re.IGNORECASE), "luat-dat-dai-2024"),
+        (re.compile(r'\b(?:luật\s*nhà\s*ở|nhà\s*ở)(?:\s*2023)?\b', re.IGNORECASE), "luat-nha-o-2023"),
+        (re.compile(r'\b(?:luật\s*xây\s*dựng|xây\s*dựng)(?:\s*2020|\s*2014)?\b', re.IGNORECASE), "luat-xay-dung-2020"),
+        (re.compile(r'\b(?:luật\s*đấu\s*thầu|đấu\s*thầu)(?:\s*2023)?\b', re.IGNORECASE), "luat-dau-thau-2023"),
     ]
 
     ARTICLE_REGEX = re.compile(r'(?:điều|đieu|điu|đ\.?)\s*(\d+)', re.IGNORECASE)
@@ -69,6 +78,11 @@ class SelfQueryEngine:
                 if pattern.search(query):
                     detected_law_id = canonical_id
                     break
+            if not detected_law_id:
+                # Dynamic universal fallback for any custom or arbitrary legislation
+                spans = LegalEntityExtractor()._find_law_spans(query)
+                if spans:
+                    detected_law_id = spans[0][2]
 
         detected_article_num = explicit_article_num
         if detected_article_num is None:
@@ -87,6 +101,10 @@ class SelfQueryEngine:
             "article_num": detected_article_num,
             "clause_num": detected_clause_num,
         }
+
+
+# Backward-compatible alias
+FastMCPFilters = SelfQueryEngine
 
 
 # ============================================================================
@@ -115,6 +133,19 @@ def _get_offline_chunks() -> List[Dict[str, Any]]:
 
     _OFFLINE_CHUNKS_CACHE = []
     return _OFFLINE_CHUNKS_CACHE
+
+
+_BM25_RETRIEVER_INSTANCE: Optional[Any] = None
+
+
+def _get_bm25_retriever():
+    """Lazily loads and caches the high-performance BM25 Lexical Retriever."""
+    global _BM25_RETRIEVER_INSTANCE
+    if _BM25_RETRIEVER_INSTANCE is None:
+        from src.retrieval.bm25_retriever import BM25LexicalRetriever
+        chunks = _get_offline_chunks()
+        _BM25_RETRIEVER_INSTANCE = BM25LexicalRetriever(custom_chunks=chunks)
+    return _BM25_RETRIEVER_INSTANCE
 
 
 def _get_offline_graphs() -> Dict[str, Dict[str, Any]]:
@@ -223,7 +254,13 @@ class TableArithmeticAuditor:
                 s = s.replace(".", "")
         elif "," in s and "." not in s:
             parts = s.split(",")
-            if len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
+            if (
+                len(parts) > 1
+                and all(len(p) == 3 for p in parts[1:])
+                and not parts[0].lstrip("0")
+            ):
+                s = s.replace(",", ".")
+            elif len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
                 s = s.replace(",", "")
             else:
                 s = s.replace(",", ".")
@@ -341,7 +378,7 @@ class TableArithmeticAuditor:
                     expected_total = qty * price
                     delta = abs(reported_total - expected_total)
                     if delta > tolerance:
-                        pct_diff = round((delta / expected_total) * 100, 2) if expected_total != 0 else 100.0
+                        pct_diff = round((delta / abs(expected_total)) * 100, 2) if expected_total != 0 else 100.0
                         desc = str(r[0]) if r else f"Row {r_idx}"
                         discrepancies.append({
                             "type": "ROW_PRODUCT_MISMATCH",
@@ -463,106 +500,16 @@ async def search_legal_provisions(
     eff_article_num = inferred["article_num"]
     eff_clause_num = inferred["clause_num"]
 
-    provisions: List[Dict[str, Any]] = []
-
-    # Step 2: Attempt live Qdrant search
-    try:
-        from src.core.config import get_async_qdrant_client, settings
-        from src.retrieval.qdrant_store import QdrantStore
-        from qdrant_client.http.models import Filter, FieldCondition, MatchValue
-
-        client = get_async_qdrant_client()
-        # Ping check
-        await client.get_collections()
-
-        qdrant_store = QdrantStore(client=client)
-
-        # Build self-queried payload filter
-        must_conditions = []
-        if eff_law_id:
-            must_conditions.append(FieldCondition(key="law_id", match=MatchValue(value=eff_law_id)))
-        if eff_article_num is not None:
-            must_conditions.append(FieldCondition(key="article_num", match=MatchValue(value=eff_article_num)))
-        if eff_clause_num is not None:
-            must_conditions.append(FieldCondition(key="clause_num", match=MatchValue(value=eff_clause_num)))
-
-        q_filter = Filter(must=must_conditions) if must_conditions else None
-
-        results = await qdrant_store.hybrid_search_async(
-            query=query,
-            top_k=top_k,
-            active_only=active_only,
-            query_filter=q_filter,
-        )
-
-        for r in results:
-            provisions.append({
-                "chunk_id": r.get("chunk_id", ""),
-                "canonical_citation": r.get("canonical_citation", ""),
-                "law_id": r.get("law_id", ""),
-                "law_title": r.get("law_title", ""),
-                "chapter_title": r.get("chapter_title", ""),
-                "article_num": r.get("article_num"),
-                "article_title": r.get("article_title", ""),
-                "clause_num": r.get("clause_num"),
-                "content": r.get("content", ""),
-                "context_enriched_text": r.get("context_enriched_text", ""),
-                "cross_references": r.get("cross_references", []),
-                "is_active": r.get("is_active", True),
-                "relevance_score": round(r.get("score", 0.0), 4),
-            })
-    except Exception as exc:
-        logger.warning(f"Live Qdrant search unavailable ({exc}). Using offline extracted dataset fallback.")
-        # Fallback to offline chunks
-        offline_chunks = _get_offline_chunks()
-        query_terms = set(re.findall(r'\w+', query.lower()))
-
-        scored_candidates = []
-        for ch in offline_chunks:
-            # Active filter
-            if active_only and not ch.get("is_active", True):
-                continue
-            # Law ID filter
-            if eff_law_id and ch.get("law_id") != eff_law_id:
-                continue
-            # Article filter
-            if eff_article_num is not None and ch.get("article_num") != eff_article_num:
-                continue
-            # Clause filter
-            if eff_clause_num is not None and ch.get("clause_num") != eff_clause_num:
-                continue
-
-            content_text = ch.get("content", "") + " " + ch.get("canonical_citation", "")
-            content_lower = content_text.lower()
-
-            # Simple token overlap scoring
-            matches = sum(1 for term in query_terms if term in content_lower)
-            score = round(matches / max(len(query_terms), 1), 4)
-
-            # Bonus for exact article match
-            if eff_article_num and ch.get("article_num") == eff_article_num:
-                score += 1.0
-
-            scored_candidates.append((score, ch))
-
-        scored_candidates.sort(key=lambda x: x[0], reverse=True)
-
-        for score, ch in scored_candidates[:top_k]:
-            provisions.append({
-                "chunk_id": ch.get("chunk_id", ""),
-                "canonical_citation": ch.get("canonical_citation", ""),
-                "law_id": ch.get("law_id", ""),
-                "law_title": ch.get("law_title", ""),
-                "chapter_title": ch.get("chapter_title", ""),
-                "article_num": ch.get("article_num"),
-                "article_title": ch.get("article_title", ""),
-                "clause_num": ch.get("clause_num"),
-                "content": ch.get("content", ""),
-                "context_enriched_text": ch.get("context_enriched_text", ""),
-                "cross_references": ch.get("cross_references", []),
-                "is_active": ch.get("is_active", True),
-                "relevance_score": score,
-            })
+    # Step 2: High-Precision BM25 Lexical Retrieval with Compound N-grams
+    bm25_retriever = _get_bm25_retriever()
+    provisions = bm25_retriever.search(
+        query=query,
+        top_k=top_k,
+        law_id=eff_law_id,
+        article_num=eff_article_num,
+        clause_num=eff_clause_num,
+        active_only=active_only,
+    )
 
     return {
         "status": "success",
@@ -607,6 +554,127 @@ def verify_table_arithmetic(
     )
 
 
+_OFFLINE_PRECEDENTS_MAP: Dict[str, List[Dict[str, Any]]] = {
+    "VN_LTM_2005_D301": [
+        {
+            "precedent_id": "PREC_VIAC_LTM_301",
+            "precedent_number": "Bản án số 15/2020/KDTM-PT & Thực tiễn VIAC",
+            "title": "Trần phạt vi phạm tối đa 8% theo Điều 301 Luật Thương mại",
+            "court": "TAND TP.HCM & VIAC",
+            "legal_rule": "Cả Tòa án và Hội đồng Trọng tài VIAC đều kiên quyết giảm mức phạt vi phạm về đúng trần tối đa 8% giá trị phần nghĩa vụ bị vi phạm.",
+        }
+    ],
+    "VN_LTM_2005_D302": [
+        {
+            "precedent_id": "PREC_GDT_09_2020",
+            "precedent_number": "Quyết định Giám đốc thẩm số 09/2020/KDTM-GĐT",
+            "title": "Không công nhận bồi thường thiệt hại ước tính (Liquidated Damages)",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Bên yêu cầu bồi thường thiệt hại bắt buộc phải chứng minh tổn thất thực tế, trực tiếp; bác bỏ mức bồi thường ước tính cố định không chứng minh được.",
+        }
+    ],
+    "VN_LTM_2005_D306": [
+        {
+            "precedent_id": "PREC_AL_09_2016",
+            "precedent_number": "Án lệ số 09/2016/AL",
+            "title": "Xác định lãi chậm trả trong quan hệ thương mại",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Lãi chậm trả tính theo lãi suất nợ quá hạn trung bình của ít nhất 3 ngân hàng thương mại lớn tại thời điểm thanh toán; bác bỏ thỏa thuận lãi kép.",
+        }
+    ],
+    "VN_LTTTM_2010_D043": [
+        {
+            "precedent_id": "PREC_NQ_01_2014",
+            "precedent_number": "Nghị quyết 01/2014/NQ-HĐTP & Quyết định 111/2023/QĐ-PQTT",
+            "title": "Thỏa thuận trọng tài không thể thực hiện được",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Thỏa thuận trọng tài chọn cả Tòa án và Trọng tài là thỏa thuận không thể thực hiện được; nếu nguyên đơn khởi kiện ra Tòa án thì Tòa án thụ lý.",
+        }
+    ],
+    "VN_BLDS_2015_D003": [
+        {
+            "precedent_id": "PREC_AL_69_2023",
+            "precedent_number": "Án lệ số 69/2023/AL",
+            "title": "Thỏa thuận bảo mật và không cạnh tranh độc lập (NDA/NCA)",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Thỏa thuận bảo mật thông tin và không cạnh tranh ký độc lập, tự nguyện giữa các bên là giao dịch dân sự hợp pháp thuộc thẩm quyền của Trọng tài thương mại.",
+        }
+    ],
+    "VN_BLDS_2015_D156": [
+        {
+            "precedent_id": "PREC_GDT_05_2021",
+            "precedent_number": "Quyết định Giám đốc thẩm số 05/2021/KDTM-GĐT",
+            "title": "Điều kiện của sự kiện bất khả kháng",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Biến động giá cả thị trường, trượt giá vật tư, hoặc việc bên thứ ba chậm trễ không được coi là sự kiện bất khả kháng theo Điều 156 BLDS.",
+        }
+    ],
+    "VN_BLDS_2015_D351": [
+        {
+            "precedent_id": "PREC_GDT_05_2021",
+            "precedent_number": "Quyết định Giám đốc thẩm số 05/2021/KDTM-GĐT",
+            "title": "Miễn trách nhiệm do sự kiện bất khả kháng",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Chỉ được miễn trách nhiệm khi vi phạm nghĩa vụ xảy ra do sự kiện khách quan, không thể lường trước và không thể khắc phục.",
+        }
+    ],
+    "VN_BLDS_2015_D357": [
+        {
+            "precedent_id": "PREC_AL_09_2016",
+            "precedent_number": "Án lệ số 09/2016/AL",
+            "title": "Lãi chậm trả và cấm lãi kép",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Tiền lãi trên nợ gốc quá hạn theo lãi suất luật định, kiên quyết bác bỏ thỏa thuận tính lãi trên nợ lãi.",
+        }
+    ],
+    "VN_BLDS_2015_D468": [
+        {
+            "precedent_id": "PREC_NQ_01_2019",
+            "precedent_number": "Nghị quyết 01/2019/NQ-HĐTP",
+            "title": "Khống chế trần lãi suất 20%/năm",
+            "court": "Hội đồng Thẩm phán TAND Tối cao",
+            "legal_rule": "Lãi suất thỏa thuận không được vượt quá 20%/năm; phần lãi suất vượt quá không có hiệu lực thi hành.",
+        }
+    ],
+    "VN_BLDS_2015_D406": [
+        {
+            "precedent_id": "PREC_BA_32_2022",
+            "precedent_number": "Bản án số 32/2022/KDTM-PT",
+            "title": "Hợp đồng gia nhập áp đặt bất bình đẳng",
+            "court": "TAND TP. Đà Nẵng",
+            "legal_rule": "Vô hiệu các điều khoản trong hợp đồng theo mẫu miễn trừ trách nhiệm bên soạn thảo hoặc loại bỏ quyền lợi chính đáng của bên yếu thế.",
+        }
+    ],
+    "VN_BLDS_2015_D428": [
+        {
+            "precedent_id": "PREC_BA_12_2023",
+            "precedent_number": "Bản án số 12/2023/LĐ-PT",
+            "title": "Đơn phương chấm dứt hợp đồng trái luật",
+            "court": "TAND TP.HCM",
+            "legal_rule": "Đơn phương chấm dứt hợp đồng mà không ấn định thời hạn khắc phục hợp lý cho bên kia bị xác định là đơn phương trái pháp luật và phải bồi thường.",
+        }
+    ],
+    "VN_BLLD_2019_D005": [
+        {
+            "precedent_id": "PREC_BA_03_2023",
+            "precedent_number": "Bản án số 03/2023/LĐ-PT",
+            "title": "Cam kết không cạnh tranh xâm phạm quyền tự do việc làm",
+            "court": "TAND Tỉnh Thanh Hóa",
+            "legal_rule": "Tuyên vô hiệu điều khoản cấm người lao động làm việc cho doanh nghiệp khác sau khi chấm dứt hợp đồng lao động.",
+        }
+    ],
+    "VN_BLLD_2019_D127": [
+        {
+            "precedent_id": "PREC_BA_04_2023",
+            "precedent_number": "Bản án số 04/2023/LĐ-PT",
+            "title": "Cấm phạt tiền, khấu trừ lương thay xử lý kỷ luật",
+            "court": "TAND",
+            "legal_rule": "Hành vi trừ lương hoặc phạt tiền người lao động thay việc xử lý kỷ luật lao động bị nghiêm cấm theo Điều 127 BLLĐ.",
+        }
+    ],
+}
+
+
 @mcp_server.tool()
 async def get_article_graph_context(
     node_id: str,
@@ -639,46 +707,62 @@ async def get_article_graph_context(
             m = re.search(r'(?:điều|dieu)\s*(\d+)', canonical_node_id, re.IGNORECASE)
             if m:
                 art_num = int(m.group(1))
-                law_code = "VN_BLLD_2019" if "lao động" in canonical_node_id.lower() else "VN_BLDS_2015"
+                law_code = extractor.detect_law_code(canonical_node_id) or "VN_BLDS_2015"
                 canonical_node_id = f"{law_code}_D{art_num:03d}"
 
     # Step 2: Attempt live Neo4j query
-    try:
-        from src.core.config import get_async_neo4j_driver
-        from src.retrieval.neo4j_store import Neo4jStore
+    live_neo4j_success = False
+    if circuit_breaker.is_available("neo4j"):
+        try:
+            from src.retrieval.neo4j_store import Neo4jStore
 
-        driver = get_async_neo4j_driver()
-        neo4j_store = Neo4jStore(driver=driver)
+            driver = async_connection_manager.get_neo4j_driver()
+            # Fast ping connectivity check with 1.5s timeout before initiating managed transaction
+            await asyncio.wait_for(driver.verify_connectivity(), timeout=min(1.5, settings.NEO4J_CONNECTION_TIMEOUT))
 
-        expansion = await neo4j_store.expand_referenced_articles_async(
-            root_ids=[canonical_node_id],
-            hops=max_hops,
-            include_precedents=include_precedents,
-            active_only=active_only,
-        )
+            neo4j_store = Neo4jStore(driver=driver)
 
-        referenced_list = expansion.get("referenced_articles", [])
-        graph_triples = []
-        for ref in referenced_list:
-            for rel in ref.get("relationship_types", []):
-                graph_triples.append({
-                    "subject": canonical_node_id,
-                    "predicate": rel,
-                    "object": ref.get("node_id"),
-                    "citation": ref.get("citation", ""),
-                })
+            expansion = await neo4j_store.expand_referenced_articles_async(
+                root_ids=[canonical_node_id],
+                hops=max_hops,
+                include_precedents=include_precedents,
+                active_only=active_only,
+            )
+            circuit_breaker.record_success("neo4j")
+            live_neo4j_success = True
 
-        return {
-            "status": "success",
-            "target_node_id": canonical_node_id,
-            "total_referenced": len(referenced_list),
-            "referenced_articles": referenced_list,
-            "graph_triples": graph_triples,
-            "data_source": "neo4j_live",
-        }
-    except Exception as exc:
-        logger.warning(f"Live Neo4j graph unavailable ({exc}). Using offline graph dataset fallback.")
+            referenced_list = expansion.get("referenced_articles", [])
+            graph_triples = []
+            all_precedents = []
 
+            for ref in referenced_list:
+                for rel in ref.get("relationship_types", []):
+                    graph_triples.append({
+                        "subject": canonical_node_id,
+                        "predicate": rel,
+                        "object": ref.get("node_id"),
+                        "citation": ref.get("citation", ""),
+                    })
+                for prec in ref.get("precedents", []):
+                    if prec and prec not in all_precedents:
+                        all_precedents.append(prec)
+
+            return {
+                "status": "success",
+                "target_node_id": canonical_node_id,
+                "total_referenced": len(referenced_list),
+                "referenced_articles": referenced_list,
+                "precedents": all_precedents,
+                "graph_triples": graph_triples,
+                "data_source": "neo4j_live",
+            }
+        except Exception as exc:
+            circuit_breaker.record_failure("neo4j", exc)
+            logger.warning(f"Live Neo4j graph unavailable ({exc}). Using offline graph dataset fallback.")
+    else:
+        logger.debug("Neo4j circuit breaker OPEN. Directly using offline graph dataset fallback.")
+
+    if not live_neo4j_success:
         # Fallback to offline graph data
         offline_graphs = _get_offline_graphs()
         matched_node = None
@@ -694,12 +778,16 @@ async def get_article_graph_context(
             if matched_node:
                 break
 
+        # Fallback precedents from offline index
+        offline_precedents = _OFFLINE_PRECEDENTS_MAP.get(canonical_node_id, [])
+
         if not matched_node:
             return {
                 "status": "not_found",
                 "message": f"Statutory node '{canonical_node_id}' not found in knowledge graph.",
                 "target_node_id": canonical_node_id,
                 "referenced_articles": [],
+                "precedents": offline_precedents,
                 "graph_triples": [],
             }
 
@@ -734,6 +822,7 @@ async def get_article_graph_context(
             "target_node": matched_node,
             "total_referenced": len(referenced_articles),
             "referenced_articles": referenced_articles,
+            "precedents": offline_precedents,
             "graph_triples": graph_triples,
             "data_source": "offline_graph_cache",
         }

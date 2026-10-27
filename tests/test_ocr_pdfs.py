@@ -3,6 +3,7 @@ Unit Tests for Single-Branch Legal OCR Engine (IBM Docling + EasyOCR) & Extracte
 """
 
 from pathlib import Path
+import os
 import pytest
 import pypdf
 from src.ingestion.docling_parser import (
@@ -41,6 +42,8 @@ def test_all_extracted_pdfs_exist_and_readable():
 
 def test_single_branch_docling_parser_execution():
     """Validates Single-Branch Docling + EasyOCR extraction on real statutory PDF."""
+    if os.environ.get("LEXIGUARD_RUN_DOCLING_INTEGRATION") != "1":
+        pytest.skip("Set LEXIGUARD_RUN_DOCLING_INTEGRATION=1 to run native Docling integration.")
     sample_pdf = Path("data/raw_laws/bo-luat-dan-su-2015.pdf")
     if not sample_pdf.exists():
         pytest.skip(f"Test raw law PDF not found at {sample_pdf}")
@@ -61,6 +64,8 @@ def test_single_branch_docling_parser_execution():
 
 def test_docling_batch_slicing_and_provenance():
     """Validates incremental batch slicing and accurate page provenance tracking."""
+    if os.environ.get("LEXIGUARD_RUN_DOCLING_INTEGRATION") != "1":
+        pytest.skip("Set LEXIGUARD_RUN_DOCLING_INTEGRATION=1 to run native Docling integration.")
     sample_pdf = Path("data/raw_laws/bo-luat-dan-su-2015.pdf")
     if not sample_pdf.exists():
         pytest.skip(f"Test raw law PDF not found at {sample_pdf}")

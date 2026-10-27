@@ -13,6 +13,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 from loguru import logger
 
+from src.core.legal_norm import canonical_law_slug
 from src.core.schemas import (
     LegalArticle,
     LegalChapter,
@@ -126,7 +127,7 @@ class LegalChunker:
                     c_num = c_num.replace(u_rom, a_rom)
                 c_title = chap_match.group(2).strip() if chap_match.group(2) else ""
 
-                # Correction for OCR scanning Chapter III (Hợp đồng lao động) as Chrong II right after Chapter II
+                # Correct OCR that scans Chapter III (employment contracts) as Chapter II after Chapter II.
                 if c_num == "II" and current_chapter_num == "II":
                     c_num = "III"
 
@@ -268,7 +269,7 @@ class LegalChunker:
                         canonical_citation=f"Khoản {curr_clause_num} Điều {art_num} {law_title}"
                     ))
                 elif curr_clause_lines:
-                    # Preamble text preceding a numbered clause (e.g., Khoản 1)
+                    # Preamble text preceding a numbered clause (e.g., Clause 1).
                     pre_content = "\n".join(curr_clause_lines).strip()
                     if pre_content:
                         clauses.append(LegalClause(
@@ -449,14 +450,10 @@ class LegalChunker:
 
     @staticmethod
     def _get_law_code(law_id: str) -> str:
-        """Maps law ID to canonical short prefix."""
-        law_id_lower = law_id.lower()
-        if "dan-su" in law_id_lower:
-            return "VN_BLDS_2015"
-        elif "lao-dong" in law_id_lower:
-            return "VN_BLLD_2019"
-        elif "thuong-mai" in law_id_lower:
-            return "VN_LTM_2005"
-        elif "doanh-nghiep" in law_id_lower:
-            return "VN_LDN_2020"
-        return "VN_STATUTE"
+        """
+        Dynamically maps any law ID into a unique canonical short code.
+        Fully generalized across all Vietnamese legislation via canonical_law_slug.
+        """
+        if not law_id:
+            return "VN_LAW_UNKNOWN"
+        return canonical_law_slug(law_id)

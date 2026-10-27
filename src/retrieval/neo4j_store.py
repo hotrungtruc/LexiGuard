@@ -2,10 +2,10 @@
 Neo4j Store: Legal Knowledge Graph & Multi-Hop Traversal Engine
 ================================================================
 Models Vietnamese Legal Knowledge Graph with entities:
-- (:Law): Statute codes (e.g. Bộ luật Dân sự 2015, Bộ luật Lao động 2019)
-- (:Article): Statutory articles (Điều luật)
-- (:Clause): Specific statutory clauses & provisions (Khoản luật)
-- (:Precedent): Judicial precedents & court judgments (Án lệ / Bản án thực tế)
+- (:Law): Statute codes
+- (:Article): Statutory articles
+- (:Clause): Specific statutory clauses and provisions
+- (:Precedent): Judicial precedents and court judgments
 
 Core Capability:
 - `expand_referenced_articles`: Traverses 1 to 2 hops (1..2 hops) across semantic
@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Union
 from loguru import logger
 from neo4j import AsyncDriver
 
-from src.core.config import get_async_neo4j_driver, settings
+from src.core.config import get_async_neo4j_driver, settings, run_coroutine_sync
 from src.core.schemas import (
     GraphEdge,
     GraphNode,
@@ -205,6 +205,7 @@ class Neo4jStore:
         include_precedents: bool = True,
         article_or_clause_id: Optional[Union[str, List[str]]] = None,
         active_only: bool = True,
+        root_ids: Optional[Union[str, List[str]]] = None,
     ) -> Dict[str, Any]:
         """
         Core Knowledge Graph traversal function (Phase 1 Latency Optimization via UNWIND & Phase 3 Lifecycle Filtering):
@@ -219,10 +220,15 @@ class Neo4jStore:
             include_precedents: Whether to fetch linked judicial precedents (APPLIES_STATUTE/HAS_PRECEDENT).
             article_or_clause_id: Backward-compatible alias for article_or_clause_ids.
             active_only: Whether to filter out repealed/inactive provisions and precedents (default True).
+            root_ids: Backward-compatible alias for article_or_clause_ids.
         """
-        target = article_or_clause_ids if article_or_clause_ids is not None else article_or_clause_id
+        target = (
+            article_or_clause_ids
+            if article_or_clause_ids is not None
+            else (article_or_clause_id if article_or_clause_id is not None else root_ids)
+        )
         if target is None:
-            raise ValueError("article_or_clause_ids (or article_or_clause_id) must be provided.")
+            raise ValueError("article_or_clause_ids (or article_or_clause_id / root_ids) must be provided.")
 
         if isinstance(target, str):
             root_ids = [target]
@@ -353,41 +359,14 @@ class Neo4jStore:
         Synchronous wrapper for expand_referenced_articles_async.
         Supports both a single node ID and a list of root node IDs.
         """
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(
-                        asyncio.run,
-                        self.expand_referenced_articles_async(
-                            article_or_clause_ids=article_or_clause_ids,
-                            hops=hops,
-                            include_precedents=include_precedents,
-                            article_or_clause_id=article_or_clause_id,
-                            active_only=active_only,
-                        )
-                    )
-                    return future.result()
-            return loop.run_until_complete(
-                self.expand_referenced_articles_async(
-                    article_or_clause_ids=article_or_clause_ids,
-                    hops=hops,
-                    include_precedents=include_precedents,
-                    article_or_clause_id=article_or_clause_id,
-                    active_only=active_only,
-                )
-            )
-        except RuntimeError:
-            return asyncio.run(
-                self.expand_referenced_articles_async(
-                    article_or_clause_ids=article_or_clause_ids,
-                    hops=hops,
-                    include_precedents=include_precedents,
-                    article_or_clause_id=article_or_clause_id,
-                    active_only=active_only,
-                )
-            )
+        return run_coroutine_sync(
+            self.expand_referenced_articles_async,
+            article_or_clause_ids=article_or_clause_ids,
+            hops=hops,
+            include_precedents=include_precedents,
+            article_or_clause_id=article_or_clause_id,
+            active_only=active_only,
+        )
 
     async def update_statute_active_status_async(
         self,
@@ -414,22 +393,11 @@ class Neo4jStore:
         is_active: bool = False,
     ) -> int:
         """Synchronous wrapper for update_statute_active_status_async."""
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    return executor.submit(
-                        asyncio.run,
-                        self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-                    ).result()
-            return loop.run_until_complete(
-                self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-            )
-        except RuntimeError:
-            return asyncio.run(
-                self.update_statute_active_status_async(law_id=law_id, is_active=is_active)
-            )
+        return run_coroutine_sync(
+            self.update_statute_active_status_async,
+            law_id=law_id,
+            is_active=is_active,
+        )
 
     async def update_node_active_status_async(
         self,
@@ -455,22 +423,11 @@ class Neo4jStore:
         is_active: bool = False,
     ) -> int:
         """Synchronous wrapper for update_node_active_status_async."""
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    return executor.submit(
-                        asyncio.run,
-                        self.update_node_active_status_async(node_id=node_id, is_active=is_active)
-                    ).result()
-            return loop.run_until_complete(
-                self.update_node_active_status_async(node_id=node_id, is_active=is_active)
-            )
-        except RuntimeError:
-            return asyncio.run(
-                self.update_node_active_status_async(node_id=node_id, is_active=is_active)
-            )
+        return run_coroutine_sync(
+            self.update_node_active_status_async,
+            node_id=node_id,
+            is_active=is_active,
+        )
 
     def get_related_articles(self, article_id: str, hops: int = 2) -> List[Dict[str, Any]]:
         """

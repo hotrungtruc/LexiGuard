@@ -66,7 +66,7 @@ async def test_qdrant_hybrid_search_rrf_in_memory():
     await store.ensure_collection_exists(dense_dim=4)
 
     # 2. Prepare sample legal chunks with distinct semantic and keyword properties:
-    # Chunk A: Semantic focus ("khấu trừ tiền lương", "khoản tiền phạt")
+    # Chunk A: Semantic focus (salary deductions and penalty amounts).
     chunk_a = LegalChunk(
         chunk_id="VN_BLLD_2019_D127_K01",
         law_id="bo-luat-lao-dong-2019",
@@ -82,7 +82,7 @@ async def test_qdrant_hybrid_search_rrf_in_memory():
         cross_references=[],
     )
 
-    # Chunk B: Exact statutory keyword focus ("khấu trừ tiền lương", "phạt tiền thay xử lý kỷ luật")
+    # Chunk B: Exact statutory keyword focus (salary deductions and monetary penalties).
     chunk_b = LegalChunk(
         chunk_id="VN_BLLD_2019_D127_K02",
         law_id="bo-luat-lao-dong-2019",
@@ -421,3 +421,71 @@ async def test_qdrant_payload_indices_creation():
     assert "neo4j_node_id" in indexed_fields
     assert "neo4j_node_type" in indexed_fields
     assert "is_active" in indexed_fields
+
+
+def test_phase_3_entity_extractor_multi_statute_scope_resolution():
+    """Verify LegalEntityExtractor correctly parses distinct law codes in mixed queries."""
+    from src.retrieval.entity_extractor import LegalEntityExtractor
+    extractor = LegalEntityExtractor()
+
+    query = "Căn cứ Khoản 1 Điều 357 Bộ luật Dân sự 2015 và Điều 301 Luật Thương mại 2005 để giải quyết"
+    citations = extractor.extract_citations(query)
+
+    assert len(citations) >= 2
+    cit_map = {c.article_num: c for c in citations}
+
+    assert 357 in cit_map
+    assert cit_map[357].law_code == "VN_BLDS_2015"
+    assert cit_map[357].canonical_node_id == "VN_BLDS_2015_D357_K01"
+
+    assert 301 in cit_map
+    assert cit_map[301].law_code == "VN_LTM_2005"
+    assert cit_map[301].canonical_node_id == "VN_LTM_2005_D301"
+
+
+def test_phase_3_graph_node_cypher_serialization_with_lists():
+    """Verify GraphNode.to_cypher_merge properly serializes list attributes and params."""
+    node = GraphNode(
+        node_id="VN_AL_09_2016",
+        node_type="Precedent",
+        name="Án lệ 09",
+        law_id="an-le",
+        properties={
+            "precedent_number": "09/2016/AL",
+            "applied_statutes": ["VN_BLDS_2015_D305", "VN_LTM_2005_D301"],
+            "is_binding": True,
+        },
+    )
+
+    merge_cypher = node.to_cypher_merge()
+    assert "MERGE (n:Precedent {node_id: 'VN_AL_09_2016'})" in merge_cypher
+    assert "n.applied_statutes = ['VN_BLDS_2015_D305', 'VN_LTM_2005_D301']" in merge_cypher
+    assert "n.is_binding = true" in merge_cypher
+
+    params = node.to_cypher_params()
+    assert params["node_id"] == "VN_AL_09_2016"
+    assert params["props"]["applied_statutes"] == ["VN_BLDS_2015_D305", "VN_LTM_2005_D301"]
+
+
+def test_phase_3_dynamic_law_code_resolution_no_collision():
+    """Verify legal_chunker and graph_extractor resolve unique prefixes without generic VN_STATUTE collision."""
+    from src.ingestion.legal_chunker import LegalChunker
+    from src.ingestion.graph_extractor import LegalGraphExtractor
+
+    chunker = LegalChunker
+    extractor = LegalGraphExtractor
+
+    code_dd = chunker._get_law_code("luat-dat-dai")
+    code_no = chunker._get_law_code("luat-nha-o")
+    code_tt = chunker._get_law_code("luat-trong-tai-thuong-mai")
+    code_custom = chunker._get_law_code("luat-an-ninh-mang-2018")
+
+    assert code_dd == "VN_LDD_2024"
+    assert code_no == "VN_LNO_2023"
+    assert code_tt == "VN_LTTTM_2010"
+    assert code_custom == "VN_LANM_2018"
+    assert len({code_dd, code_no, code_tt, code_custom}) == 4
+
+    assert extractor._get_law_code("luat-dat-dai") == "VN_LDD_2024"
+    assert extractor._get_law_code("luat-nha-o") == "VN_LNO_2023"
+
