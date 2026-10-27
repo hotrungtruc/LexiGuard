@@ -5,6 +5,7 @@ Bóc tách PDF (kể cả trang scan và bảng biểu lương/phạt) sang Mark
 kèm siêu dữ liệu tọa độ không gian (page_no, bbox, char_offsets).
 """
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 from pydantic import BaseModel, Field
@@ -18,6 +19,11 @@ try:
     from docling.datamodel.pipeline_options import (
         PdfPipelineOptions,
         TableStructureOptions,
+        AcceleratorOptions,
+        AcceleratorDevice,
+        RapidOcrOptions,
+        EasyOcrOptions,
+        OcrMode,
     )
     DOCLING_AVAILABLE = True
 except ImportError:
@@ -100,12 +106,24 @@ class DoclingParser:
     def __init__(
         self,
         do_ocr: bool = True,
-        do_table_structure: bool = True,
+        do_table_structure: bool = False,
         ocr_engine: str = "easyocr",
+        device: str = "auto",
+        num_threads: Optional[int] = None,
     ):
         self.do_ocr = do_ocr
         self.do_table_structure = do_table_structure
-        self.ocr_engine = ocr_engine
+        self.ocr_engine = ocr_engine.lower() if ocr_engine else "easyocr"
+        self.device = device.lower() if device else "auto"
+
+        # Auto-detect optimal thread count: leave headroom for OS/services, bounded to [1, 8]
+        if num_threads is None or num_threads <= 0:
+            cpu_cores = os.cpu_count() or 4
+            self.num_threads = max(1, min(cpu_cores, 8))
+            logger.info(f"Auto-detected optimal CPU threads for Docling: {self.num_threads} (from {cpu_cores} cores)")
+        else:
+            self.num_threads = num_threads
+
         self._converter = None
 
         if DOCLING_AVAILABLE:
@@ -116,44 +134,176 @@ class DoclingParser:
     def _init_docling_converter(self):
         """Initializes IBM Docling DocumentConverter with optimized PDF pipeline options."""
         try:
+            import torch
+
+            # 1. Device selection: Auto-detect GPU/CUDA or fallback to CPU
+            target_device = AcceleratorDevice.CPU
+            if self.device in ("cuda", "auto"):
+                if torch.cuda.is_available():
+                    target_device = AcceleratorDevice.CUDA
+                    # Register torch CUDA/cuDNN DLLs on Windows for ONNX Runtime / RapidOCR
+                    try:
+                        torch_lib = os.path.join(os.path.dirname(torch.__file__), "lib")
+                        if hasattr(os, "add_dll_directory") and os.path.exists(torch_lib):
+                            os.add_dll_directory(torch_lib)
+                        if torch_lib not in os.environ.get("PATH", ""):
+                            os.environ["PATH"] = torch_lib + os.pathsep + os.environ.get("PATH", "")
+                    except Exception as dll_err:
+                        logger.warning(f"Failed to register torch CUDA DLLs: {dll_err}")
+
+                    device_name = torch.cuda.get_device_name(0)
+                    logger.info(f"Docling GPU Acceleration ACTIVATED: CUDA ({device_name})")
+                elif self.device == "cuda":
+                    logger.warning("CUDA device was requested but torch.cuda.is_available() is False. Falling back to CPU.")
+
+            if target_device == AcceleratorDevice.CPU:
+                logger.info(f"Docling running on CPU ({self.num_threads} worker threads).")
+
+            # 2. Configure official IBM Docling pipeline options
             pipeline_options = PdfPipelineOptions()
             pipeline_options.do_ocr = self.do_ocr
-            pipeline_options.do_table_structure = self.do_table_structure
+            if self.do_ocr:
+                is_gpu = (target_device == AcceleratorDevice.CUDA)
+                if self.ocr_engine == "easyocr":
+                    try:
+                        pipeline_options.ocr_options = EasyOcrOptions(
+                            lang=["vi", "en"],
+                            scale=2.0,
+                        )
+                        logger.info("Docling OCR backend configured with EasyOCR (lang=['vi', 'en'], scale=2.0).")
+                    except Exception as easy_err:
+                        logger.warning(f"Failed to initialize EasyOCR: {easy_err}. Falling back to RapidOCR.")
+                        pipeline_options.ocr_options = RapidOcrOptions(mode=OcrMode.FULL_PAGE)
+                else:
+                    try:
+                        pipeline_options.ocr_options = RapidOcrOptions(mode=OcrMode.FULL_PAGE)
+                        logger.info("Docling OCR backend configured with RapidOCR.")
+                    except Exception as ocr_err:
+                        logger.debug(f"Defaulting OCR options: {ocr_err}")
 
-            # Configure table structure mode
-            if hasattr(pipeline_options, "table_structure_options"):
+            pipeline_options.do_table_structure = self.do_table_structure
+            if self.do_table_structure and hasattr(pipeline_options, "table_structure_options"):
                 pipeline_options.table_structure_options.do_cell_matching = True
+
+            pipeline_options.accelerator_options = AcceleratorOptions(
+                device=target_device,
+                num_threads=self.num_threads
+            )
 
             self._converter = DocumentConverter(
                 format_options={
                     InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
                 }
             )
-            logger.info("IBM Docling DocumentConverter initialized with OCR and Table Recognition.")
+            logger.info(
+                f"IBM Docling DocumentConverter initialized with device={target_device}, "
+                f"threads={self.num_threads}, ocr={self.do_ocr}, table_structure={self.do_table_structure}."
+            )
         except Exception as e:
             logger.error(f"Failed to initialize Docling DocumentConverter: {e}. Falling back.")
             self._converter = None
 
-    def parse(self, file_path: Union[str, Path]) -> ParsedDocument:
+    def parse(
+        self,
+        file_path: Union[str, Path],
+        max_pages: Optional[int] = None,
+        page_range: Optional[Tuple[int, int]] = None,
+        batch_size: Optional[int] = None,
+    ) -> ParsedDocument:
         """
         Parses a PDF/image document into a structured ParsedDocument.
-        Extracts full markdown, clause elements with bbox, and parsed tables.
+        Extracts full markdown, clause elements with bbox, and parsed tables
+        using official IBM Docling pipeline (DocLayNet + EasyOCR + TableFormer).
         """
         path = Path(file_path).resolve()
         if not path.exists():
             raise FileNotFoundError(f"File not found: {path}")
 
-        logger.info(f"Parsing document layout & OCR: {path.name}")
+        logger.info(
+            f"Parsing document layout & OCR via IBM Docling: {path.name} "
+            f"(threads={self.num_threads}, max_pages={max_pages}, page_range={page_range}, batch_size={batch_size})"
+        )
 
         if DOCLING_AVAILABLE and self._converter is not None:
-            return self._parse_with_docling(path)
-        else:
-            return self._fallback_parse(path)
+            # Batch slicing for large PDF documents to optimize VRAM and report progress
+            if path.suffix.lower() == ".pdf" and batch_size and batch_size > 0 and page_range is None:
+                try:
+                    import pypdfium2 as pdfium
+                    src_doc = pdfium.PdfDocument(str(path))
+                    total_doc_pages = len(src_doc)
+                    limit_pages = min(total_doc_pages, max_pages) if max_pages and max_pages > 0 else total_doc_pages
+                    if limit_pages > batch_size:
+                        logger.info(f"Splitting {path.name} ({limit_pages} pages) into batches of {batch_size} pages...")
+                        all_elements: List[ParsedElement] = []
+                        all_tables: List[ParsedTable] = []
+                        markdown_parts: List[str] = []
+                        total_batches = (limit_pages + batch_size - 1) // batch_size
 
-    def _parse_with_docling(self, path: Path) -> ParsedDocument:
+                        for b_idx, start_idx in enumerate(range(0, limit_pages, batch_size), start=1):
+                            end_idx = min(start_idx + batch_size, limit_pages)
+                            logger.info(f"[{path.name}] Processing OCR batch {b_idx}/{total_batches} (pages {start_idx + 1}-{end_idx})...")
+                            sub_doc = self._parse_with_docling(path, page_range=(start_idx, end_idx))
+                            markdown_parts.append(sub_doc.full_markdown)
+                            all_elements.extend(sub_doc.elements)
+                            all_tables.extend(sub_doc.tables)
+                            try:
+                                import torch
+                                if torch.cuda.is_available():
+                                    torch.cuda.empty_cache()
+                            except Exception:
+                                pass
+
+                        return ParsedDocument(
+                            source_path=str(path),
+                            filename=path.name,
+                            total_pages=limit_pages,
+                            full_markdown="\n\n".join(markdown_parts),
+                            elements=all_elements,
+                            tables=all_tables,
+                            metadata={"engine": "ibm_docling", "status": "success", "batched": True}
+                        )
+                except Exception as batch_err:
+                    logger.warning(f"Batch processing encountered note: {batch_err}. Falling back to standard conversion.")
+
+            return self._parse_with_docling(path, max_pages=max_pages, page_range=page_range)
+        else:
+            return self._fallback_parse(path, max_pages=max_pages)
+
+    def _parse_with_docling(
+        self,
+        path: Path,
+        max_pages: Optional[int] = None,
+        page_range: Optional[Tuple[int, int]] = None
+    ) -> ParsedDocument:
         """Executes conversion using IBM Docling engine."""
+        temp_slice_path = None
+        target_path = path
         try:
-            conversion_result = self._converter.convert(str(path))
+            if path.suffix.lower() == ".pdf":
+                if page_range is not None or max_pages is not None:
+                    try:
+                        import pypdfium2 as pdfium
+                        src_doc = pdfium.PdfDocument(str(path))
+                        total_doc_pages = len(src_doc)
+
+                        if page_range is not None:
+                            start_idx, end_idx = page_range
+                            pages_to_slice = list(range(max(0, start_idx), min(total_doc_pages, end_idx)))
+                            slice_name = f"_temp_slice_{path.stem}_range_{start_idx}_{end_idx}.pdf"
+                        else:
+                            pages_to_slice = list(range(min(total_doc_pages, max_pages)))
+                            slice_name = f"_temp_slice_{path.stem}_{max_pages}.pdf"
+
+                        if len(pages_to_slice) < total_doc_pages:
+                            slice_doc = pdfium.PdfDocument.new()
+                            slice_doc.import_pages(src_doc, pages_to_slice)
+                            temp_slice_path = path.parent / slice_name
+                            slice_doc.save(str(temp_slice_path))
+                            target_path = temp_slice_path
+                    except Exception as slice_err:
+                        logger.warning(f"Could not slice PDF: {slice_err}. Proceeding with full file.")
+
+            conversion_result = self._converter.convert(str(target_path))
             doc = conversion_result.document
 
             full_markdown = doc.export_to_markdown()
@@ -175,6 +325,8 @@ class DoclingParser:
                         elem_markdown = text
 
                     prov = self._extract_item_provenance(item)
+                    if page_range is not None:
+                        prov.page_no += page_range[0]
 
                     parsed_elem = ParsedElement(
                         element_id=f"elem_{idx:04d}",
@@ -205,6 +357,12 @@ class DoclingParser:
         except Exception as e:
             logger.error(f"Docling conversion encountered an error: {e}. Executing fallback parser.")
             return self._fallback_parse(path)
+        finally:
+            if temp_slice_path and temp_slice_path.exists():
+                try:
+                    temp_slice_path.unlink()
+                except Exception:
+                    pass
 
     def _map_docling_label(self, item: Any) -> Literal["heading", "paragraph", "table", "list_item", "footnote", "code", "other"]:
         """Maps Docling item labels to standardized element types."""
@@ -273,7 +431,7 @@ class DoclingParser:
             logger.warning(f"Error parsing table item {idx}: {err}")
             return None
 
-    def _fallback_parse(self, path: Path) -> ParsedDocument:
+    def _fallback_parse(self, path: Path, max_pages: Optional[int] = None) -> ParsedDocument:
         """
         Graceful fallback parser when Docling is unavailable or crashes.
         Extracts raw text pages, builds simulated bounding boxes, and detects tables.
@@ -284,83 +442,110 @@ class DoclingParser:
         full_text_chunks: List[str] = []
         total_pages = 1
 
-        # Attempt extraction via pypdf / pypdfium / pdfplumber if installed
-        try:
-            import pypdf
-            reader = pypdf.PdfReader(str(path))
-            total_pages = len(reader.pages)
-            elem_idx = 0
+        is_pdf = path.suffix.lower() == ".pdf"
+        if is_pdf:
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(str(path))
+                total_pages = len(reader.pages)
+                elem_idx = 0
 
-            for page_idx, page in enumerate(reader.pages, start=1):
-                page_text = page.extract_text() or ""
-                full_text_chunks.append(f"\n\n<!-- Page {page_idx} -->\n\n" + page_text)
+                pages_to_process = reader.pages[:max_pages] if max_pages else reader.pages
+                for page_idx, page in enumerate(pages_to_process, start=1):
+                    page_text = page.extract_text() or ""
+                    full_text_chunks.append(f"\n\n<!-- Page {page_idx} -->\n\n" + page_text)
 
-                lines = [line.strip() for line in page_text.splitlines() if line.strip()]
-                if not lines:
-                    # Scanned page without embedded text layer (requires OCR model)
-                    prov = ItemProvenance(
-                        page_no=page_idx,
-                        bbox=BoundingBox(
-                            l=0.0,
-                            t=0.0,
-                            r=595.0,
-                            b=842.0,
-                            coord_origin="TOPLEFT"
-                        )
-                    )
-                    elements.append(
-                        ParsedElement(
-                            element_id=f"elem_{elem_idx:04d}",
-                            element_type="paragraph",
-                            text=f"[Scanned page {page_idx} - pending OCR]",
-                            markdown=f"*[Scanned page {page_idx} - pending OCR]*",
-                            provenance=prov,
-                            metadata={"fallback": True, "is_scanned": True, "page_no": page_idx}
-                        )
-                    )
-                    elem_idx += 1
-                else:
-                    for line_idx, line in enumerate(lines):
-                        elem_type: Literal["heading", "paragraph", "table", "list_item", "other"] = "paragraph"
-                        
-                        # Simple heuristic detection for legal headings
-                        if line.startswith(("Điều ", "Chương ", "Mục ", "Section ", "Article ", "ARTICLE ", "SECTION ")):
-                            elem_type = "heading"
-                        elif line.startswith(("- ", "* ", "1. ", "2. ", "a) ", "b) ")):
-                            elem_type = "list_item"
-
-                        # Approximated fallback bounding box (top to bottom on standard A4: 595 x 842 pt)
-                        page_height = 842.0
-                        page_width = 595.0
-                        line_height = 20.0
-                        top_offset = min(50.0 + (line_idx * line_height), page_height - 30.0)
-
+                    lines = [line.strip() for line in page_text.splitlines() if line.strip()]
+                    if not lines:
+                        # Scanned page without embedded text layer (requires OCR model)
                         prov = ItemProvenance(
                             page_no=page_idx,
                             bbox=BoundingBox(
-                                l=50.0,
-                                t=top_offset,
-                                r=page_width - 50.0,
-                                b=top_offset + line_height,
+                                l=0.0,
+                                t=0.0,
+                                r=595.0,
+                                b=842.0,
                                 coord_origin="TOPLEFT"
                             )
                         )
-
                         elements.append(
                             ParsedElement(
                                 element_id=f"elem_{elem_idx:04d}",
-                                element_type=elem_type,
-                                text=line,
-                                markdown=f"### {line}" if elem_type == "heading" else line,
+                                element_type="paragraph",
+                                text=f"[Scanned page {page_idx} - pending OCR]",
+                                markdown=f"*[Scanned page {page_idx} - pending OCR]*",
                                 provenance=prov,
-                                metadata={"fallback": True, "line_no": line_idx + 1}
+                                metadata={"fallback": True, "is_scanned": True, "page_no": page_idx}
                             )
                         )
                         elem_idx += 1
+                    else:
+                        for line_idx, line in enumerate(lines):
+                            elem_type: Literal["heading", "paragraph", "table", "list_item", "other"] = "paragraph"
+                            
+                            # Simple heuristic detection for legal headings
+                            if line.startswith(("Điều ", "Chương ", "Mục ", "Section ", "Article ", "ARTICLE ", "SECTION ")):
+                                elem_type = "heading"
+                            elif line.startswith(("- ", "* ", "1. ", "2. ", "a) ", "b) ")):
+                                elem_type = "list_item"
 
-        except Exception as e:
-            logger.warning(f"Fallback reader could not extract text directly: {e}")
-            full_text_chunks.append(f"# {path.stem}\n\nDocument ingested for OCR layout processing.")
+                            # Approximated fallback bounding box (top to bottom on standard A4: 595 x 842 pt)
+                            page_height = 842.0
+                            page_width = 595.0
+                            line_height = 20.0
+                            top_offset = min(50.0 + (line_idx * line_height), page_height - 30.0)
+
+                            prov = ItemProvenance(
+                                page_no=page_idx,
+                                bbox=BoundingBox(
+                                    l=50.0,
+                                    t=top_offset,
+                                    r=page_width - 50.0,
+                                    b=top_offset + line_height,
+                                    coord_origin="TOPLEFT"
+                                )
+                            )
+
+                            elements.append(
+                                ParsedElement(
+                                    element_id=f"elem_{elem_idx:04d}",
+                                    element_type=elem_type,
+                                    text=line,
+                                    markdown=f"### {line}" if elem_type == "heading" else line,
+                                    provenance=prov,
+                                    metadata={"fallback": True, "line_no": line_idx + 1}
+                                )
+                            )
+                            elem_idx += 1
+            except Exception as e:
+                logger.warning(f"Fallback PDF reader could not extract text directly: {e}")
+                full_text_chunks.append(f"# {path.stem}\n\nDocument ingested for OCR layout processing.")
+        else:
+            # Image input fallback
+            try:
+                import cv2
+                import numpy as np
+                img_arr = np.fromfile(str(path), dtype=np.uint8)
+                img = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
+                h, w = (img.shape[:2]) if img is not None else (1000, 700)
+                prov = ItemProvenance(
+                    page_no=1,
+                    bbox=BoundingBox(l=0.0, t=0.0, r=float(w), b=float(h), coord_origin="TOPLEFT")
+                )
+                elements.append(
+                    ParsedElement(
+                        element_id="elem_0000",
+                        element_type="paragraph",
+                        text=f"[Image Document {path.name}]",
+                        markdown=f"*[Image Document {path.name}]*",
+                        provenance=prov,
+                        metadata={"fallback": True, "is_image": True}
+                    )
+                )
+                full_text_chunks.append(f"# {path.stem}\n\n[Image Document {path.name}]")
+            except Exception as e:
+                logger.warning(f"Fallback image reader could not parse: {e}")
+                full_text_chunks.append(f"# {path.stem}\n\nDocument ingested for OCR layout processing.")
 
         full_markdown = "\n".join(full_text_chunks)
 

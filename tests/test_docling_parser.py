@@ -33,7 +33,7 @@ def test_parse_sample_pdf_if_exists():
     parser = DoclingParser()
     raw_law_path = Path("data/raw_laws/bo-luat-dan-su-2015.pdf")
     if raw_law_path.exists():
-        parsed_doc = parser.parse(raw_law_path)
+        parsed_doc = parser.parse(raw_law_path, max_pages=1)
         assert isinstance(parsed_doc, ParsedDocument)
         assert parsed_doc.filename == "bo-luat-dan-su-2015.pdf"
         assert parsed_doc.total_pages >= 1

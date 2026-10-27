@@ -27,6 +27,7 @@ dependencies = [
     "loguru>=0.7.2",
     "sentence-transformers>=3.0.0",
     "fastmcp>=0.1.0",
+    "fastembed>=0.4.0",
 ]
 
 [project.optional-dependencies]
@@ -55,3 +56,5 @@ addopts = "-ra -q"
 testpaths = [
     "tests",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
