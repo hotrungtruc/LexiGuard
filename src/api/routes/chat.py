@@ -32,6 +32,7 @@ async def chat_endpoint(
     session_id: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     mode: Optional[str] = Form("auto"),
+    lang: Optional[str] = Form("vi"),
 ):
     """
     Unified chat endpoint supporting:
@@ -244,20 +245,37 @@ async def chat_endpoint(
                     }
                 )
 
-                fallback_ctx = "Không tìm thấy điều luật khớp chính xác. Vui lòng trả lời trên nguyên tắc chung của pháp luật Việt Nam."
+                fallback_ctx = (
+                    "No exact statutory match found in knowledge base. Answer based on general legal principles."
+                    if lang == "en"
+                    else "Không tìm thấy điều luật khớp chính xác. Vui lòng trả lời trên nguyên tắc chung của pháp luật Việt Nam."
+                )
                 ctx_to_use = legal_context if legal_context else fallback_ctx
 
-                prompt = (
-                    f"Bạn là LexiGuard AI — Trợ lý Pháp lý & Kiểm toán Hợp đồng cao cấp.\n"
-                    f"Hãy trả lời câu hỏi sau của người dùng một cách chuẩn xác, chuyên nghiệp, viện dẫn đúng các quy định pháp luật được cung cấp:\n\n"
-                    f"CÂU HỎI:\n{query}\n\n"
-                    f"CĂN CỨ PHÁP LUẬT ĐƯỢC TRA CỨU TỪ CƠ SỞ TRI THỨC:\n{ctx_to_use}\n\n"
-                    f"YÊU CẦU:\n"
-                    f"1. Nêu rõ câu trả lời trọng tâm.\n"
-                    f"2. Viện dẫn chính xác tên điều, khoản, văn bản pháp luật (ví dụ: Bộ luật Dân sự 2015, Luật Thương mại 2005...).\n"
-                    f"3. Đưa ra lời khuyên thực tiễn hoặc các điểm cần lưu ý phòng tránh tranh chấp.\n"
-                    f"4. Trình bày bằng Markdown rõ ràng, dễ đọc.\n"
-                )
+                if lang == "en":
+                    prompt = (
+                        f"You are LexiGuard AI — a Senior Legal Assistant & Contract Auditor.\n"
+                        f"Please answer the user's question accurately and professionally, citing the legal provisions provided below in English:\n\n"
+                        f"USER QUESTION:\n{query}\n\n"
+                        f"RELEVANT LEGAL CONTEXT FROM KNOWLEDGE GRAPH:\n{ctx_to_use}\n\n"
+                        f"REQUIREMENTS:\n"
+                        f"1. Provide a direct, focused answer in clear English.\n"
+                        f"2. Cite the exact articles, clauses, and legal instruments (e.g. Civil Code 2015, Commercial Law 2005).\n"
+                        f"3. Offer practical advice and dispute avoidance recommendations.\n"
+                        f"4. Format cleanly using Markdown with bullet points where helpful.\n"
+                    )
+                else:
+                    prompt = (
+                        f"Bạn là LexiGuard AI — Trợ lý Pháp lý & Kiểm toán Hợp đồng cao cấp.\n"
+                        f"Hãy trả lời câu hỏi sau của người dùng một cách chuẩn xác, chuyên nghiệp, viện dẫn đúng các quy định pháp luật được cung cấp:\n\n"
+                        f"CÂU HỎI:\n{query}\n\n"
+                        f"CĂN CỨ PHÁP LUẬT ĐƯỢC TRA CỨU TỪ CƠ SỞ TRI THỨC:\n{ctx_to_use}\n\n"
+                        f"YÊU CẦU:\n"
+                        f"1. Nêu rõ câu trả lời trọng tâm.\n"
+                        f"2. Viện dẫn chính xác tên điều, khoản, văn bản pháp luật (ví dụ: Bộ luật Dân sự 2015, Luật Thương mại 2005...).\n"
+                        f"3. Đưa ra lời khuyên thực tiễn hoặc các điểm cần lưu ý phòng tránh tranh chấp.\n"
+                        f"4. Trình bày bằng Markdown rõ ràng, dễ đọc.\n"
+                    )
 
                 llm = get_fast_cpu_llm()
                 response = llm.invoke(prompt)

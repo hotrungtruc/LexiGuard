@@ -1,6 +1,7 @@
 /**
  * LexiGuard AI — Web Application Controller (Gemini & ChatGPT Inspired)
- * Multi-Agent Legal Assistant & Contract Vulnerability Auditor
+ * Multi-Agent Legal Assistant & Contract Auditor
+ * Minimalist, User-Friendly & Multilingual (VI / EN)
  */
 
 (() => {
@@ -14,23 +15,157 @@
     CURRENT_SESSION_ID: 'lexiguard_current_session_id',
     THEME: 'lexiguard_theme',
     OCR_VAULT: 'lexiguard_ocr_vault',
+    LANG: 'lexiguard_lang',
+  };
+
+  // =========================================================================
+  // MULTILINGUAL DICTIONARY (I18N)
+  // =========================================================================
+  const I18N = {
+    vi: {
+      documentTitle: 'LexiGuard AI — Trợ lý Pháp lý',
+      newChat: 'Cuộc trò chuyện mới',
+      searchPlaceholder: 'Tìm kiếm lịch sử...',
+      today: 'Hôm nay',
+      recent: '7 ngày trước',
+      vaultTitle: 'Thư viện OCR',
+      vaultEmpty: 'Chưa có tài liệu nào.',
+      todayEmpty: 'Chưa có lịch sử hôm nay.',
+      recentEmpty: 'Chưa có lịch sử cũ hơn.',
+      systemOnline: 'Trực tuyến',
+      systemOffline: 'Mất kết nối',
+      chatTitleDefault: 'Cuộc trò chuyện mới',
+      ocrBtn: 'Tài liệu OCR',
+      exportBtn: 'Xuất',
+      heroGreeting: 'Hôm nay tôi có thể giúp gì cho bạn?',
+      promptPlaceholder: 'Hỏi bất cứ điều gì hoặc đính kèm tài liệu...',
+      disclaimer: 'LexiGuard có thể mắc lỗi. Vui lòng kiểm tra các điều khoản quan trọng.',
+      chipAudit: 'Thẩm định hợp đồng',
+      chipAuditPrompt: 'Thẩm định giúp tôi các rủi ro pháp lý phổ biến trong hợp đồng dịch vụ tư vấn và đề xuất điều khoản bảo vệ bên thuê.',
+      chipLookup: 'Tra cứu luật định',
+      chipLookupPrompt: 'Theo Bộ luật Dân sự 2015, mức lãi suất vay tối đa mà các bên được thỏa thuận là bao nhiêu? Hậu quả pháp lý nếu vượt trần?',
+      chipTable: 'Kiểm toán bảng tính',
+      chipTablePrompt: 'Kiểm tra đối soát bảng phụ lục chi phí:\n| STT | Dịch vụ | SL | Đơn giá | Thành tiền |\n| 1 | Thẩm định | 2 | 10.000.000 | 25.000.000 |\n| Tổng | | | | 25.000.000 |',
+      chipOcr: 'Bóc tách OCR tài liệu',
+      attachFileTitle: 'Đính kèm tệp (.pdf, .docx, .md)',
+      ocrBtnTitle: 'Bóc tách OCR từ ảnh hoặc scan',
+      sendBtnTitle: 'Gửi (Enter)',
+      stopBtnTitle: 'Dừng tạo câu trả lời',
+      clearAllConfirm: 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử?',
+      drawerTitle: 'Tài liệu OCR & Bảng biểu',
+      drawerEmpty: 'Chưa có văn bản OCR nào. Tải ảnh hoặc PDF scan để bắt đầu.',
+      drawerPages: 'Trang',
+      drawerTables: 'Bảng',
+      drawerChars: 'Ký tự',
+      drawerTextTitle: 'Nội dung văn bản bóc tách:',
+      drawerCopyBtn: 'Sao chép văn bản',
+      drawerSendBtn: 'Đưa vào kiểm toán',
+      drawerCopied: 'Đã sao chép vào clipboard!',
+      themeLightDark: 'Chuyển giao diện Sáng / Tối',
+      clearAllTooltip: 'Xóa toàn bộ lịch sử',
+      healthScoreTitle: 'Điểm Sức khỏe Pháp lý',
+      vulnerabilitiesTitle: 'Chi tiết Lỗ hổng & Bẫy Điều khoản',
+      redlineTitle: 'Đề xuất Chỉnh lý Điều khoản (Redline)',
+      copyCode: 'Sao chép',
+      copiedCode: 'Đã chép!',
+      levelRisk: 'Rủi ro',
+      exportHeader: '# LexiGuard AI — Báo Cáo Hội Thoại Pháp Lý',
+      exportEmpty: 'Chưa có nội dung cuộc trò chuyện để xuất.',
+      userLabel: '👤 NGƯỜI DÙNG',
+      assistantLabel: '⚖️ LEXIGUARD AI',
+      attachedFileLabel: 'Đính kèm tệp',
+      legalGroundsLabel: 'Căn cứ pháp luật',
+      ocrPromptPrefix: 'Thẩm định các điều khoản và bảng biểu sau đây được bóc tách từ tài liệu OCR:\n\n',
+      thinkingProcessRunning: 'Quy trình tư duy tác tử...',
+      thinkingProcessDone: 'Đã hoàn thành phân tích',
+    },
+    en: {
+      documentTitle: 'LexiGuard AI — Legal Assistant',
+      newChat: 'New chat',
+      searchPlaceholder: 'Search history...',
+      today: 'Today',
+      recent: 'Previous 7 days',
+      vaultTitle: 'OCR Library',
+      vaultEmpty: 'No documents yet.',
+      todayEmpty: 'No conversations today.',
+      recentEmpty: 'No previous conversations.',
+      systemOnline: 'Online',
+      systemOffline: 'Offline',
+      chatTitleDefault: 'New chat',
+      ocrBtn: 'OCR Docs',
+      exportBtn: 'Export',
+      heroGreeting: 'How can I help you today?',
+      promptPlaceholder: 'Ask anything or attach a contract...',
+      disclaimer: 'LexiGuard can make mistakes. Please verify important legal clauses.',
+      chipAudit: 'Audit Contract',
+      chipAuditPrompt: 'Review the common legal risks in a consulting service agreement and propose protective clauses for the client.',
+      chipLookup: 'Legal Lookup',
+      chipLookupPrompt: 'Under the Civil Code 2015, what is the maximum agreed interest rate? What are the legal consequences of exceeding the ceiling?',
+      chipTable: 'Audit Calculations',
+      chipTablePrompt: 'Verify the arithmetic of this cost schedule:\n| No | Service | Qty | Unit Price | Total |\n| 1 | Legal Audit | 2 | 10,000,000 | 25,000,000 |\n| Total | | | | 25,000,000 |',
+      chipOcr: 'OCR Document Extract',
+      attachFileTitle: 'Attach document (.pdf, .docx, .md)',
+      ocrBtnTitle: 'Extract text/tables from scan or photo',
+      sendBtnTitle: 'Send (Enter)',
+      stopBtnTitle: 'Stop generating',
+      clearAllConfirm: 'Are you sure you want to clear all history?',
+      drawerTitle: 'OCR Document & Tables',
+      drawerEmpty: 'No OCR document yet. Upload an image or scanned PDF to start.',
+      drawerPages: 'Pages',
+      drawerTables: 'Tables',
+      drawerChars: 'Characters',
+      drawerTextTitle: 'Extracted text content:',
+      drawerCopyBtn: 'Copy text',
+      drawerSendBtn: 'Send to audit',
+      drawerCopied: 'Copied to clipboard!',
+      themeLightDark: 'Toggle Light / Dark mode',
+      clearAllTooltip: 'Clear all history',
+      healthScoreTitle: 'Legal Health Score',
+      vulnerabilitiesTitle: 'Identified Vulnerabilities & Traps',
+      redlineTitle: 'Proposed Contract Revisions (Redline)',
+      copyCode: 'Copy',
+      copiedCode: 'Copied!',
+      levelRisk: 'Risk',
+      exportHeader: '# LexiGuard AI — Legal Conversation Report',
+      exportEmpty: 'No conversation content to export.',
+      userLabel: '👤 USER',
+      assistantLabel: '⚖️ LEXIGUARD AI',
+      attachedFileLabel: 'Attached file',
+      legalGroundsLabel: 'Legal grounds',
+      ocrPromptPrefix: 'Audit the following clauses and financial tables extracted from OCR:\n\n',
+      thinkingProcessRunning: 'Agent reasoning process...',
+      thinkingProcessDone: 'Analysis completed',
+    },
   };
 
   const STEP_METADATA = {
-    init: { label: 'Khởi tạo quy trình thẩm định...', icon: '⚙️' },
-    extract_clauses: { label: 'Trích xuất & chuẩn hoá cấu trúc điều khoản', icon: '📑' },
-    retrieve_statutes: { label: 'Truy vấn đồ thị tri thức & kiểm toán bảng tính (GraphRAG)', icon: '⚖️' },
-    audit_vulnerabilities: { label: 'Phân tích lỗ hổng pháp lý & đề xuất Redline (LoopholeAuditor)', icon: '🔍' },
-    grade_hallucination: { label: 'Chấm điểm đối soát luật định & kiểm tra ảo giác', icon: '🛡️' },
-    search: { label: 'Truy vấn kho văn bản luật định', icon: '🔎' },
-    retrieved: { label: 'Kết nối văn bản & án lệ liên quan', icon: '📚' },
-    synthesizing: { label: 'Tổng hợp luận cứ & soạn thảo câu trả lời', icon: '✍️' },
+    vi: {
+      init: { label: 'Khởi tạo quy trình thẩm định...', icon: '⚙️' },
+      extract_clauses: { label: 'Trích xuất cấu trúc điều khoản & bảng biểu', icon: '📑' },
+      retrieve_statutes: { label: 'Truy vấn đồ thị tri thức pháp lý (GraphRAG)', icon: '⚖️' },
+      audit_vulnerabilities: { label: 'Phân tích lỗ hổng & đề xuất Redline', icon: '🔍' },
+      grade_hallucination: { label: 'Đối soát luật định & kiểm tra ảo giác', icon: '🛡️' },
+      search: { label: 'Tra cứu cơ sở tri thức luật', icon: '🔎' },
+      retrieved: { label: 'Kết nối văn bản & án lệ liên quan', icon: '📚' },
+      synthesizing: { label: 'Tổng hợp câu trả lời...', icon: '✍️' },
+    },
+    en: {
+      init: { label: 'Initializing audit pipeline...', icon: '⚙️' },
+      extract_clauses: { label: 'Extracting clauses & financial tables', icon: '📑' },
+      retrieve_statutes: { label: 'Querying legal knowledge graph (GraphRAG)', icon: '⚖️' },
+      audit_vulnerabilities: { label: 'Auditing vulnerabilities & drafting Redline', icon: '🔍' },
+      grade_hallucination: { label: 'Validating citations & hallucination check', icon: '🛡️' },
+      search: { label: 'Searching legal knowledge base', icon: '🔎' },
+      retrieved: { label: 'Connected relevant statutes & precedents', icon: '📚' },
+      synthesizing: { label: 'Synthesizing response...', icon: '✍️' },
+    },
   };
 
   // =========================================================================
   // APPLICATION STATE
   // =========================================================================
   let state = {
+    lang: 'vi',
     sessions: [],
     currentSessionId: null,
     attachedFile: null,
@@ -62,10 +197,13 @@
     currentChatTitle: document.getElementById('current-chat-title'),
     openDrawerBtn: document.getElementById('open-drawer-btn'),
     exportChatBtn: document.getElementById('export-chat-btn'),
+    langToggleBtn: document.getElementById('lang-toggle-btn'),
+    langViCode: document.getElementById('lang-vi-code'),
+    langEnCode: document.getElementById('lang-en-code'),
     chatViewport: document.getElementById('chat-viewport'),
     heroContainer: document.getElementById('hero-container'),
     messagesContainer: document.getElementById('messages-container'),
-    promptCards: document.querySelectorAll('.prompt-card'),
+    promptChips: document.querySelectorAll('.prompt-chip'),
     triggerOcrCard: document.getElementById('trigger-ocr-card'),
 
     // Prompt Bar
@@ -97,6 +235,7 @@
   // =========================================================================
   function init() {
     loadTheme();
+    loadLanguage();
     loadStorage();
     bindEvents();
     renderSidebarSessions();
@@ -109,6 +248,75 @@
     }
 
     checkBackendHealth();
+  }
+
+  // =========================================================================
+  // LANGUAGE & I18N
+  // =========================================================================
+  function t(key) {
+    const dict = I18N[state.lang] || I18N.vi;
+    return dict[key] || key;
+  }
+
+  function loadLanguage() {
+    const savedLang = localStorage.getItem(STORAGE_KEYS.LANG) || 'vi';
+    setLanguage(savedLang, false);
+  }
+
+  function setLanguage(lang, shouldSave = true) {
+    state.lang = lang === 'en' ? 'en' : 'vi';
+    if (shouldSave) {
+      localStorage.setItem(STORAGE_KEYS.LANG, state.lang);
+    }
+
+    document.documentElement.lang = state.lang;
+    document.title = t('documentTitle');
+
+    // Update Language Toggle Indicator
+    if (dom.langViCode && dom.langEnCode) {
+      if (state.lang === 'vi') {
+        dom.langViCode.classList.add('active');
+        dom.langEnCode.classList.remove('active');
+      } else {
+        dom.langViCode.classList.remove('active');
+        dom.langEnCode.classList.add('active');
+      }
+    }
+
+    // Update all elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      if (key && I18N[state.lang][key]) {
+        el.textContent = I18N[state.lang][key];
+      }
+    });
+
+    // Update Placeholders & Tooltips
+    if (dom.promptInput) {
+      dom.promptInput.placeholder = t('promptPlaceholder');
+    }
+    if (dom.sessionSearchInput) {
+      dom.sessionSearchInput.placeholder = t('searchPlaceholder');
+    }
+    if (dom.attachFileBtn) dom.attachFileBtn.title = t('attachFileTitle');
+    if (dom.ocrBtn) dom.ocrBtn.title = t('ocrBtnTitle');
+    if (dom.sendBtn && !state.isGenerating) dom.sendBtn.title = t('sendBtnTitle');
+    if (dom.themeToggleBtn) dom.themeToggleBtn.title = t('themeLightDark');
+    if (dom.clearAllSessionsBtn) dom.clearAllSessionsBtn.title = t('clearAllTooltip');
+
+    // Update default session title if untouched
+    const currentSession = getCurrentSession();
+    if (currentSession && (currentSession.title === I18N.vi.chatTitleDefault || currentSession.title === I18N.en.chatTitleDefault)) {
+      currentSession.title = t('chatTitleDefault');
+      if (dom.currentChatTitle) dom.currentChatTitle.textContent = currentSession.title;
+    }
+
+    renderSidebarSessions();
+  }
+
+  function toggleLanguage() {
+    const nextLang = state.lang === 'vi' ? 'en' : 'vi';
+    setLanguage(nextLang, true);
   }
 
   // =========================================================================
@@ -168,7 +376,7 @@
   function createNewSession(focusInput = true) {
     const newSession = {
       id: 'session_' + Date.now(),
-      title: 'Cuộc trò chuyện mới',
+      title: t('chatTitleDefault'),
       createdAt: Date.now(),
       messages: [],
     };
@@ -200,13 +408,12 @@
     if (!session) return;
 
     if (dom.currentChatTitle) {
-      dom.currentChatTitle.textContent = session.title || 'Cuộc trò chuyện mới';
+      dom.currentChatTitle.textContent = session.title || t('chatTitleDefault');
     }
 
     renderMessages(session.messages);
     renderSidebarSessions();
 
-    // Auto collapse sidebar on mobile when session selected
     if (window.innerWidth <= 768 && dom.sidebar) {
       dom.sidebar.classList.remove('open');
     }
@@ -229,7 +436,7 @@
   }
 
   function clearAllSessions() {
-    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử các cuộc trò chuyện?')) {
+    if (confirm(t('clearAllConfirm'))) {
       state.sessions = [];
       localStorage.removeItem(STORAGE_KEYS.SESSIONS);
       createNewSession(false);
@@ -243,11 +450,11 @@
     try {
       const res = await fetch('/api/v1/health', { method: 'GET' });
       if (res.ok && dom.systemStatus) {
-        dom.systemStatus.innerHTML = '<span class="status-dot"></span><span class="status-label">Hệ thống Trực tuyến</span>';
+        dom.systemStatus.innerHTML = `<span class="status-dot"></span><span class="status-label">${t('systemOnline')}</span>`;
       }
     } catch {
       if (dom.systemStatus) {
-        dom.systemStatus.innerHTML = '<span class="status-dot" style="background-color: var(--accent-rose); box-shadow: 0 0 8px rgba(244,63,94,0.4);"></span><span class="status-label" style="color: var(--accent-rose);">Mất kết nối máy chủ</span>';
+        dom.systemStatus.innerHTML = `<span class="status-dot" style="background-color: var(--accent-rose); box-shadow: 0 0 8px rgba(244,63,94,0.4);"></span><span class="status-label" style="color: var(--accent-rose);">${t('systemOffline')}</span>`;
       }
     }
   }
@@ -280,8 +487,8 @@
         <svg class="session-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
-        <span class="session-item-title">${escapeHtml(s.title || 'Cuộc trò chuyện mới')}</span>
-        <button class="session-item-del-btn" title="Xóa cuộc trò chuyện">✕</button>
+        <span class="session-item-title">${escapeHtml(s.title || t('chatTitleDefault'))}</span>
+        <button class="session-item-del-btn" title="Xóa">✕</button>
       `;
 
       item.addEventListener('click', () => loadSession(s.id));
@@ -298,10 +505,10 @@
     });
 
     if (!hasToday) {
-      dom.sessionsToday.innerHTML = '<div class="vault-empty-hint">Chưa có lịch sử hôm nay.</div>';
+      dom.sessionsToday.innerHTML = `<div class="vault-empty-hint">${t('todayEmpty')}</div>`;
     }
     if (!hasRecent) {
-      dom.sessionsRecent.innerHTML = '<div class="vault-empty-hint">Chưa có lịch sử cũ hơn.</div>';
+      dom.sessionsRecent.innerHTML = `<div class="vault-empty-hint">${t('recentEmpty')}</div>`;
     }
   }
 
@@ -310,11 +517,11 @@
     dom.documentVaultList.innerHTML = '';
 
     if (!state.ocrVault || state.ocrVault.length === 0) {
-      dom.documentVaultList.innerHTML = '<div class="vault-empty-hint">Chưa có tài liệu nào được bóc tách.</div>';
+      dom.documentVaultList.innerHTML = `<div class="vault-empty-hint">${t('vaultEmpty')}</div>`;
       return;
     }
 
-    state.ocrVault.forEach((doc, idx) => {
+    state.ocrVault.forEach((doc) => {
       const item = document.createElement('div');
       item.className = 'vault-item';
       item.innerHTML = `
@@ -322,7 +529,7 @@
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
         </svg>
         <span class="vault-item-name" title="${escapeHtml(doc.filename)}">${escapeHtml(doc.filename)}</span>
-        <span class="vault-item-badge">${doc.pageCount || 1} trang</span>
+        <span class="vault-item-badge">${doc.pageCount || 1} ${t('drawerPages').toLowerCase()}</span>
       `;
       item.addEventListener('click', () => openDocumentInDrawer(doc));
       dom.documentVaultList.appendChild(item);
@@ -443,10 +650,13 @@
 
     const header = document.createElement('div');
     header.className = 'thinking-header';
+    const runningTitle = t('thinkingProcessRunning');
+    const doneTitle = `${t('thinkingProcessDone')} (${steps.length})`;
+
     header.innerHTML = `
       <div class="thinking-title">
         ${isLive ? '<div class="thinking-spinner"></div>' : '<span>🧠</span>'}
-        <span class="thinking-title-text">${isLive ? 'Quy trình tư duy tác tử (LangGraph)...' : `Đã hoàn thành phân tích (${steps.length} bước)`}</span>
+        <span class="thinking-title-text">${isLive ? runningTitle : doneTitle}</span>
       </div>
       <svg class="thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 12 15 18 9"/>
@@ -504,7 +714,7 @@
       return `<div class="code-block-wrapper">
         <div class="code-header">
           <span>${lang || 'code'}</span>
-          <button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText); this.textContent='Đã chép!'; setTimeout(()=>this.textContent='Sao chép', 2000);">Sao chép</button>
+          <button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText); this.textContent='${t('copiedCode')}'; setTimeout(()=>this.textContent='${t('copyCode')}', 2000);">${t('copyCode')}</button>
         </div>
         <pre><code>${escapeHtml(code.trim())}</code></pre>
       </div>`;
@@ -530,8 +740,7 @@
       let html = '<div class="table-container"><table class="markdown-table">';
       let isHeader = true;
 
-      rows.forEach((row, i) => {
-        // Skip markdown separator row |---|---|
+      rows.forEach((row) => {
         if (row.includes('---')) {
           isHeader = false;
           return;
@@ -558,7 +767,7 @@
     text = text.replace(/^\s*-\s+(.*$)/gim, '<li>$1</li>');
     text = text.replace(/(<li>[\s\S]*?<\/li>)/gim, '<ul class="markdown-list">$1</ul>');
 
-    // Linebreaks to paragraphs
+    // Paragraphs
     text = text
       .split('\n\n')
       .map((p) => {
@@ -571,8 +780,8 @@
       })
       .join('');
 
-    // Citations highlighting [Điều 468 BLDS 2015]
-    text = text.replace(/\[((?:Điều|Khoản|Bộ luật|Luật|Án lệ|Nghị định)[^\]]+)\]/g, '<span class="citation-chip">[$1]</span>');
+    // Citations highlighting [Article 468 Civil Code 2015] / [Điều 468 BLDS 2015]
+    text = text.replace(/\[((?:Điều|Khoản|Bộ luật|Luật|Án lệ|Nghị định|Article|Clause|Civil Code|Commercial Law)[^\]]+)\]/g, '<span class="citation-chip">[$1]</span>');
 
     return text;
   }
@@ -587,21 +796,18 @@
     if (!text && !file) return;
     if (state.isGenerating) return;
 
-    // Ensure session exists
     let session = getCurrentSession();
     if (!session) {
       createNewSession(false);
       session = getCurrentSession();
     }
 
-    // Auto title session from first user message
     if (session.messages.length === 0) {
-      const cleanTitle = (text || file.name).slice(0, 42).replace(/[\r\n]+/g, ' ');
+      const cleanTitle = (text || file.name).slice(0, 36).replace(/[\r\n]+/g, ' ');
       session.title = cleanTitle;
       if (dom.currentChatTitle) dom.currentChatTitle.textContent = cleanTitle;
     }
 
-    // Push User Message
     const userMsg = {
       role: 'user',
       content: text,
@@ -614,12 +820,10 @@
 
     appendMessageToDOM(userMsg, true);
 
-    // Clear prompt bar
     dom.promptInput.value = '';
     dom.promptInput.style.height = 'auto';
     clearAttachment();
 
-    // Setup Assistant Streaming Placeholder
     setGeneratingState(true);
 
     const thinkingSteps = [];
@@ -635,16 +839,15 @@
     const bubbleEl = domRef.bubble;
     const wrapperEl = domRef.wrapper;
 
-    // Create live thinking accordion
     const liveAccordion = createThinkingAccordionElement(thinkingSteps, true);
     liveAccordion.classList.add('open');
     wrapperEl.insertBefore(liveAccordion, bubbleEl);
 
-    // Prepare FormData
     const formData = new FormData();
     if (text) formData.append('message', text);
     if (session.id) formData.append('session_id', session.id);
     if (file) formData.append('file', file);
+    formData.append('lang', state.lang);
 
     state.activeController = new AbortController();
 
@@ -656,7 +859,7 @@
       });
 
       if (!response.ok) {
-        throw new Error(`Máy chủ phản hồi mã lỗi: ${response.status}`);
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const reader = response.body.getReader();
@@ -669,7 +872,7 @@
 
         buffer += decoder.decode(value, { stream: true });
         const events = buffer.split('\n\n');
-        buffer = events.pop(); // keep last incomplete event
+        buffer = events.pop();
 
         for (const evtStr of events) {
           const line = evtStr.trim();
@@ -679,8 +882,8 @@
             const data = JSON.parse(line.slice(6));
 
             if (data.type === 'step') {
-              // Update live thinking steps
-              const stepInfo = STEP_METADATA[data.step] || { label: data.step, icon: '⚡' };
+              const langMap = STEP_METADATA[state.lang] || STEP_METADATA.vi;
+              const stepInfo = langMap[data.step] || { label: data.step, icon: '⚡' };
               const stepMsg = data.message || stepInfo.label;
 
               thinkingSteps.push({
@@ -689,7 +892,6 @@
                 message: stepMsg,
               });
 
-              // Re-render accordion content
               const stepsCont = liveAccordion.querySelector('.thinking-steps');
               if (stepsCont) {
                 const item = document.createElement('div');
@@ -727,24 +929,24 @@
                 renderAuditReportIntoBubble(rep, bubbleEl, wrapperEl);
                 assistantMsg.content = bubbleEl.innerText;
               } else {
-                bubbleEl.innerHTML = `<p>${data.message || 'Thẩm định hợp đồng hoàn tất.'}</p>`;
+                bubbleEl.innerHTML = `<p>${data.message || 'Audit completed.'}</p>`;
               }
 
             } else if (data.type === 'error') {
               bubbleEl.innerHTML = `<div style="color: var(--accent-rose); font-weight: 500;">❌ ${escapeHtml(data.message)}</div>`;
             }
           } catch (e) {
-            console.warn('Lỗi phân tích cú pháp SSE:', e, line);
+            console.warn('SSE parsing issue:', e, line);
           }
         }
       }
 
-      // Finish thinking accordion state
+      // Finish thinking accordion
       const titleText = liveAccordion.querySelector('.thinking-title-text');
       const spinner = liveAccordion.querySelector('.thinking-spinner');
       if (spinner) spinner.remove();
       if (titleText) {
-        titleText.textContent = `Đã hoàn thành phân tích (${thinkingSteps.length} bước)`;
+        titleText.textContent = `${t('thinkingProcessDone')} (${thinkingSteps.length})`;
       }
       liveAccordion.classList.remove('open');
 
@@ -752,9 +954,9 @@
       saveSessions();
     } catch (err) {
       if (err.name === 'AbortError') {
-        bubbleEl.innerHTML += '<p style="color: var(--text-muted); font-style: italic;">[Đã dừng tạo phản hồi]</p>';
+        bubbleEl.innerHTML += `<p style="color: var(--text-muted); font-style: italic;">[${state.lang === 'vi' ? 'Đã dừng phản hồi' : 'Stopped generating'}]</p>`;
       } else {
-        bubbleEl.innerHTML = `<div style="color: var(--accent-rose);">⚠️ Đã xảy ra lỗi kết nối: ${escapeHtml(err.message)}</div>`;
+        bubbleEl.innerHTML = `<div style="color: var(--accent-rose);">⚠️ ${escapeHtml(err.message)}</div>`;
       }
     } finally {
       setGeneratingState(false);
@@ -765,10 +967,8 @@
 
   function renderAuditReportIntoBubble(rep, bubbleEl, wrapperEl) {
     let html = '';
-
-    // Overall Health Score Card
     const score = rep.overall_score || 85;
-    const risk = rep.risk_level || 'Trung bình';
+    const risk = rep.risk_level || (state.lang === 'vi' ? 'Trung bình' : 'Medium');
     const issuesCount = (rep.vulnerabilities || []).length;
     const scoreClass = score >= 80 ? 'green' : score >= 60 ? 'yellow' : 'red';
 
@@ -779,47 +979,44 @@
           <span class="score-max">/100</span>
         </div>
         <div class="score-meta">
-          <div class="score-title">Điểm Sức khỏe Pháp lý: ${score}/100 (${risk})</div>
-          <div class="score-desc">Hệ thống phát hiện ${issuesCount} điểm rủi ro và các bẫy điều khoản cần xem xét sửa đổi.</div>
+          <div class="score-title">${t('healthScoreTitle')}: ${score}/100 (${risk})</div>
+          <div class="score-desc">${state.lang === 'vi' ? `Phát hiện ${issuesCount} điểm rủi ro và các bẫy điều khoản cần xem xét sửa đổi.` : `Identified ${issuesCount} risk points and contract traps requiring revision.`}</div>
         </div>
       </div>
     `;
 
-    // Executive Summary
     if (rep.executive_summary) {
-      html += `<h3>Tóm tắt Đánh giá Pháp lý</h3><p>${escapeHtml(rep.executive_summary)}</p>`;
+      html += `<h3>${state.lang === 'vi' ? 'Tóm tắt Đánh giá Pháp lý' : 'Executive Legal Summary'}</h3><p>${escapeHtml(rep.executive_summary)}</p>`;
     }
 
-    // Vulnerabilities
     if (rep.vulnerabilities && rep.vulnerabilities.length > 0) {
-      html += `<h3>Chi tiết Lỗ hổng & Bẫy Điều khoản</h3>`;
+      html += `<h3>${t('vulnerabilitiesTitle')}</h3>`;
       rep.vulnerabilities.forEach((v, idx) => {
         const sevClass = v.severity === 'HIGH' ? 'red' : v.severity === 'MEDIUM' ? 'yellow' : 'green';
         html += `
           <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin: 10px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <strong>#${idx + 1}. ${escapeHtml(v.clause_id || 'Điều khoản')}</strong>
-              <span class="score-circle ${sevClass}" style="width: auto; height: auto; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem;">Mức độ: ${v.severity}</span>
+              <strong>#${idx + 1}. ${escapeHtml(v.clause_id || (state.lang === 'vi' ? 'Điều khoản' : 'Clause'))}</strong>
+              <span class="score-circle ${sevClass}" style="width: auto; height: auto; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem;">${t('levelRisk')}: ${v.severity}</span>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 6px;"><strong>Mô tả:</strong> ${escapeHtml(v.issue_description)}</p>
-            ${v.legal_ground ? `<p style="font-size: 0.8rem; color: var(--text-code);"><strong>Căn cứ:</strong> ${escapeHtml(v.legal_ground)}</p>` : ''}
+            <p style="color: var(--text-secondary); margin-bottom: 6px;">${escapeHtml(v.issue_description)}</p>
+            ${v.legal_ground ? `<p style="font-size: 0.8rem; color: var(--text-code);"><strong>${state.lang === 'vi' ? 'Căn cứ' : 'Statute'}:</strong> ${escapeHtml(v.legal_ground)}</p>` : ''}
           </div>
         `;
       });
     }
 
-    // Redline Recommendations
     if (rep.redline_recommendations && rep.redline_recommendations.length > 0) {
-      html += `<h3>Đề xuất Chỉnh lý Điều khoản (Redline Diffs)</h3>`;
+      html += `<h3>${t('redlineTitle')}</h3>`;
       rep.redline_recommendations.forEach((r) => {
         html += `
           <div style="margin: 12px 0;">
-            <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 4px;">${escapeHtml(r.clause_id || 'Đề xuất sửa đổi')}</div>
+            <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 4px;">${escapeHtml(r.clause_id || 'Redline')}</div>
             <div class="diff-container">
               <div class="diff-line deletion">- ${escapeHtml(r.original_text || '')}</div>
               <div class="diff-line addition">+ ${escapeHtml(r.suggested_revision || '')}</div>
             </div>
-            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;"><strong>Lý do sửa đổi:</strong> ${escapeHtml(r.rationale)}</p>` : ''}
+            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">${escapeHtml(r.rationale)}</p>` : ''}
           </div>
         `;
       });
@@ -840,11 +1037,11 @@
       if (isGen) {
         dom.sendIcon.style.display = 'none';
         dom.stopIcon.style.display = 'block';
-        dom.sendBtn.title = 'Dừng tạo câu trả lời';
+        dom.sendBtn.title = t('stopBtnTitle');
       } else {
         dom.sendIcon.style.display = 'block';
         dom.stopIcon.style.display = 'none';
-        dom.sendBtn.title = 'Gửi (Enter)';
+        dom.sendBtn.title = t('sendBtnTitle');
       }
     }
   }
@@ -862,7 +1059,7 @@
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
         </svg>
         <span>${escapeHtml(file.name)} (${formatFileSize(file.size)})</span>
-        <button class="attachment-remove-btn" id="remove-attachment-btn" title="Xóa đính kèm">✕</button>
+        <button class="attachment-remove-btn" id="remove-attachment-btn" title="✕">✕</button>
       </div>
     `;
     dom.attachmentsPreviewBar.style.display = 'flex';
@@ -894,7 +1091,7 @@
       dom.drawerMarkdownPreview.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--text-muted); gap: 12px;">
           <div class="thinking-spinner" style="width: 24px; height: 24px; border-width: 3px;"></div>
-          <span>Đang bóc tách layout, OCR văn bản và cấu trúc bảng biểu...</span>
+          <span>${state.lang === 'vi' ? 'Đang bóc tách OCR văn bản & bảng biểu...' : 'Extracting OCR text & tables...'}</span>
         </div>
       `;
     }
@@ -909,7 +1106,7 @@
       });
 
       if (!res.ok) {
-        throw new Error(`OCR thất bại: mã phản hồi ${res.status}`);
+        throw new Error(`OCR error: ${res.status}`);
       }
 
       const data = await res.json();
@@ -920,7 +1117,6 @@
         dom.drawerMarkdownPreview.textContent = data.markdown || '';
       }
 
-      // Save to Vault
       const vaultEntry = {
         filename: data.filename || file.name,
         pageCount: data.page_count || 1,
@@ -970,24 +1166,24 @@
   function exportChatToMarkdown() {
     const session = getCurrentSession();
     if (!session || !session.messages || session.messages.length === 0) {
-      alert('Chưa có nội dung cuộc trò chuyện để xuất.');
+      alert(t('exportEmpty'));
       return;
     }
 
-    let md = `# LexiGuard AI — Báo Cáo Hội Thoại Pháp Lý\n`;
-    md += `**Chủ đề:** ${session.title}\n`;
-    md += `**Thời gian tạo:** ${new Date(session.createdAt).toLocaleString('vi-VN')}\n\n`;
+    let md = `${t('exportHeader')}\n`;
+    md += `**${state.lang === 'vi' ? 'Chủ đề' : 'Topic'}:** ${session.title}\n`;
+    md += `**${state.lang === 'vi' ? 'Thời gian' : 'Date'}:** ${new Date(session.createdAt).toLocaleString(state.lang === 'vi' ? 'vi-VN' : 'en-US')}\n\n`;
     md += `---\n\n`;
 
-    session.messages.forEach((m, idx) => {
-      const roleName = m.role === 'user' ? '👤 NGƯỜI DÙNG' : '⚖️ LEXIGUARD AI';
+    session.messages.forEach((m) => {
+      const roleName = m.role === 'user' ? t('userLabel') : t('assistantLabel');
       md += `### ${roleName}\n\n`;
       if (m.attachedFile) {
-        md += `> Đính kèm tệp: **${m.attachedFile.name}**\n\n`;
+        md += `> ${t('attachedFileLabel')}: **${m.attachedFile.name}**\n\n`;
       }
       md += `${m.content}\n\n`;
       if (m.citations && m.citations.length > 0) {
-        md += `**Căn cứ pháp luật:** ${m.citations.join(' | ')}\n\n`;
+        md += `**${t('legalGroundsLabel')}:** ${m.citations.join(' | ')}\n\n`;
       }
       md += `---\n\n`;
     });
@@ -1032,6 +1228,11 @@
   }
 
   function bindEvents() {
+    // Language Toggle
+    if (dom.langToggleBtn) {
+      dom.langToggleBtn.addEventListener('click', toggleLanguage);
+    }
+
     // Send / Stop
     if (dom.sendBtn) {
       dom.sendBtn.addEventListener('click', () => {
@@ -1043,7 +1244,7 @@
       });
     }
 
-    // Auto-expand textarea & Enter to send
+    // Input auto-expand & Enter to send
     if (dom.promptInput) {
       dom.promptInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -1123,16 +1324,27 @@
       });
     }
 
-    // Hero Prompt Cards
-    dom.promptCards.forEach((card) => {
-      card.addEventListener('click', () => {
-        if (card.id === 'trigger-ocr-card') {
+    // Prompt Chips Click Handlers
+    dom.promptChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        if (chip.id === 'trigger-ocr-card') {
           if (dom.ocrUploadInput) dom.ocrUploadInput.click();
           return;
         }
-        const promptText = card.getAttribute('data-prompt');
-        if (promptText && dom.promptInput) {
-          dom.promptInput.value = promptText;
+
+        const promptKey = chip.getAttribute('data-prompt-key');
+        let textToSend = '';
+
+        if (promptKey === 'chipAudit') {
+          textToSend = t('chipAuditPrompt');
+        } else if (promptKey === 'chipLookup') {
+          textToSend = t('chipLookupPrompt');
+        } else if (promptKey === 'chipTable') {
+          textToSend = t('chipTablePrompt');
+        }
+
+        if (textToSend && dom.promptInput) {
+          dom.promptInput.value = textToSend;
           dom.promptInput.style.height = 'auto';
           dom.promptInput.style.height = Math.min(dom.promptInput.scrollHeight, 180) + 'px';
           sendMessage();
@@ -1174,26 +1386,26 @@
     if (dom.copyOcrTextBtn && dom.drawerMarkdownPreview) {
       dom.copyOcrTextBtn.addEventListener('click', () => {
         const text = dom.drawerMarkdownPreview.innerText;
-        if (!text || text.includes('Chưa có văn bản')) return;
+        if (!text || text.includes(t('drawerEmpty'))) return;
         navigator.clipboard.writeText(text);
-        dom.copyOcrTextBtn.textContent = 'Đã chép vào clipboard!';
-        setTimeout(() => (dom.copyOcrTextBtn.textContent = 'Sao chép văn bản'), 2000);
+        dom.copyOcrTextBtn.textContent = t('drawerCopied');
+        setTimeout(() => (dom.copyOcrTextBtn.textContent = t('drawerCopyBtn')), 2000);
       });
     }
 
     if (dom.sendOcrToChatBtn && dom.drawerMarkdownPreview && dom.promptInput) {
       dom.sendOcrToChatBtn.addEventListener('click', () => {
         const text = dom.drawerMarkdownPreview.innerText;
-        if (!text || text.includes('Chưa có văn bản')) return;
+        if (!text || text.includes(t('drawerEmpty'))) return;
         closeDrawer();
-        dom.promptInput.value = `Thẩm định các điều khoản và bảng biểu sau đây được bóc tách từ tài liệu OCR:\n\n${text}`;
+        dom.promptInput.value = `${t('ocrPromptPrefix')}${text}`;
         dom.promptInput.focus();
         dom.promptInput.style.height = 'auto';
         dom.promptInput.style.height = Math.min(dom.promptInput.scrollHeight, 180) + 'px';
       });
     }
 
-    // Drag and Drop Files onto Prompt Box & Chat Viewport
+    // Drag and Drop Files
     const dropZone = document.querySelector('.chat-canvas');
     if (dropZone) {
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((evt) => {

@@ -81,7 +81,7 @@ async def test_web_ui_served():
         response = await client.get("/app/")
         assert response.status_code == 200
         assert "LexiGuard AI" in response.text
-        assert "Multi-Agent GraphRAG" in response.text
+        assert "lang-toggle-btn" in response.text
 
 
 @pytest.mark.asyncio
