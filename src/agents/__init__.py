@@ -7,20 +7,34 @@ Orchestrates Dual-LLM CPU architecture and self-reflection loops.
 from src.agents.state import (
     AgentState,
     ClauseExtractionList,
+    ExtractedClauseItem,
     AuditDraftReport,
+    AuditFindingItem,
     HallucinationGrade,
     ContractAuditReport,
     VulnerabilityItem,
+    ContractProvenance,
+    LegalGrounding,
+    VulnerabilityCategory,
+    DisputeForum,
+    DisputePrecedentInsight,
 )
 from src.agents.workflow import create_lexiguard_graph, lexiguard_agent
 
 __all__ = [
     "AgentState",
     "ClauseExtractionList",
+    "ExtractedClauseItem",
     "AuditDraftReport",
+    "AuditFindingItem",
     "HallucinationGrade",
     "ContractAuditReport",
     "VulnerabilityItem",
+    "ContractProvenance",
+    "LegalGrounding",
+    "VulnerabilityCategory",
+    "DisputeForum",
+    "DisputePrecedentInsight",
     "create_lexiguard_graph",
     "lexiguard_agent",
 ]
