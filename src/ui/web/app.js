@@ -484,9 +484,6 @@
       const item = document.createElement('div');
       item.className = `session-item ${isActive ? 'active' : ''}`;
       item.innerHTML = `
-        <svg class="session-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
         <span class="session-item-title">${escapeHtml(s.title || t('chatTitleDefault'))}</span>
         <button class="session-item-del-btn" title="Xóa">✕</button>
       `;
@@ -967,11 +964,19 @@
 
   function renderAuditReportIntoBubble(rep, bubbleEl, wrapperEl) {
     let html = '';
-    const score = rep.overall_score || 85;
-    const risk = rep.risk_level || (state.lang === 'vi' ? 'Trung bình' : 'Medium');
-    const issuesCount = (rep.vulnerabilities || []).length;
-    const scoreClass = score >= 80 ? 'green' : score >= 60 ? 'yellow' : 'red';
+    const findings = rep.findings || rep.vulnerabilities || [];
+    const score = rep.overall_health_score !== undefined
+      ? rep.overall_health_score
+      : (rep.overall_score !== undefined ? rep.overall_score : Math.max(0, 100 - findings.length * 12));
 
+    const risk = score >= 80
+      ? (state.lang === 'vi' ? 'Thấp' : 'Low')
+      : (score >= 60 ? (state.lang === 'vi' ? 'Trung bình' : 'Medium') : (state.lang === 'vi' ? 'Cao' : 'High'));
+
+    const scoreClass = score >= 80 ? 'green' : score >= 60 ? 'yellow' : 'red';
+    const summary = rep.tand_viac_summary || rep.executive_summary || '';
+
+    // 1. Health Score Card
     html += `
       <div class="health-score-card">
         <div class="score-circle ${scoreClass}">
@@ -979,44 +984,88 @@
           <span class="score-max">/100</span>
         </div>
         <div class="score-meta">
-          <div class="score-title">${t('healthScoreTitle')}: ${score}/100 (${risk})</div>
-          <div class="score-desc">${state.lang === 'vi' ? `Phát hiện ${issuesCount} điểm rủi ro và các bẫy điều khoản cần xem xét sửa đổi.` : `Identified ${issuesCount} risk points and contract traps requiring revision.`}</div>
+          <div class="score-title">${t('healthScoreTitle')}: ${score}/100 (${t('levelRisk')}: ${risk})</div>
+          <div class="score-desc">${state.lang === 'vi' ? `Phát hiện ${findings.length} điểm rủi ro và các bẫy điều khoản cần xem xét sửa đổi.` : `Identified ${findings.length} risk points and contract traps requiring revision.`}</div>
         </div>
       </div>
     `;
 
-    if (rep.executive_summary) {
-      html += `<h3>${state.lang === 'vi' ? 'Tóm tắt Đánh giá Pháp lý' : 'Executive Legal Summary'}</h3><p>${escapeHtml(rep.executive_summary)}</p>`;
+    // 2. Summary Card
+    if (summary) {
+      html += `
+        <div style="background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: var(--radius-md); padding: 14px 18px; margin: 14px 0;">
+          <div style="font-weight: 600; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 6px;">
+            ⚖️ ${state.lang === 'vi' ? 'Đánh giá Rủi ro Tranh chấp (TAND & VIAC)' : 'Litigation & Arbitration Risk Assessment'}
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;">${escapeHtml(summary)}</p>
+        </div>
+      `;
     }
 
-    if (rep.vulnerabilities && rep.vulnerabilities.length > 0) {
-      html += `<h3>${t('vulnerabilitiesTitle')}</h3>`;
-      rep.vulnerabilities.forEach((v, idx) => {
-        const sevClass = v.severity === 'HIGH' ? 'red' : v.severity === 'MEDIUM' ? 'yellow' : 'green';
+    // 3. Vulnerability Findings List
+    if (findings.length > 0) {
+      html += `<h3 style="margin-top: 20px; margin-bottom: 12px;">${t('vulnerabilitiesTitle')}</h3>`;
+      findings.forEach((v, idx) => {
+        const sev = (v.risk_tier || v.severity || 'MEDIUM').toUpperCase();
+        const sevClass = (sev === 'CRITICAL' || sev === 'HIGH') ? 'red' : (sev === 'MEDIUM' ? 'yellow' : 'green');
+        const clauseName = v.clause_reference || v.clause_id || (state.lang === 'vi' ? 'Điều khoản' : 'Clause');
+        const verdict = v.audit_verdict || v.issue_description || '';
+
+        let statuteText = '';
+        if (v.legal_grounding) {
+          statuteText = `${v.legal_grounding.statute_title || ''} ${v.legal_grounding.article || ''}`.trim();
+        } else if (v.statutory_citation) {
+          statuteText = v.statutory_citation;
+        } else if (v.legal_ground) {
+          statuteText = v.legal_ground;
+        }
+
+        const origText = v.contract_provenance?.verbatim_text || v.original_text || '';
+        const dispute = v.dispute_insight?.judicial_tendency || v.dispute_insight?.precedent_reference || '';
+        const strat = v.negotiation_rationale || '';
+
         html += `
-          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin: 10px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <strong>#${idx + 1}. ${escapeHtml(v.clause_id || (state.lang === 'vi' ? 'Điều khoản' : 'Clause'))}</strong>
-              <span class="score-circle ${sevClass}" style="width: auto; height: auto; border-radius: 4px; padding: 2px 8px; font-size: 0.75rem;">${t('levelRisk')}: ${v.severity}</span>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin: 12px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <strong style="color: var(--text-primary); font-size: 0.95rem;">#${idx + 1}. ${escapeHtml(clauseName)}</strong>
+              <span class="score-circle ${sevClass}" style="width: auto; height: auto; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; font-weight: 600;">${t('levelRisk')}: ${sev}</span>
             </div>
-            <p style="color: var(--text-secondary); margin-bottom: 6px;">${escapeHtml(v.issue_description)}</p>
-            ${v.legal_ground ? `<p style="font-size: 0.8rem; color: var(--text-code);"><strong>${state.lang === 'vi' ? 'Căn cứ' : 'Statute'}:</strong> ${escapeHtml(v.legal_ground)}</p>` : ''}
+
+            ${origText ? `<div style="background: rgba(0,0,0,0.25); border-left: 3px solid var(--border-color); padding: 8px 12px; margin-bottom: 10px; font-size: 0.82rem; color: var(--text-muted); font-style: italic;">"${escapeHtml(origText)}"</div>` : ''}
+
+            <p style="color: var(--text-secondary); margin-bottom: 8px; line-height: 1.5;"><strong>${state.lang === 'vi' ? 'Phân tích vi phạm:' : 'Risk analysis:'}</strong> ${escapeHtml(verdict)}</p>
+
+            ${statuteText ? `<p style="margin-bottom: 6px;"><span class="citation-chip">⚖️ ${escapeHtml(statuteText)}</span></p>` : ''}
+
+            ${dispute ? `<p style="font-size: 0.8rem; color: #a5b4fc; margin-bottom: 6px;"><strong>${state.lang === 'vi' ? 'Án lệ / Thực tiễn giải quyết:' : 'Precedent / Judicial Practice:'}</strong> ${escapeHtml(dispute)}</p>` : ''}
+
+            ${strat ? `<p style="font-size: 0.8rem; color: var(--accent-emerald); margin-top: 4px;"><strong>${state.lang === 'vi' ? 'Khuyến nghị đàm phán:' : 'Negotiation strategy:'}</strong> ${escapeHtml(strat)}</p>` : ''}
           </div>
         `;
       });
+    } else {
+      html += `
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-md); padding: 20px; margin: 16px 0; text-align: center;">
+          <div style="font-size: 1.5rem; margin-bottom: 6px;">✅</div>
+          <strong style="color: var(--accent-emerald); font-size: 0.95rem;">${state.lang === 'vi' ? 'Hợp đồng không có vi phạm nghiêm trọng' : 'No Critical Violations Detected'}</strong>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">${state.lang === 'vi' ? 'Các điều khoản được rà soát tuân thủ quy chuẩn pháp luật hiện hành.' : 'Audited clauses comply with applicable statutory standards.'}</p>
+        </div>
+      `;
     }
 
-    if (rep.redline_recommendations && rep.redline_recommendations.length > 0) {
-      html += `<h3>${t('redlineTitle')}</h3>`;
-      rep.redline_recommendations.forEach((r) => {
+    // 4. Redline Recommendations
+    const redlines = rep.redline_recommendations || [];
+    if (redlines.length > 0) {
+      html += `<h3 style="margin-top: 24px; margin-bottom: 12px;">${t('redlineTitle')}</h3>`;
+      redlines.forEach((r) => {
         html += `
-          <div style="margin: 12px 0;">
-            <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 4px;">${escapeHtml(r.clause_id || 'Redline')}</div>
+          <div style="margin: 14px 0;">
+            <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 6px;">${escapeHtml(r.clause_id || 'Redline')}</div>
             <div class="diff-container">
-              <div class="diff-line deletion">- ${escapeHtml(r.original_text || '')}</div>
-              <div class="diff-line addition">+ ${escapeHtml(r.suggested_revision || '')}</div>
+              <div class="diff-line deletion">- ${escapeHtml(r.original_text || (state.lang === 'vi' ? 'Điều khoản gốc' : 'Original text'))}</div>
+              <div class="diff-line addition">+ ${escapeHtml(r.suggested_revision || r.proposed_redline || '')}</div>
             </div>
-            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">${escapeHtml(r.rationale)}</p>` : ''}
+            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;"><strong>${state.lang === 'vi' ? 'Lý do sửa đổi:' : 'Rationale:'}</strong> ${escapeHtml(r.rationale)}</p>` : ''}
           </div>
         `;
       });

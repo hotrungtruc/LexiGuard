@@ -110,6 +110,8 @@ async def chat_endpoint(
                     "errors": [],
                 }
 
+                latest_draft = None
+                latest_verified_items = []
                 final_report: Optional[Dict[str, Any]] = None
 
                 async for event in lexiguard_agent.astream(initial_state):
@@ -146,6 +148,8 @@ async def chat_endpoint(
 
                         elif node_name == "audit_vulnerabilities":
                             draft = node_output.get("audit_draft")
+                            if draft:
+                                latest_draft = draft
                             findings = draft.findings if draft else []
                             msg = f"LoopholeAuditor phát hiện {len(findings)} điểm rủi ro pháp lý và soạn thảo Redline."
                             yield format_sse(
@@ -160,6 +164,7 @@ async def chat_endpoint(
 
                         elif node_name == "grade_hallucination":
                             grade = node_output.get("hallucination_grade")
+                            latest_verified_items = node_output.get("verified_findings", [])
                             rep = node_output.get("final_report")
                             if rep:
                                 final_report = (
@@ -184,6 +189,68 @@ async def chat_endpoint(
                                     "accuracy_score": score,
                                 }
                             )
+
+                # Ensure report is fully formed with all finding details
+                if not final_report:
+                    items_to_use = latest_verified_items
+                    if not items_to_use and latest_draft and latest_draft.findings:
+                        items_to_use = latest_draft.findings
+
+                    items_data = [
+                        it.model_dump() if hasattr(it, "model_dump") else it for it in items_to_use
+                    ]
+                    calc_score = max(0, 100 - len(items_data) * 12)
+                    summary_msg = (
+                        f"Đã phát hiện {len(items_data)} điểm rủi ro pháp lý cần chỉnh lý theo án lệ TAND & VIAC."
+                        if items_data
+                        else "Văn bản an toàn, không phát hiện rủi ro vi phạm pháp luật nghiêm trọng."
+                    )
+                    final_report = {
+                        "contract_name": file_name or "Tài liệu thẩm định",
+                        "overall_health_score": calc_score,
+                        "overall_score": calc_score,
+                        "total_clauses_reviewed": len(initial_state.get("parsed_clauses", [])),
+                        "findings": items_data,
+                        "vulnerabilities": items_data,
+                        "tand_viac_summary": summary_msg,
+                        "executive_summary": summary_msg,
+                    }
+                else:
+                    if hasattr(final_report, "model_dump"):
+                        final_report = final_report.model_dump()
+                    final_report["overall_score"] = final_report.get(
+                        "overall_health_score", final_report.get("overall_score", 85)
+                    )
+                    final_report["overall_health_score"] = final_report["overall_score"]
+                    final_report["executive_summary"] = final_report.get(
+                        "tand_viac_summary", final_report.get("executive_summary", "")
+                    )
+                    final_report["tand_viac_summary"] = final_report["executive_summary"]
+                    f_list = final_report.get("findings", final_report.get("vulnerabilities", []))
+                    final_report["findings"] = f_list
+                    final_report["vulnerabilities"] = f_list
+
+                # Extract Redline recommendations
+                f_list = final_report.get("findings", [])
+                redlines = []
+                for f in f_list:
+                    redline_text = f.get("proposed_redline")
+                    if redline_text:
+                        prov = f.get("contract_provenance") or {}
+                        orig = prov.get("verbatim_text") or f.get("clause_reference") or ""
+                        redlines.append(
+                            {
+                                "clause_id": f.get("clause_reference")
+                                or f.get("finding_id")
+                                or "Điều khoản",
+                                "original_text": orig,
+                                "suggested_revision": redline_text,
+                                "rationale": f.get("negotiation_rationale")
+                                or f.get("audit_verdict")
+                                or "",
+                            }
+                        )
+                final_report["redline_recommendations"] = redlines
 
                 yield format_sse(
                     {
