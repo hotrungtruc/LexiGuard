@@ -126,7 +126,9 @@ def _match_elements(
             None,
         )
         if match_index is None:
-            failures.append(f"Missing element: {expected_item.element_type} {expected_item.text[:80]}")
+            failures.append(
+                f"Missing element: {expected_item.element_type} {expected_item.text[:80]}"
+            )
             continue
 
         true_positive += 1
@@ -175,15 +177,21 @@ def evaluate_document_extraction(
         "character_error_rate": round(
             _error_rate(case.reference_text, full_markdown, r"."),
             6,
-        ) if case.reference_text else None,
+        )
+        if case.reference_text
+        else None,
         "word_error_rate": round(
             _error_rate(case.reference_text, full_markdown, r"\S+"),
             6,
-        ) if case.reference_text else None,
+        )
+        if case.reference_text
+        else None,
         "provenance_accuracy": (
             1.0
             if case.expected_elements and not any("Wrong " in failure for failure in failures)
-            else 0.0 if case.expected_elements else None
+            else 0.0
+            if case.expected_elements
+            else None
         ),
         "actual_element_count": len(actual_elements),
         "actual_table_count": len(actual_tables),
@@ -202,7 +210,9 @@ def _matches_discrepancy(expected: Dict[str, Any], actual: Dict[str, Any]) -> bo
             actual_value = actual.get(key)
             if actual_value is None or abs(float(actual_value) - float(expected[key])) > 1e-6:
                 return False
-    if "formula_contains" in expected and expected["formula_contains"] not in actual.get("formula", ""):
+    if "formula_contains" in expected and expected["formula_contains"] not in actual.get(
+        "formula", ""
+    ):
         return False
     return True
 
@@ -222,8 +232,7 @@ def evaluate_arithmetic_case(case: ExpectedArithmetic) -> IngestionBenchmarkResu
             (
                 index
                 for index, actual_item in enumerate(actual)
-                if index not in matched_actual
-                and _matches_discrepancy(expected_item, actual_item)
+                if index not in matched_actual and _matches_discrepancy(expected_item, actual_item)
             ),
             None,
         )

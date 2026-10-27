@@ -11,14 +11,12 @@ Tests:
 Tasks 1.4, 3.1, 1.5, 3.3, 3.5 dropped per user requirements.
 """
 
-import pytest
 from src.evaluation.vlegal_evaluator import (
-    VLegalCitation,
-    VLegalTaskLoader,
-    VLegalGraphStructuringEvaluator,
     LegalConflictAuditor,
-    VLegalAuditorEvaluator,
+    VLegalCitation,
+    VLegalGraphStructuringEvaluator,
     VLegalMasterBenchmarkSuite,
+    VLegalTaskLoader,
 )
 
 

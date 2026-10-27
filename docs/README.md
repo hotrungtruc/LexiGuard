@@ -19,38 +19,7 @@ This directory contains technical specifications, architecture blueprints, data 
 
 LexiGuard operates as a multi-stage pipeline designed for high precision in legal reasoning:
 
-```mermaid
-graph TD
-    subgraph Ingestion ["1. Document Ingestion"]
-        RawDoc[Scanned PDF / DOCX / Image] --> LayoutParser[Docling Layout Segmentation]
-        LayoutParser --> TableExtractor[TableFormer Tabular Matrix]
-        TableExtractor --> ChunkEngine[Hierarchical Legal Chunker]
-    end
-
-    subgraph Retrieval ["2. Hybrid GraphRAG Retrieval"]
-        ChunkEngine --> FastPath[Entity Fast-Path Citation Matcher]
-        FastPath --> VectorDB[(Qdrant Vector DB: Dense + Sparse)]
-        FastPath --> GraphDB[(Neo4j Knowledge Graph)]
-        VectorDB --> RRF[Reciprocal Rank Fusion]
-        GraphDB --> GraphExp[Batched UNWIND Cypher Expansion]
-        RRF --> Rerank[Cross-Encoder Reranker]
-        GraphExp --> Rerank
-    end
-
-    subgraph Reasoning ["3. Multi-Agent Reasoning"]
-        Rerank --> N1[Node 1: ClauseExtractor]
-        N1 --> N2[Node 2: LegalResearcher]
-        N2 --> N3[Node 3: LoopholeAuditor]
-        N3 --> N4[Node 4: HallucinationGrader]
-        N4 -- "Citation Mismatch (retry < 2)" --> N2
-    end
-
-    subgraph Delivery ["4. Presentation & APIs"]
-        N4 -- "Verified (pass = 1.0)" --> Report[Verified JSON Audit Report]
-        N4 --> FastAPIRoute[FastAPI REST / SSE Stream]
-        N4 --> ChainlitUI[Chainlit Interactive Copilot]
-    end
-```
+![LexiGuard System Architecture](assets/system_architecture.png)
 
 ---
 
@@ -88,6 +57,7 @@ docs/
 |-- 03_hybrid_graphrag_qdrant_neo4j.md                  # 3-stage hybrid search and lifecycle sync
 |-- 04_fastmcp_multiagent_langgraph.md                  # Multi-agent state machine and MCP tools
 `-- assets/                                             # Technical diagrams and topology images
+    |-- system_architecture.png
     |-- single_branch_ocr_pipeline.png
     |-- hierarchical_schema_and_graph.png
     |-- neoj4_viz.png

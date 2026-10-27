@@ -6,14 +6,14 @@ step visualization for ClauseExtractor, LegalResearcher, LoopholeAuditor, and Ha
 """
 
 import os
-from pathlib import Path
 import tempfile
 from typing import Optional
+
 import chainlit as cl
 from loguru import logger
 
+from src.agents.state import AgentState, ContractAuditReport
 from src.agents.workflow import lexiguard_agent
-from src.agents.state import AgentState, ContractAuditReport, VulnerabilityItem
 
 
 @cl.on_chat_start
@@ -54,7 +54,9 @@ async def main(message: cl.Message):
             f.write(message.content)
         logger.info(f"User provided verbatim contract snippet saved to: {temp_path}")
     else:
-        await cl.Message(content="⚠️ Vui lòng tải lên tệp hợp đồng (.pdf, .docx, .md) hoặc dán nội dung điều khoản cần thẩm định.").send()
+        await cl.Message(
+            content="⚠️ Vui lòng tải lên tệp hợp đồng (.pdf, .docx, .md) hoặc dán nội dung điều khoản cần thẩm định."
+        ).send()
         return
 
     # Initial AgentState
@@ -78,17 +80,21 @@ async def main(message: cl.Message):
     try:
         # Step 1: Clause Extractor
         async with cl.Step(name="📄 Bước 1: ClauseExtractor (Qwen2.5-3B)", type="tool") as step1:
-            step1.output = "Đang phân tích cấu trúc văn bản, bóc tách điều khoản và bảng biểu tài chính..."
-            
+            step1.output = (
+                "Đang phân tích cấu trúc văn bản, bóc tách điều khoản và bảng biểu tài chính..."
+            )
+
             # Run LangGraph streaming
             async for event in lexiguard_agent.astream(initial_state):
                 for node_name, node_output in event.items():
                     if node_name == "extract_clauses":
                         clauses = node_output.get("parsed_clauses", [])
                         step1.output = f"✅ Đã trích xuất thành công {len(clauses)} điều khoản hợp đồng và bảng biểu."
-                    
+
                     elif node_name == "retrieve_statutes":
-                        async with cl.Step(name="⚖️ Bước 2: LegalResearcher (FastMCP & GraphRAG)", type="tool") as step2:
+                        async with cl.Step(
+                            name="⚖️ Bước 2: LegalResearcher (FastMCP & GraphRAG)", type="tool"
+                        ) as step2:
                             statutes = node_output.get("retrieved_statutes", [])
                             precedents = node_output.get("retrieved_precedents", [])
                             arith = node_output.get("arithmetic_findings", [])
@@ -98,13 +104,18 @@ async def main(message: cl.Message):
                             )
 
                     elif node_name == "audit_vulnerabilities":
-                        async with cl.Step(name="🔍 Bước 3: LoopholeAuditor (Qwen2.5-7B)", type="tool") as step3:
+                        async with cl.Step(
+                            name="🔍 Bước 3: LoopholeAuditor (Qwen2.5-7B)", type="tool"
+                        ) as step3:
                             draft = node_output.get("audit_draft")
                             findings = draft.findings if draft else []
                             step3.output = f"✅ Phát hiện {len(findings)} điểm rủi ro pháp lý tiềm ẩn và soạn thảo Redline."
 
                     elif node_name == "grade_hallucination":
-                        async with cl.Step(name="🛡️ Bước 4: HallucinationGrader (Cổng Thẩm Định Chống Ảo Giác)", type="tool") as step4:
+                        async with cl.Step(
+                            name="🛡️ Bước 4: HallucinationGrader (Cổng Thẩm Định Chống Ảo Giác)",
+                            type="tool",
+                        ) as step4:
                             grade = node_output.get("hallucination_grade")
                             rep = node_output.get("final_report")
                             if rep:
@@ -120,7 +131,7 @@ async def main(message: cl.Message):
         if final_report:
             score = final_report.overall_health_score
             badge_color = "🟢" if score >= 80 else ("🟡" if score >= 50 else "🔴")
-            
+
             report_md = [
                 f"# 📊 BÁO CÁO THẨM ĐỊNH HỢP ĐỒNG: {contract_name}",
                 f"\n### {badge_color} Điểm sức khỏe hợp đồng: **{score}/100**",
@@ -131,11 +142,21 @@ async def main(message: cl.Message):
             ]
 
             if not final_report.findings:
-                report_md.append("🎉 **Hợp đồng đạt chuẩn an toàn cao, không phát hiện vi phạm luật định nghiêm trọng.**")
+                report_md.append(
+                    "🎉 **Hợp đồng đạt chuẩn an toàn cao, không phát hiện vi phạm luật định nghiêm trọng.**"
+                )
             else:
                 for idx, f in enumerate(final_report.findings, start=1):
-                    risk_icon = "🔴" if f.risk_tier == "CRITICAL" else ("🟠" if f.risk_tier == "HIGH" else "🟡")
-                    disp_text = f" ({f.dispute_insight.target_forum} - {f.dispute_insight.precedent_reference})" if f.dispute_insight else ""
+                    risk_icon = (
+                        "🔴"
+                        if f.risk_tier == "CRITICAL"
+                        else ("🟠" if f.risk_tier == "HIGH" else "🟡")
+                    )
+                    disp_text = (
+                        f" ({f.dispute_insight.target_forum} - {f.dispute_insight.precedent_reference})"
+                        if f.dispute_insight
+                        else ""
+                    )
 
                     finding_block = f"""
 #### {idx}. [{risk_icon} {f.risk_tier}] {f.clause_reference}
@@ -144,16 +165,18 @@ async def main(message: cl.Message):
 - **Phân tích rủi ro**: {f.audit_verdict}
 - **Đề xuất Redline sửa đổi**:
 ```diff
-{f.proposed_redline or 'Chưa có đề xuất thay thế cụ thể.'}
+{f.proposed_redline or "Chưa có đề xuất thay thế cụ thể."}
 ```
-- **Luận cứ đàm phán**: *{f.negotiation_rationale or 'N/A'}*
+- **Luận cứ đàm phán**: *{f.negotiation_rationale or "N/A"}*
 ---
 """
                     report_md.append(finding_block)
 
             await cl.Message(content="\n".join(report_md)).send()
         else:
-            await cl.Message(content="⚠️ Quá trình thẩm định đã hoàn thành nhưng chưa tạo được báo cáo tổng hợp. Vui lòng thử lại.").send()
+            await cl.Message(
+                content="⚠️ Quá trình thẩm định đã hoàn thành nhưng chưa tạo được báo cáo tổng hợp. Vui lòng thử lại."
+            ).send()
 
     except Exception as exc:
         logger.error(f"Error executing Chainlit audit workflow: {exc}")

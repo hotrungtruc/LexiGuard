@@ -2,8 +2,7 @@
 Unit Tests: LegalEntityExtractor & Entity Fast-Path Citation Extraction
 """
 
-import pytest
-from src.retrieval.entity_extractor import LegalEntityExtractor, ExtractedLegalCitation
+from src.retrieval.entity_extractor import LegalEntityExtractor
 
 
 def test_entity_extractor_standalone_articles():
@@ -14,7 +13,9 @@ def test_entity_extractor_standalone_articles():
     assert node_ids == ["VN_BLDS_2015_D357"]
 
     # Query with multiple separate articles
-    node_ids2 = extractor.extract_citation_node_ids("Tranh chấp nghĩa vụ trả lãi theo Điều 357 và Điều 468")
+    node_ids2 = extractor.extract_citation_node_ids(
+        "Tranh chấp nghĩa vụ trả lãi theo Điều 357 và Điều 468"
+    )
     assert "VN_BLDS_2015_D357" in node_ids2
     assert "VN_BLDS_2015_D468" in node_ids2
 

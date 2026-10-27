@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from loguru import logger
 from neo4j import AsyncGraphDatabase
+
 from src.core.config import settings
 from src.retrieval.qdrant_store import QdrantStore
 
@@ -24,8 +25,7 @@ async def reset_neo4j():
     """Wipes all nodes and relationships in Neo4j and recreates constraints."""
     logger.info("Connecting to Neo4j to reset graph...")
     driver = AsyncGraphDatabase.driver(
-        settings.NEO4J_URI,
-        auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+        settings.NEO4J_URI, auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
     )
     async with driver.session() as session:
         # Check count before wipe

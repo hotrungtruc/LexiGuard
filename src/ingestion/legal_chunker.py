@@ -11,18 +11,17 @@ Outputs:
 
 import re
 from typing import Any, Dict, List, Optional, Tuple
+
 from loguru import logger
 
 from src.core.legal_norm import canonical_law_slug
 from src.core.schemas import (
     LegalArticle,
     LegalChapter,
+    LegalChunk,
     LegalClause,
     LegalDocument,
-    LegalChunk,
-    LegalPart,
     LegalPoint,
-    LegalSection,
 )
 
 
@@ -33,41 +32,43 @@ class LegalChunker:
     """
 
     ROMAN_UNICODE_MAP = {
-        'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV', 'Ⅴ': 'V',
-        'Ⅵ': 'VI', 'Ⅶ': 'VII', 'Ⅷ': 'VIII', 'Ⅸ': 'IX', 'Ⅹ': 'X',
-        'Ⅺ': 'XI', 'Ⅻ': 'XII'
+        "Ⅰ": "I",
+        "Ⅱ": "II",
+        "Ⅲ": "III",
+        "Ⅳ": "IV",
+        "Ⅴ": "V",
+        "Ⅵ": "VI",
+        "Ⅶ": "VII",
+        "Ⅷ": "VIII",
+        "Ⅸ": "IX",
+        "Ⅹ": "X",
+        "Ⅺ": "XI",
+        "Ⅻ": "XII",
     }
 
     # Statutory Header Patterns (Supports Unicode diacritics, OCR distortions, and Unicode Roman numerals)
     PART_PATTERN = re.compile(
-        r'^(?:#+\s*)?(?:PHẦN|PHÀN|PHAN)\s+(?:THỨ\s+([A-ZÀ-Ỹa-zà-ỹ]+)|([IVXLCDM\d]+|[Ⅰ-Ⅻ]+))(?:\s*[:.\-]\s*|\s+)?(.*)$',
-        re.IGNORECASE | re.MULTILINE
+        r"^(?:#+\s*)?(?:PHẦN|PHÀN|PHAN)\s+(?:THỨ\s+([A-ZÀ-Ỹa-zà-ỹ]+)|([IVXLCDM\d]+|[Ⅰ-Ⅻ]+))(?:\s*[:.\-]\s*|\s+)?(.*)$",
+        re.IGNORECASE | re.MULTILINE,
     )
     CHAPTER_PATTERN = re.compile(
-        r'^(?:#+\s*)?(?:CH[ƯUO][ƠO0]NG|CHR[ƠO0]NG|CH\s*[ƯUO][ƠO0]NG)\s+([IVXLCDM\d]+|[Ⅰ-Ⅻ]+)(?:\s*[:.\-]\s*|\s+)?(.*)$',
-        re.IGNORECASE | re.MULTILINE
+        r"^(?:#+\s*)?(?:CH[ƯUO][ƠO0]NG|CHR[ƠO0]NG|CH\s*[ƯUO][ƠO0]NG)\s+([IVXLCDM\d]+|[Ⅰ-Ⅻ]+)(?:\s*[:.\-]\s*|\s+)?(.*)$",
+        re.IGNORECASE | re.MULTILINE,
     )
     SECTION_PATTERN = re.compile(
-        r'^(?:#+\s*)?(?:MỤC|MUC|MC)\s+(\d+|[IVXLCDM]+|[Ⅰ-Ⅻ]+)(?:\s*[:.\-]\s*|\s+)?(.*)$',
-        re.IGNORECASE | re.MULTILINE
+        r"^(?:#+\s*)?(?:MỤC|MUC|MC)\s+(\d+|[IVXLCDM]+|[Ⅰ-Ⅻ]+)(?:\s*[:.\-]\s*|\s+)?(.*)$",
+        re.IGNORECASE | re.MULTILINE,
     )
     ARTICLE_PATTERN = re.compile(
-        r'^(?:#+\s*)?(?:ĐIỀU|ĐIÈU|ĐIU|DIEU|Điều|Điu)\s+(\d+)\s*[:.]\s*(.*)$',
-        re.MULTILINE
+        r"^(?:#+\s*)?(?:ĐIỀU|ĐIÈU|ĐIU|DIEU|Điều|Điu)\s+(\d+)\s*[:.]\s*(.*)$", re.MULTILINE
     )
-    CLAUSE_PATTERN = re.compile(
-        r'^(?:[#*\-\s]*?)(\d+)\s*[\.\)]\s*(.*)$',
-        re.MULTILINE
-    )
-    POINT_PATTERN = re.compile(
-        r'^(?:[#*\-\s]*?)([a-zđA-ZĐ])\)\s*(.*)$',
-        re.MULTILINE
-    )
+    CLAUSE_PATTERN = re.compile(r"^(?:[#*\-\s]*?)(\d+)\s*[\.\)]\s*(.*)$", re.MULTILINE)
+    POINT_PATTERN = re.compile(r"^(?:[#*\-\s]*?)([a-zđA-ZĐ])\)\s*(.*)$", re.MULTILINE)
 
     # Reference detection pattern inside clauses
     CITATION_PATTERN = re.compile(
-        r'(?:căn cứ|theo quy định tại|quy định tại|áp dụng|chiểu theo|trừ trường hợp|ngoại trừ|khoản\s+\d+\s+)?(?:điều|điu)\s+(\d+)',
-        re.IGNORECASE
+        r"(?:căn cứ|theo quy định tại|quy định tại|áp dụng|chiểu theo|trừ trường hợp|ngoại trừ|khoản\s+\d+\s+)?(?:điều|điu)\s+(\d+)",
+        re.IGNORECASE,
     )
 
     def __init__(self):
@@ -78,13 +79,13 @@ class LegalChunker:
         text: str,
         law_id: str = "bo-luat-viet-nam",
         law_title: str = "Bộ luật Việt Nam",
-        source_file: str = "statute.pdf"
+        source_file: str = "statute.pdf",
     ) -> LegalDocument:
         """
         Parses full statutory text into a complete nested LegalDocument model.
         """
         lines = [line.strip() for line in text.splitlines()]
-        
+
         current_part_num = None
         current_part_title = None
         pending_part_title = False
@@ -95,8 +96,19 @@ class LegalChunker:
         current_section_title = None
         pending_section_title = False
 
-        articles: List[LegalArticle] = []
-        raw_article_blocks: List[Tuple[int, str, List[str], str, str, Optional[str], Optional[str], Optional[str], Optional[str]]] = []
+        raw_article_blocks: List[
+            Tuple[
+                int,
+                str,
+                List[str],
+                str,
+                str,
+                Optional[str],
+                Optional[str],
+                Optional[str],
+                Optional[str],
+            ]
+        ] = []
 
         curr_art_num = None
         curr_art_title = ""
@@ -156,24 +168,32 @@ class LegalChunker:
 
             # Catch pending titles when title appears on immediate next line after header
             if pending_part_title:
-                cleaned = re.sub(r'^[#*\s\-]+', '', line).strip()
-                if cleaned and not (self.CHAPTER_PATTERN.match(line) or self.ARTICLE_PATTERN.match(line)):
+                cleaned = re.sub(r"^[#*\s\-]+", "", line).strip()
+                if cleaned and not (
+                    self.CHAPTER_PATTERN.match(line) or self.ARTICLE_PATTERN.match(line)
+                ):
                     current_part_title = cleaned
                     pending_part_title = False
                     continue
                 pending_part_title = False
 
             if pending_chapter_title:
-                cleaned = re.sub(r'^[#*\s\-]+', '', line).strip()
-                if cleaned and not (self.SECTION_PATTERN.match(line) or self.ARTICLE_PATTERN.match(line) or self.CHAPTER_PATTERN.match(line)):
+                cleaned = re.sub(r"^[#*\s\-]+", "", line).strip()
+                if cleaned and not (
+                    self.SECTION_PATTERN.match(line)
+                    or self.ARTICLE_PATTERN.match(line)
+                    or self.CHAPTER_PATTERN.match(line)
+                ):
                     current_chapter_title = cleaned
                     pending_chapter_title = False
                     continue
                 pending_chapter_title = False
 
             if pending_section_title:
-                cleaned = re.sub(r'^[#*\s\-]+', '', line).strip()
-                if cleaned and not (self.ARTICLE_PATTERN.match(line) or self.SECTION_PATTERN.match(line)):
+                cleaned = re.sub(r"^[#*\s\-]+", "", line).strip()
+                if cleaned and not (
+                    self.ARTICLE_PATTERN.match(line) or self.SECTION_PATTERN.match(line)
+                ):
                     current_section_title = cleaned
                     pending_section_title = False
                     continue
@@ -183,17 +203,19 @@ class LegalChunker:
             art_match = self.ARTICLE_PATTERN.match(line)
             if art_match:
                 if curr_art_num is not None:
-                    raw_article_blocks.append((
-                        curr_art_num,
-                        curr_art_title,
-                        curr_art_lines,
-                        current_chapter_num,
-                        current_chapter_title,
-                        current_part_num,
-                        current_part_title,
-                        current_section_num,
-                        current_section_title
-                    ))
+                    raw_article_blocks.append(
+                        (
+                            curr_art_num,
+                            curr_art_title,
+                            curr_art_lines,
+                            current_chapter_num,
+                            current_chapter_title,
+                            current_part_num,
+                            current_part_title,
+                            current_section_num,
+                            current_section_title,
+                        )
+                    )
                 curr_art_num = int(art_match.group(1))
                 curr_art_title = art_match.group(2).strip()
                 curr_art_lines = []
@@ -204,17 +226,19 @@ class LegalChunker:
 
         # Flush final article
         if curr_art_num is not None:
-            raw_article_blocks.append((
-                curr_art_num,
-                curr_art_title,
-                curr_art_lines,
-                current_chapter_num,
-                current_chapter_title,
-                current_part_num,
-                current_part_title,
-                current_section_num,
-                current_section_title
-            ))
+            raw_article_blocks.append(
+                (
+                    curr_art_num,
+                    curr_art_title,
+                    curr_art_lines,
+                    current_chapter_num,
+                    current_chapter_title,
+                    current_part_num,
+                    current_part_title,
+                    current_section_num,
+                    current_section_title,
+                )
+            )
 
         # Build structured LegalArticle and LegalClause objects
         structured_articles: List[LegalArticle] = []
@@ -237,17 +261,21 @@ class LegalChunker:
             title=law_title,
             chapters=list(chapters_map.values()),
             total_articles=len(structured_articles),
-            source_file=source_file
+            source_file=source_file,
         )
         return document
 
-    def _build_article(self, art_num: int, art_title: str, lines: List[str], law_title: str) -> LegalArticle:
+    def _build_article(
+        self, art_num: int, art_title: str, lines: List[str], law_title: str
+    ) -> LegalArticle:
         """Parses individual lines belonging to an article into clauses and points."""
         # If art_title is empty or just punctuation, extract from first line if appropriate
         if not art_title and lines:
             first_line = lines[0].strip()
-            if not self.CLAUSE_PATTERN.match(first_line) and not self.POINT_PATTERN.match(first_line):
-                art_title = re.sub(r'^[#*\s\-.:]+', '', first_line).strip()
+            if not self.CLAUSE_PATTERN.match(first_line) and not self.POINT_PATTERN.match(
+                first_line
+            ):
+                art_title = re.sub(r"^[#*\s\-.:]+", "", first_line).strip()
                 lines = lines[1:]
 
         full_text = "\n".join(lines).strip()
@@ -262,22 +290,26 @@ class LegalChunker:
             if clause_match:
                 if curr_clause_num is not None:
                     clause_content = "\n".join(curr_clause_lines).strip()
-                    clauses.append(LegalClause(
-                        clause_num=curr_clause_num,
-                        content=clause_content,
-                        points=curr_points,
-                        canonical_citation=f"Khoản {curr_clause_num} Điều {art_num} {law_title}"
-                    ))
+                    clauses.append(
+                        LegalClause(
+                            clause_num=curr_clause_num,
+                            content=clause_content,
+                            points=curr_points,
+                            canonical_citation=f"Khoản {curr_clause_num} Điều {art_num} {law_title}",
+                        )
+                    )
                 elif curr_clause_lines:
                     # Preamble text preceding a numbered clause (e.g., Clause 1).
                     pre_content = "\n".join(curr_clause_lines).strip()
                     if pre_content:
-                        clauses.append(LegalClause(
-                            clause_num=1,
-                            content=pre_content,
-                            points=[],
-                            canonical_citation=f"Khoản 1 Điều {art_num} {law_title}"
-                        ))
+                        clauses.append(
+                            LegalClause(
+                                clause_num=1,
+                                content=pre_content,
+                                points=[],
+                                canonical_citation=f"Khoản 1 Điều {art_num} {law_title}",
+                            )
+                        )
                 curr_clause_num = int(clause_match.group(1))
                 curr_clause_lines = [clause_match.group(2).strip()]
                 curr_points = []
@@ -287,14 +319,10 @@ class LegalChunker:
             if point_match:
                 p_id = point_match.group(1).lower()
                 p_content = point_match.group(2).strip()
-                citation = (
-                    f"Điểm {p_id} Khoản {curr_clause_num or 1} Điều {art_num} {law_title}"
+                citation = f"Điểm {p_id} Khoản {curr_clause_num or 1} Điều {art_num} {law_title}"
+                curr_points.append(
+                    LegalPoint(point_id=p_id, content=p_content, canonical_citation=citation)
                 )
-                curr_points.append(LegalPoint(
-                    point_id=p_id,
-                    content=p_content,
-                    canonical_citation=citation
-                ))
                 curr_clause_lines.append(line)
                 continue
 
@@ -306,34 +334,35 @@ class LegalChunker:
         # Flush final clause
         if curr_clause_num is not None:
             clause_content = "\n".join(curr_clause_lines).strip()
-            clauses.append(LegalClause(
-                clause_num=curr_clause_num,
-                content=clause_content,
-                points=curr_points,
-                canonical_citation=f"Khoản {curr_clause_num} Điều {art_num} {law_title}"
-            ))
+            clauses.append(
+                LegalClause(
+                    clause_num=curr_clause_num,
+                    content=clause_content,
+                    points=curr_points,
+                    canonical_citation=f"Khoản {curr_clause_num} Điều {art_num} {law_title}",
+                )
+            )
         elif full_text:
             # Single-clause article without numbered "1."
-            clauses.append(LegalClause(
-                clause_num=1,
-                content=full_text,
-                points=curr_points,
-                canonical_citation=f"Điều {art_num} {law_title}"
-            ))
+            clauses.append(
+                LegalClause(
+                    clause_num=1,
+                    content=full_text,
+                    points=curr_points,
+                    canonical_citation=f"Điều {art_num} {law_title}",
+                )
+            )
 
         return LegalArticle(
             article_num=art_num,
             title=art_title,
             full_text=full_text,
             clauses=clauses,
-            canonical_citation=f"Điều {art_num} {law_title}"
+            canonical_citation=f"Điều {art_num} {law_title}",
         )
 
     def chunk_statute(
-        self,
-        text: str,
-        law_id: str = "bo-luat-dan-su-2015",
-        law_title: str = "Bộ luật Dân sự 2015"
+        self, text: str, law_id: str = "bo-luat-dan-su-2015", law_title: str = "Bộ luật Dân sự 2015"
     ) -> List[LegalChunk]:
         """
         Segments statute text into Qdrant-ready granular LegalChunk objects.
@@ -350,12 +379,14 @@ class LegalChunker:
                     for clause in article.clauses:
                         chunk_id = f"{law_code}_D{article.article_num:03d}_K{clause.clause_num:02d}"
                         canonical = clause.canonical_citation
-                        
+
                         context_header = (
                             f"[{law_title}] > [Chương {chapter.chapter_num}: {chapter.title}] > "
                             f"[Điều {article.article_num}: {article.title}]"
                         )
-                        enriched_text = f"{context_header}\nKhoản {clause.clause_num}: {clause.content}"
+                        enriched_text = (
+                            f"{context_header}\nKhoản {clause.clause_num}: {clause.content}"
+                        )
                         refs = self._extract_references(clause.content)
 
                         chunk = LegalChunk(
@@ -370,7 +401,7 @@ class LegalChunker:
                             content=clause.content,
                             canonical_citation=canonical,
                             context_enriched_text=enriched_text,
-                            cross_references=refs
+                            cross_references=refs,
                         )
                         chunks.append(chunk)
                 else:
@@ -397,7 +428,7 @@ class LegalChunker:
                         content=content,
                         canonical_citation=canonical,
                         context_enriched_text=enriched_text,
-                        cross_references=refs
+                        cross_references=refs,
                     )
                     chunks.append(chunk)
 
@@ -414,22 +445,18 @@ class LegalChunker:
         curr_lines: List[str] = []
 
         for line in lines:
-            if re.match(r'^(?:Điều|ĐIỀU|Clause|Article|ARTICLE)\s+(\d+)', line, re.IGNORECASE):
+            if re.match(r"^(?:Điều|ĐIỀU|Clause|Article|ARTICLE)\s+(\d+)", line, re.IGNORECASE):
                 if curr_lines:
-                    clauses.append({
-                        "clause_id": curr_clause_id,
-                        "text": "\n".join(curr_lines).strip()
-                    })
+                    clauses.append(
+                        {"clause_id": curr_clause_id, "text": "\n".join(curr_lines).strip()}
+                    )
                 curr_clause_id = line.split(".")[0].strip() if "." in line else line[:20].strip()
                 curr_lines = [line]
             else:
                 curr_lines.append(line)
 
         if curr_lines:
-            clauses.append({
-                "clause_id": curr_clause_id,
-                "text": "\n".join(curr_lines).strip()
-            })
+            clauses.append({"clause_id": curr_clause_id, "text": "\n".join(curr_lines).strip()})
 
         return clauses
 

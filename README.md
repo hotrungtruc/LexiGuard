@@ -90,38 +90,7 @@ Financial annexes and compensation schedules are audited deterministically:
 
 LexiGuard integrates four specialized subsystems into an asynchronous pipeline:
 
-```mermaid
-graph TD
-    subgraph Ingestion ["1. Document Ingestion & Vision AI"]
-        Doc[Scanned PDF / Image / DOCX] --> Layout[Docling Layout Segmentation]
-        Layout --> Table[TableFormer Matrix Extractor]
-        Table --> Chunks[Hierarchical Clause Synthesizer]
-    end
-
-    subgraph RAG ["2. Hybrid GraphRAG Engine"]
-        Chunks --> FastPath[Entity Fast-Path Extractor]
-        FastPath --> Qdrant[(Qdrant Hybrid Search: Dense + Sparse)]
-        FastPath --> Neo4j[(Neo4j Knowledge Graph)]
-        Qdrant --> RRF[Reciprocal Rank Fusion]
-        Neo4j --> Expansion[Batched UNWIND Cypher Expansion]
-        RRF --> Reranker[Cross-Encoder Reranker]
-        Expansion --> Reranker
-    end
-
-    subgraph Agents ["3. LangGraph Multi-Agent State Machine"]
-        Reranker --> Extractor[Node 1: ClauseExtractor]
-        Extractor --> Researcher[Node 2: LegalResearcher]
-        Researcher --> Auditor[Node 3: LoopholeAuditor]
-        Auditor --> Grader[Node 4: HallucinationGrader]
-        Grader -- "Unverified citation (retry < 2)" --> Researcher
-    end
-
-    subgraph Output ["4. Interfaces & Delivery"]
-        Grader -- "Verified (pass = 1.0)" --> AuditReport[Verified JSON Audit Report]
-        Grader --> API[FastAPI SSE Streaming Endpoint]
-        Grader --> UI[Chainlit Interactive Copilot]
-    end
-```
+![LexiGuard System Architecture](docs/assets/system_architecture.png)
 
 ### Subsystem Breakdown
 
@@ -170,12 +139,25 @@ ACTUAL Conflict      120 (TP)          5 (FN)
 
 Full benchmark details and reproduction logs are in [reports/VLEGAL_BENCHMARK_REPORT.md](reports/VLEGAL_BENCHMARK_REPORT.md).
 
-### 2. Multi-Year Statutory Retrieval Benchmark (ALQAC)
+### 2. Multi-Year Statutory Retrieval Benchmark (ALQAC 2022 - 2025)
 
-Evaluated on the Automated Legal Question Answering Competition datasets:
-- Robust multi-hop retrieval over Civil and Commercial statutes.
-- Evaluated across BM25 lexical search, dense embeddings, Reciprocal Rank Fusion, and Cross-Encoder reranking.
-- Comprehensive evaluation reports: [reports/ALQAC_MASTER_BENCHMARK_REPORT.md](reports/ALQAC_MASTER_BENCHMARK_REPORT.md).
+Evaluated across 4 official competition seasons (`ALQAC 2022`, `ALQAC 2023`, `ALQAC 2024`, `ALQAC 2025`) covering **2,049 test questions** and **9,238 statutory articles**:
+
+#### Bảng tổng hợp hiệu suất trung bình toàn diện (Aggregate Metrics):
+
+| Chỉ số đánh giá | BM25 Lexical (Macro-Avg) | BM25 Lexical (Micro-Avg) |
+| :--- | :---: | :---: |
+| **Hit Rate@5** | **94.62%** | **94.34%** |
+| **Hit Rate@10** | **96.49%** | **96.44%** |
+| **Hit Rate@20** | **97.94%** | **97.90%** |
+| **MRR@5** | **0.8780** | **0.8770** |
+| **NDCG@5** | **0.8922** | **0.8911** |
+| **Recall@5** | **94.27%** | **94.05%** |
+| **F2-Score@5 (ALQAC)** | **0.5263** | **0.5248** |
+
+- Robust multi-hop statutory retrieval over Civil and Commercial codes with Vietnamese legal compound n-gram tokenization (`tokenize_vietnamese_legal`).
+- Ultra-low latency: **10 - 25 ms/query** on CPU without GPU overhead.
+- Comprehensive evaluation report and per-season breakdown: [reports/ALQAC_MASTER_BENCHMARK_REPORT.md](reports/ALQAC_MASTER_BENCHMARK_REPORT.md).
 
 ### 3. Deterministic Evaluator Suite
 

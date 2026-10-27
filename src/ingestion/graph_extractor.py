@@ -12,7 +12,8 @@ Generates Neo4j Cypher statements with idempotent MERGE operations.
 """
 
 import re
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
+
 from loguru import logger
 
 from src.core.legal_norm import canonical_law_slug
@@ -21,7 +22,6 @@ from src.core.schemas import (
     GraphNode,
     GraphRelationType,
     LegalChunk,
-    LegalDocument,
     LegalGraphExtractionResult,
 )
 
@@ -34,40 +34,37 @@ class LegalGraphExtractor:
 
     # Citation Regex Patterns
     EXCEPTION_PATTERN = re.compile(
-        r'(?:trừ\s+trường\s+hợp|ngoại\s+trừ)\s+(?:quy\s+định\s+tại\s+)?(?:khoản\s+(\d+)\s+)?(?:điều|điu)\s+(\d+)',
-        re.IGNORECASE
+        r"(?:trừ\s+trường\s+hợp|ngoại\s+trừ)\s+(?:quy\s+định\s+tại\s+)?(?:khoản\s+(\d+)\s+)?(?:điều|điu)\s+(\d+)",
+        re.IGNORECASE,
     )
 
     DETAILED_CLAUSE_PATTERN = re.compile(
-        r'(?:quy\s+định\s+tại|theo\s+quy\s+định\s+tại|căn\s+cứ\s+vào|chiểu\s+theo)\s+khoản\s+(\d+)\s+(?:điều|điu)\s+(\d+)',
-        re.IGNORECASE
+        r"(?:quy\s+định\s+tại|theo\s+quy\s+định\s+tại|căn\s+cứ\s+vào|chiểu\s+theo)\s+khoản\s+(\d+)\s+(?:điều|điu)\s+(\d+)",
+        re.IGNORECASE,
     )
 
     GENERIC_ARTICLE_PATTERN = re.compile(
-        r'(?:quy\s+định\s+tại|theo\s+quy\s+định\s+tại|căn\s+cứ|áp\s+dụng)\s+(?:điều|điu)\s+(\d+)',
-        re.IGNORECASE
+        r"(?:quy\s+định\s+tại|theo\s+quy\s+định\s+tại|căn\s+cứ|áp\s+dụng)\s+(?:điều|điu)\s+(\d+)",
+        re.IGNORECASE,
     )
 
     CROSS_STATUTE_PATTERN = re.compile(
-        r'(?:quy\s+định\s+của|theo\s+quy\s+định\s+của|căn\s+cứ\s+(?:vào)?)\s+'
-        r'((?:Bộ\s+luật|Luật|Nghị\s+định|Thông\s+tư|Quy\s+chế|Quy\s+định|Pháp\s+lệnh|Hiến\s+pháp)'
-        r'(?:\s+(?!(?:và|hoặc|tại|theo)\s+(?:điều|khoản|điểm|\d+)\b)[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)+)',
-        re.IGNORECASE
+        r"(?:quy\s+định\s+của|theo\s+quy\s+định\s+của|căn\s+cứ\s+(?:vào)?)\s+"
+        r"((?:Bộ\s+luật|Luật|Nghị\s+định|Thông\s+tư|Quy\s+chế|Quy\s+định|Pháp\s+lệnh|Hiến\s+pháp)"
+        r"(?:\s+(?!(?:và|hoặc|tại|theo)\s+(?:điều|khoản|điểm|\d+)\b)[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)+)",
+        re.IGNORECASE,
     )
 
     GUIDANCE_PATTERN = re.compile(
-        r'(?:chính\s+phủ\s+quy\s+định\s+chi\s+tiết|hướng\s+dẫn\s+thi\s+hành)\s+(?:điều\s+này|(?:điều|điu)\s+(\d+))',
-        re.IGNORECASE
+        r"(?:chính\s+phủ\s+quy\s+định\s+chi\s+tiết|hướng\s+dẫn\s+thi\s+hành)\s+(?:điều\s+này|(?:điều|điu)\s+(\d+))",
+        re.IGNORECASE,
     )
 
     def __init__(self):
         logger.info("Initializing LegalGraphExtractor (Regex-First Statutory Triples)...")
 
     def extract_from_chunks(
-        self,
-        chunks: List[LegalChunk],
-        law_id: str,
-        law_title: str
+        self, chunks: List[LegalChunk], law_id: str, law_title: str
     ) -> LegalGraphExtractionResult:
         """
         Extracts all nodes and relationship triples from a list of granular LegalChunk objects.
@@ -84,7 +81,7 @@ class LegalGraphExtractor:
             node_type="Law",
             name=law_title,
             law_id=law_id,
-            properties={"title": law_title, "law_id": law_id}
+            properties={"title": law_title, "law_id": law_id},
         )
 
         seen_chapters: Set[str] = set()
@@ -100,17 +97,17 @@ class LegalGraphExtractor:
                     node_type="Chapter",
                     name=f"Chương {chunk.chapter_num}: {chunk.chapter_title}",
                     law_id=law_id,
-                    properties={
-                        "chapter_num": chunk.chapter_num,
-                        "title": chunk.chapter_title
-                    }
+                    properties={"chapter_num": chunk.chapter_num, "title": chunk.chapter_title},
                 )
                 self._add_edge(
-                    edges, edge_keys,
-                    source_id=law_node_id, source_type="Law",
+                    edges,
+                    edge_keys,
+                    source_id=law_node_id,
+                    source_type="Law",
                     relation=GraphRelationType.CONTAINS,
-                    target_id=chap_node_id, target_type="Chapter",
-                    citation_text=f"{law_title} chứa Chương {chunk.chapter_num}"
+                    target_id=chap_node_id,
+                    target_type="Chapter",
+                    citation_text=f"{law_title} chứa Chương {chunk.chapter_num}",
                 )
 
             # 3. Article Node & Containment
@@ -125,15 +122,18 @@ class LegalGraphExtractor:
                     properties={
                         "article_num": chunk.article_num,
                         "title": chunk.article_title,
-                        "citation": f"Điều {chunk.article_num} {law_title}"
-                    }
+                        "citation": f"Điều {chunk.article_num} {law_title}",
+                    },
                 )
                 self._add_edge(
-                    edges, edge_keys,
-                    source_id=chap_node_id, source_type="Chapter",
+                    edges,
+                    edge_keys,
+                    source_id=chap_node_id,
+                    source_type="Chapter",
                     relation=GraphRelationType.CONTAINS,
-                    target_id=art_node_id, target_type="Article",
-                    citation_text=f"Chương {chunk.chapter_num} chứa Điều {chunk.article_num}"
+                    target_id=art_node_id,
+                    target_type="Article",
+                    citation_text=f"Chương {chunk.chapter_num} chứa Điều {chunk.article_num}",
                 )
 
             # 4. Clause Node & Containment (if chunk is at clause level)
@@ -148,15 +148,18 @@ class LegalGraphExtractor:
                         properties={
                             "clause_num": chunk.clause_num,
                             "article_num": chunk.article_num,
-                            "content": chunk.content[:200]
-                        }
+                            "content": chunk.content[:200],
+                        },
                     )
                     self._add_edge(
-                        edges, edge_keys,
-                        source_id=art_node_id, source_type="Article",
+                        edges,
+                        edge_keys,
+                        source_id=art_node_id,
+                        source_type="Article",
                         relation=GraphRelationType.CONTAINS,
-                        target_id=clause_node_id, target_type="Clause",
-                        citation_text=f"Điều {chunk.article_num} chứa Khoản {chunk.clause_num}"
+                        target_id=clause_node_id,
+                        target_type="Clause",
+                        citation_text=f"Điều {chunk.article_num} chứa Khoản {chunk.clause_num}",
                     )
 
             # 5. Extract Semantic Citations from Text
@@ -167,14 +170,11 @@ class LegalGraphExtractor:
                 law_id=law_id,
                 edges=edges,
                 edge_keys=edge_keys,
-                nodes_dict=nodes_dict
+                nodes_dict=nodes_dict,
             )
 
         result = LegalGraphExtractionResult(
-            law_id=law_id,
-            law_title=law_title,
-            nodes=list(nodes_dict.values()),
-            edges=edges
+            law_id=law_id, law_title=law_title, nodes=list(nodes_dict.values()), edges=edges
         )
         logger.info(
             f"Extracted Graph for '{law_title}': {result.total_nodes} nodes, "
@@ -190,7 +190,7 @@ class LegalGraphExtractor:
         law_id: str,
         edges: List[GraphEdge],
         edge_keys: Set[str],
-        nodes_dict: Dict[str, GraphNode]
+        nodes_dict: Dict[str, GraphNode],
     ):
         """Discovers internal and cross-statute references within the chunk text."""
         text = chunk.content
@@ -203,12 +203,15 @@ class LegalGraphExtractor:
             target_art_id = f"{law_code}_D{target_art_num:03d}"
             self._ensure_placeholder_article(target_art_id, target_art_num, law_id, nodes_dict)
             self._add_edge(
-                edges, edge_keys,
-                source_id=source_art_id, source_type="Article",
+                edges,
+                edge_keys,
+                source_id=source_art_id,
+                source_type="Article",
                 relation=GraphRelationType.NGOAI_LE_CUA,
-                target_id=target_art_id, target_type="Article",
+                target_id=target_art_id,
+                target_type="Article",
                 citation_text=m.group(0),
-                confidence=0.98
+                confidence=0.98,
             )
 
         # 2. Specific Clause Cross-References (DAN_CHIEU_DIEU_KHOAN)
@@ -219,12 +222,15 @@ class LegalGraphExtractor:
             target_art_id = f"{law_code}_D{target_art_num:03d}"
             self._ensure_placeholder_article(target_art_id, target_art_num, law_id, nodes_dict)
             self._add_edge(
-                edges, edge_keys,
-                source_id=source_art_id, source_type="Article",
+                edges,
+                edge_keys,
+                source_id=source_art_id,
+                source_type="Article",
                 relation=GraphRelationType.DAN_CHIEU_DIEU_KHOAN,
-                target_id=target_clause_id, target_type="Clause",
+                target_id=target_clause_id,
+                target_type="Clause",
                 citation_text=m.group(0),
-                confidence=0.95
+                confidence=0.95,
             )
 
         # 3. Generic Article References (THAM_CHIEU_DEN)
@@ -235,19 +241,24 @@ class LegalGraphExtractor:
             target_art_id = f"{law_code}_D{target_art_num:03d}"
             self._ensure_placeholder_article(target_art_id, target_art_num, law_id, nodes_dict)
             self._add_edge(
-                edges, edge_keys,
-                source_id=source_art_id, source_type="Article",
+                edges,
+                edge_keys,
+                source_id=source_art_id,
+                source_type="Article",
                 relation=GraphRelationType.THAM_CHIEU_DEN,
-                target_id=target_art_id, target_type="Article",
+                target_id=target_art_id,
+                target_type="Article",
                 citation_text=m.group(0),
-                confidence=0.92
+                confidence=0.92,
             )
 
         # 4. Cross-Statute References
         for m in self.CROSS_STATUTE_PATTERN.finditer(text):
             statute_name = m.group(1).strip()
-            statute_name = re.sub(r'[,;.\)]+$', '', statute_name).strip()
-            statute_name = re.sub(r'\s+(?:và|hoặc)\s+(?:điều|khoản).*$', '', statute_name, flags=re.IGNORECASE).strip()
+            statute_name = re.sub(r"[,;.\)]+$", "", statute_name).strip()
+            statute_name = re.sub(
+                r"\s+(?:và|hoặc)\s+(?:điều|khoản).*$", "", statute_name, flags=re.IGNORECASE
+            ).strip()
             statute_code = canonical_law_slug(statute_name)
             statute_id = f"LAW_{statute_code}"
             if statute_id not in nodes_dict:
@@ -256,18 +267,23 @@ class LegalGraphExtractor:
                     node_type="Law",
                     name=statute_name,
                     law_id=statute_code.lower(),
-                    properties={"title": statute_name, "canonical_code": statute_code}
+                    properties={"title": statute_name, "canonical_code": statute_code},
                 )
             self._add_edge(
-                edges, edge_keys,
-                source_id=source_art_id, source_type="Article",
+                edges,
+                edge_keys,
+                source_id=source_art_id,
+                source_type="Article",
                 relation=GraphRelationType.THAM_CHIEU_DEN,
-                target_id=statute_id, target_type="Law",
+                target_id=statute_id,
+                target_type="Law",
                 citation_text=m.group(0),
-                confidence=0.90
+                confidence=0.90,
             )
 
-    def extract_statute_relations(self, text: str) -> List[Tuple[Dict[str, Any], str, Dict[str, Any]]]:
+    def extract_statute_relations(
+        self, text: str
+    ) -> List[Tuple[Dict[str, Any], str, Dict[str, Any]]]:
         """
         Backward-compatible helper returning raw (Subject, Relation, Object) tuples.
         """
@@ -282,7 +298,7 @@ class LegalGraphExtractor:
                 article_title="Điều khoản",
                 content=text,
                 canonical_citation="Điều 1",
-                context_enriched_text=text
+                context_enriched_text=text,
             )
         ]
         result = self.extract_from_chunks(chunks, law_id="temp_statute", law_title="Văn bản tạm")
@@ -302,11 +318,21 @@ class LegalGraphExtractor:
         statements: List[str] = []
 
         # Create unique constraint indexes
-        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (a:Article) REQUIRE a.node_id IS UNIQUE;")
-        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (c:Clause) REQUIRE c.node_id IS UNIQUE;")
-        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (ch:Chapter) REQUIRE ch.node_id IS UNIQUE;")
-        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (l:Law) REQUIRE l.node_id IS UNIQUE;")
-        statements.append("CREATE CONSTRAINT IF NOT EXISTS FOR (p:Precedent) REQUIRE p.node_id IS UNIQUE;")
+        statements.append(
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (a:Article) REQUIRE a.node_id IS UNIQUE;"
+        )
+        statements.append(
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (c:Clause) REQUIRE c.node_id IS UNIQUE;"
+        )
+        statements.append(
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (ch:Chapter) REQUIRE ch.node_id IS UNIQUE;"
+        )
+        statements.append(
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (l:Law) REQUIRE l.node_id IS UNIQUE;"
+        )
+        statements.append(
+            "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Precedent) REQUIRE p.node_id IS UNIQUE;"
+        )
 
         # Merge Nodes via robust model serializer
         for node in result.nodes:
@@ -326,11 +352,7 @@ class LegalGraphExtractor:
         return statements
 
     def _ensure_placeholder_article(
-        self,
-        art_id: str,
-        art_num: int,
-        law_id: str,
-        nodes_dict: Dict[str, GraphNode]
+        self, art_id: str, art_num: int, law_id: str, nodes_dict: Dict[str, GraphNode]
     ):
         """Creates target article node placeholder if not already registered."""
         if art_id not in nodes_dict:
@@ -339,7 +361,7 @@ class LegalGraphExtractor:
                 node_type="Article",
                 name=f"Điều {art_num}",
                 law_id=law_id,
-                properties={"article_num": art_num}
+                properties={"article_num": art_num},
             )
 
     def _add_edge(
@@ -352,7 +374,7 @@ class LegalGraphExtractor:
         target_id: str,
         target_type: str,
         citation_text: str = "",
-        confidence: float = 1.0
+        confidence: float = 1.0,
     ):
         """Adds unique relationship edge to avoid duplicate links."""
         key = f"{source_id}:{relation.value}:{target_id}"
@@ -366,7 +388,7 @@ class LegalGraphExtractor:
                 target_id=target_id,
                 target_type=target_type,
                 citation_text=citation_text,
-                confidence=confidence
+                confidence=confidence,
             )
             edges.append(edge)
 

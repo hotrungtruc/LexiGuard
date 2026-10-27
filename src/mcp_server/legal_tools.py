@@ -12,10 +12,10 @@ Exposes 3 core Model Context Protocol (MCP) tools for autonomous legal agents:
 
 import asyncio
 import json
-import math
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 from loguru import logger
 
 # FastMCP / MCPServer modern compatibility
@@ -41,6 +41,7 @@ mcp_server = FastMCP(
 # 1. SELF-QUERYING METADATA ENGINE
 # ============================================================================
 
+
 class SelfQueryEngine:
     """
     Analyzes natural language legal queries to automatically infer structured
@@ -49,19 +50,53 @@ class SelfQueryEngine:
     """
 
     LAW_MAP = [
-        (re.compile(r'\b(?:bộ\s*luật\s*dân\s*sự|dân\s*sự|blds)(?:\s*2015)?\b', re.IGNORECASE), "bo-luat-dan-su-2015"),
-        (re.compile(r'\b(?:bộ\s*luật\s*lao\s*động|lao\s*động|bllđ|blld)(?:\s*2019)?\b', re.IGNORECASE), "bo-luat-lao-dong-2019"),
-        (re.compile(r'\b(?:luật\s*thương\s*mại|thương\s*mại|ltm)(?:\s*2005)?\b', re.IGNORECASE), "luat-thuong-mai-2005"),
-        (re.compile(r'\b(?:luật\s*trọng\s*tài\s*thương\s*mại|trọng\s*tài\s*thương\s*mại|ltttm)(?:\s*2010)?\b', re.IGNORECASE), "luat-trong-tai-thuong-mai-2010"),
-        (re.compile(r'\b(?:luật\s*doanh\s*nghiệp|doanh\s*nghiệp|ldn)(?:\s*2020)?\b', re.IGNORECASE), "luat-doanh-nghiep-2020"),
-        (re.compile(r'\b(?:luật\s*đất\s*đai|đất\s*đai)(?:\s*2024|\s*2013)?\b', re.IGNORECASE), "luat-dat-dai-2024"),
-        (re.compile(r'\b(?:luật\s*nhà\s*ở|nhà\s*ở)(?:\s*2023)?\b', re.IGNORECASE), "luat-nha-o-2023"),
-        (re.compile(r'\b(?:luật\s*xây\s*dựng|xây\s*dựng)(?:\s*2020|\s*2014)?\b', re.IGNORECASE), "luat-xay-dung-2020"),
-        (re.compile(r'\b(?:luật\s*đấu\s*thầu|đấu\s*thầu)(?:\s*2023)?\b', re.IGNORECASE), "luat-dau-thau-2023"),
+        (
+            re.compile(r"\b(?:bộ\s*luật\s*dân\s*sự|dân\s*sự|blds)(?:\s*2015)?\b", re.IGNORECASE),
+            "bo-luat-dan-su-2015",
+        ),
+        (
+            re.compile(
+                r"\b(?:bộ\s*luật\s*lao\s*động|lao\s*động|bllđ|blld)(?:\s*2019)?\b", re.IGNORECASE
+            ),
+            "bo-luat-lao-dong-2019",
+        ),
+        (
+            re.compile(r"\b(?:luật\s*thương\s*mại|thương\s*mại|ltm)(?:\s*2005)?\b", re.IGNORECASE),
+            "luat-thuong-mai-2005",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s*trọng\s*tài\s*thương\s*mại|trọng\s*tài\s*thương\s*mại|ltttm)(?:\s*2010)?\b",
+                re.IGNORECASE,
+            ),
+            "luat-trong-tai-thuong-mai-2010",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s*doanh\s*nghiệp|doanh\s*nghiệp|ldn)(?:\s*2020)?\b", re.IGNORECASE
+            ),
+            "luat-doanh-nghiep-2020",
+        ),
+        (
+            re.compile(r"\b(?:luật\s*đất\s*đai|đất\s*đai)(?:\s*2024|\s*2013)?\b", re.IGNORECASE),
+            "luat-dat-dai-2024",
+        ),
+        (
+            re.compile(r"\b(?:luật\s*nhà\s*ở|nhà\s*ở)(?:\s*2023)?\b", re.IGNORECASE),
+            "luat-nha-o-2023",
+        ),
+        (
+            re.compile(r"\b(?:luật\s*xây\s*dựng|xây\s*dựng)(?:\s*2020|\s*2014)?\b", re.IGNORECASE),
+            "luat-xay-dung-2020",
+        ),
+        (
+            re.compile(r"\b(?:luật\s*đấu\s*thầu|đấu\s*thầu)(?:\s*2023)?\b", re.IGNORECASE),
+            "luat-dau-thau-2023",
+        ),
     ]
 
-    ARTICLE_REGEX = re.compile(r'(?:điều|đieu|điu|đ\.?)\s*(\d+)', re.IGNORECASE)
-    CLAUSE_REGEX = re.compile(r'(?:khoản|khoan|k\.?)\s*(\d+)', re.IGNORECASE)
+    ARTICLE_REGEX = re.compile(r"(?:điều|đieu|điu|đ\.?)\s*(\d+)", re.IGNORECASE)
+    CLAUSE_REGEX = re.compile(r"(?:khoản|khoan|k\.?)\s*(\d+)", re.IGNORECASE)
 
     @classmethod
     def extract_filters(
@@ -126,7 +161,9 @@ def _get_offline_chunks() -> List[Dict[str, Any]]:
         try:
             with open(combined_file, "r", encoding="utf-8") as f:
                 _OFFLINE_CHUNKS_CACHE = json.load(f)
-                logger.info(f"Loaded {len(_OFFLINE_CHUNKS_CACHE)} offline legal chunks from {combined_file}")
+                logger.info(
+                    f"Loaded {len(_OFFLINE_CHUNKS_CACHE)} offline legal chunks from {combined_file}"
+                )
                 return _OFFLINE_CHUNKS_CACHE
         except Exception as e:
             logger.warning(f"Failed to load {combined_file}: {e}")
@@ -143,6 +180,7 @@ def _get_bm25_retriever():
     global _BM25_RETRIEVER_INSTANCE
     if _BM25_RETRIEVER_INSTANCE is None:
         from src.retrieval.bm25_retriever import BM25LexicalRetriever
+
         chunks = _get_offline_chunks()
         _BM25_RETRIEVER_INSTANCE = BM25LexicalRetriever(custom_chunks=chunks)
     return _BM25_RETRIEVER_INSTANCE
@@ -173,6 +211,7 @@ def _get_offline_graphs() -> Dict[str, Dict[str, Any]]:
 # 3. TABLE ARITHMETIC AUDITING ENGINE
 # ============================================================================
 
+
 class TableArithmeticAuditor:
     """
     Parses and verifies arithmetic computations in contractual & administrative tables:
@@ -183,33 +222,26 @@ class TableArithmeticAuditor:
     """
 
     TOTAL_ROW_PATTERNS = re.compile(
-        r'\b(?:tổng\s*cộng|tổng\s*số|tổng|cộng|total|grand\s*total|sum)\b',
-        re.IGNORECASE
+        r"\b(?:tổng\s*cộng|tổng\s*số|tổng|cộng|total|grand\s*total|sum)\b", re.IGNORECASE
     )
 
     QTY_HEADER_PATTERNS = re.compile(
-        r'\b(?:số\s*lượng|so\s*luong|quantity|qty|khối\s*lượng|sl)\b',
-        re.IGNORECASE
+        r"\b(?:số\s*lượng|so\s*luong|quantity|qty|khối\s*lượng|sl)\b", re.IGNORECASE
     )
 
     PRICE_HEADER_PATTERNS = re.compile(
-        r'\b(?:đơn\s*giá|don\s*gia|unit\s*price|price|giá|gia)\b',
-        re.IGNORECASE
+        r"\b(?:đơn\s*giá|don\s*gia|unit\s*price|price|giá|gia)\b", re.IGNORECASE
     )
 
     TOTAL_HEADER_PATTERNS = re.compile(
-        r'\b(?:thành\s*tiền|thanh\s*tien|tổng\s*tiền|tong\s*tien|subtotal|total|giá\s*trị|gia\s*tri)\b',
-        re.IGNORECASE
+        r"\b(?:thành\s*tiền|thanh\s*tien|tổng\s*tiền|tong\s*tien|subtotal|total|giá\s*trị|gia\s*tri)\b",
+        re.IGNORECASE,
     )
 
-    TAX_HEADER_PATTERNS = re.compile(
-        r'\b(?:thuế|thue|vat|gtgt|tax)\b',
-        re.IGNORECASE
-    )
+    TAX_HEADER_PATTERNS = re.compile(r"\b(?:thuế|thue|vat|gtgt|tax)\b", re.IGNORECASE)
 
     PERCENT_HEADER_PATTERNS = re.compile(
-        r'\b(?:tỷ\s*lệ|ty\s*le|phần\s*trăm|phan\s*tram|percentage|%)\b',
-        re.IGNORECASE
+        r"\b(?:tỷ\s*lệ|ty\s*le|phần\s*trăm|phan\s*tram|percentage|%)\b", re.IGNORECASE
     )
 
     @classmethod
@@ -228,7 +260,9 @@ class TableArithmeticAuditor:
             return None
 
         # Remove currency units & extra words
-        s = re.sub(r'(?:vnđ|vnd|đồng|đ|usd|\$|triệu|tỷ|%|\bnghìn\b)', '', s, flags=re.IGNORECASE).strip()
+        s = re.sub(
+            r"(?:vnđ|vnd|đồng|đ|usd|\$|triệu|tỷ|%|\bnghìn\b)", "", s, flags=re.IGNORECASE
+        ).strip()
 
         # Handle parentheses for negative numbers e.g. (5000)
         is_negative = False
@@ -254,11 +288,7 @@ class TableArithmeticAuditor:
                 s = s.replace(".", "")
         elif "," in s and "." not in s:
             parts = s.split(",")
-            if (
-                len(parts) > 1
-                and all(len(p) == 3 for p in parts[1:])
-                and not parts[0].lstrip("0")
-            ):
+            if len(parts) > 1 and all(len(p) == 3 for p in parts[1:]) and not parts[0].lstrip("0"):
                 s = s.replace(",", ".")
             elif len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
                 s = s.replace(",", "")
@@ -286,7 +316,7 @@ class TableArithmeticAuditor:
         for l in table_lines[1:]:
             # Skip separator line (|---|---|)
             cells = [c.strip() for c in l.strip("|").split("|")]
-            if all(re.match(r'^:?-+:?$', c) for c in cells):
+            if all(re.match(r"^:?-+:?$", c) for c in cells):
                 continue
             rows.append(cells)
 
@@ -378,20 +408,28 @@ class TableArithmeticAuditor:
                     expected_total = qty * price
                     delta = abs(reported_total - expected_total)
                     if delta > tolerance:
-                        pct_diff = round((delta / abs(expected_total)) * 100, 2) if expected_total != 0 else 100.0
+                        pct_diff = (
+                            round((delta / abs(expected_total)) * 100, 2)
+                            if expected_total != 0
+                            else 100.0
+                        )
                         desc = str(r[0]) if r else f"Row {r_idx}"
-                        discrepancies.append({
-                            "type": "ROW_PRODUCT_MISMATCH",
-                            "row_index": r_idx,
-                            "item_description": desc,
-                            "formula": f"Quantity ({qty}) * Unit Price ({price:,.0f}) = {expected_total:,.0f}",
-                            "reported_value": reported_total,
-                            "expected_value": expected_total,
-                            "delta": delta,
-                            "discrepancy_percentage": pct_diff,
-                            "severity": "CRITICAL" if (delta > 1000000 or pct_diff > 5) else "HIGH",
-                            "legal_risk": f"Discrepancy of {delta:,.0f} VND creates billing discrepancy violating contractual price agreement.",
-                        })
+                        discrepancies.append(
+                            {
+                                "type": "ROW_PRODUCT_MISMATCH",
+                                "row_index": r_idx,
+                                "item_description": desc,
+                                "formula": f"Quantity ({qty}) * Unit Price ({price:,.0f}) = {expected_total:,.0f}",
+                                "reported_value": reported_total,
+                                "expected_value": expected_total,
+                                "delta": delta,
+                                "discrepancy_percentage": pct_diff,
+                                "severity": "CRITICAL"
+                                if (delta > 1000000 or pct_diff > 5)
+                                else "HIGH",
+                                "legal_risk": f"Discrepancy of {delta:,.0f} VND creates billing discrepancy violating contractual price agreement.",
+                            }
+                        )
 
         # Check 2: Vertical Column Summation (Sum of Items == Total Row)
         if total_rows and total_idx is not None:
@@ -410,19 +448,27 @@ class TableArithmeticAuditor:
                     if reported_sum is not None and valid_items > 0:
                         delta = abs(reported_sum - sum_calculated)
                         if delta > tolerance:
-                            pct_diff = round((delta / sum_calculated) * 100, 2) if sum_calculated != 0 else 100.0
-                            discrepancies.append({
-                                "type": "COLUMN_SUM_MISMATCH",
-                                "row_index": t_idx,
-                                "column_name": headers[total_idx],
-                                "formula": f"Sum of {valid_items} items ({sum_calculated:,.0f}) vs Reported Total ({reported_sum:,.0f})",
-                                "reported_value": reported_sum,
-                                "expected_value": sum_calculated,
-                                "delta": delta,
-                                "discrepancy_percentage": pct_diff,
-                                "severity": "CRITICAL" if (delta > 5000000 or pct_diff > 5) else "HIGH",
-                                "legal_risk": f"Reported total differs by {delta:,.0f} VND from sum of constituent items; high audit risk.",
-                            })
+                            pct_diff = (
+                                round((delta / sum_calculated) * 100, 2)
+                                if sum_calculated != 0
+                                else 100.0
+                            )
+                            discrepancies.append(
+                                {
+                                    "type": "COLUMN_SUM_MISMATCH",
+                                    "row_index": t_idx,
+                                    "column_name": headers[total_idx],
+                                    "formula": f"Sum of {valid_items} items ({sum_calculated:,.0f}) vs Reported Total ({reported_sum:,.0f})",
+                                    "reported_value": reported_sum,
+                                    "expected_value": sum_calculated,
+                                    "delta": delta,
+                                    "discrepancy_percentage": pct_diff,
+                                    "severity": "CRITICAL"
+                                    if (delta > 5000000 or pct_diff > 5)
+                                    else "HIGH",
+                                    "legal_risk": f"Reported total differs by {delta:,.0f} VND from sum of constituent items; high audit risk.",
+                                }
+                            )
 
         # Check 3: Percentage Distribution Sum
         if percent_idx is not None and item_rows:
@@ -435,19 +481,25 @@ class TableArithmeticAuditor:
                         pct_sum += p_val
                         counted += 1
             if counted > 1 and not (99.9 <= pct_sum <= 100.1):
-                discrepancies.append({
-                    "type": "PERCENTAGE_SUM_MISMATCH",
-                    "column_name": headers[percent_idx],
-                    "reported_sum": pct_sum,
-                    "expected_sum": 100.0,
-                    "delta": abs(pct_sum - 100.0),
-                    "severity": "MEDIUM",
-                    "legal_risk": f"Sum of contractual shares equals {pct_sum:.2f}%, failing to allocate 100% of obligation.",
-                })
+                discrepancies.append(
+                    {
+                        "type": "PERCENTAGE_SUM_MISMATCH",
+                        "column_name": headers[percent_idx],
+                        "reported_sum": pct_sum,
+                        "expected_sum": 100.0,
+                        "delta": abs(pct_sum - 100.0),
+                        "severity": "MEDIUM",
+                        "legal_risk": f"Sum of contractual shares equals {pct_sum:.2f}%, failing to allocate 100% of obligation.",
+                    }
+                )
 
         is_valid = len(discrepancies) == 0
-        summary_msg = "All table calculations verified successfully." if is_valid else (
-            f"Arithmetic audit FAILED: Found {len(discrepancies)} calculation discrepancy(ies)."
+        summary_msg = (
+            "All table calculations verified successfully."
+            if is_valid
+            else (
+                f"Arithmetic audit FAILED: Found {len(discrepancies)} calculation discrepancy(ies)."
+            )
         )
 
         return {
@@ -463,6 +515,7 @@ class TableArithmeticAuditor:
 # ============================================================================
 # 4. MCP TOOL DEFINITIONS
 # ============================================================================
+
 
 @mcp_server.tool()
 async def search_legal_provisions(
@@ -704,7 +757,7 @@ async def get_article_graph_context(
             canonical_node_id = extracted[0].article_node_id or extracted[0].canonical_node_id
         else:
             # Fallback simple pattern
-            m = re.search(r'(?:điều|dieu)\s*(\d+)', canonical_node_id, re.IGNORECASE)
+            m = re.search(r"(?:điều|dieu)\s*(\d+)", canonical_node_id, re.IGNORECASE)
             if m:
                 art_num = int(m.group(1))
                 law_code = extractor.detect_law_code(canonical_node_id) or "VN_BLDS_2015"
@@ -718,7 +771,9 @@ async def get_article_graph_context(
 
             driver = async_connection_manager.get_neo4j_driver()
             # Fast ping connectivity check with 1.5s timeout before initiating managed transaction
-            await asyncio.wait_for(driver.verify_connectivity(), timeout=min(1.5, settings.NEO4J_CONNECTION_TIMEOUT))
+            await asyncio.wait_for(
+                driver.verify_connectivity(), timeout=min(1.5, settings.NEO4J_CONNECTION_TIMEOUT)
+            )
 
             neo4j_store = Neo4jStore(driver=driver)
 
@@ -737,12 +792,14 @@ async def get_article_graph_context(
 
             for ref in referenced_list:
                 for rel in ref.get("relationship_types", []):
-                    graph_triples.append({
-                        "subject": canonical_node_id,
-                        "predicate": rel,
-                        "object": ref.get("node_id"),
-                        "citation": ref.get("citation", ""),
-                    })
+                    graph_triples.append(
+                        {
+                            "subject": canonical_node_id,
+                            "predicate": rel,
+                            "object": ref.get("node_id"),
+                            "citation": ref.get("citation", ""),
+                        }
+                    )
                 for prec in ref.get("precedents", []):
                     if prec and prec not in all_precedents:
                         all_precedents.append(prec)
@@ -758,7 +815,9 @@ async def get_article_graph_context(
             }
         except Exception as exc:
             circuit_breaker.record_failure("neo4j", exc)
-            logger.warning(f"Live Neo4j graph unavailable ({exc}). Using offline graph dataset fallback.")
+            logger.warning(
+                f"Live Neo4j graph unavailable ({exc}). Using offline graph dataset fallback."
+            )
     else:
         logger.debug("Neo4j circuit breaker OPEN. Directly using offline graph dataset fallback.")
 
@@ -767,7 +826,6 @@ async def get_article_graph_context(
         offline_graphs = _get_offline_graphs()
         matched_node = None
         matched_law_id = None
-        matched_edges = []
 
         for law_id, gdata in offline_graphs.items():
             for n in gdata.get("nodes", []):
@@ -795,7 +853,10 @@ async def get_article_graph_context(
         relevant_edges = []
         if matched_law_id and matched_law_id in offline_graphs:
             for edge in offline_graphs[matched_law_id].get("edges", []):
-                if edge.get("source_id") == canonical_node_id or edge.get("target_id") == canonical_node_id:
+                if (
+                    edge.get("source_id") == canonical_node_id
+                    or edge.get("target_id") == canonical_node_id
+                ):
                     relevant_edges.append(edge)
 
         referenced_articles = []
@@ -803,18 +864,22 @@ async def get_article_graph_context(
         for e in relevant_edges:
             other_id = e["target_id"] if e["source_id"] == canonical_node_id else e["source_id"]
             rel_type = e.get("relation_type", "REFERENCES")
-            graph_triples.append({
-                "subject": e.get("source_id"),
-                "predicate": rel_type,
-                "object": e.get("target_id"),
-                "citation": e.get("citation", ""),
-            })
-            referenced_articles.append({
-                "node_id": other_id,
-                "relationship_types": [rel_type],
-                "citation": e.get("citation", ""),
-                "hop_distance": 1,
-            })
+            graph_triples.append(
+                {
+                    "subject": e.get("source_id"),
+                    "predicate": rel_type,
+                    "object": e.get("target_id"),
+                    "citation": e.get("citation", ""),
+                }
+            )
+            referenced_articles.append(
+                {
+                    "node_id": other_id,
+                    "relationship_types": [rel_type],
+                    "citation": e.get("citation", ""),
+                    "hop_distance": 1,
+                }
+            )
 
         return {
             "status": "success",

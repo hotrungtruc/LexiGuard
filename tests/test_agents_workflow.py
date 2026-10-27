@@ -11,28 +11,27 @@ Tests:
 7. End-to-end StateGraph compiled execution
 """
 
-import pytest
+from src.agents.nodes import (
+    audit_vulnerabilities_node,
+    decide_post_grading_branch,
+    extract_clauses_node,
+    get_fast_cpu_llm,
+    get_reasoning_cpu_llm,
+    grade_hallucination_node,
+    retrieve_statutes_node,
+)
 from src.agents.state import (
     AgentState,
     AuditDraftReport,
     AuditFindingItem,
     HallucinationGrade,
 )
-from src.agents.nodes import (
-    get_fast_cpu_llm,
-    get_reasoning_cpu_llm,
-    extract_clauses_node,
-    retrieve_statutes_node,
-    audit_vulnerabilities_node,
-    grade_hallucination_node,
-    decide_post_grading_branch,
-)
 from src.agents.workflow import create_lexiguard_graph, lexiguard_agent
-
 
 # ============================================================================
 # 1. TEST DUAL-LLM INITIALIZATION
 # ============================================================================
+
 
 def test_dual_llm_initialization():
     fast_llm = get_fast_cpu_llm()
@@ -49,21 +48,8 @@ def test_dual_llm_initialization():
 # 2. TEST NODE 1: ClauseExtractor
 # ============================================================================
 
+
 def test_extract_clauses_node_parsing():
-    sample_contract = """
-# LEGAL SERVICES CONTRACT
-
-Điều 1. Phạm vi công việc
-Bên B cung cấp dịch vụ rà soát hợp đồng cho Bên A.
-
-Điều 2. Biểu phí và thanh toán
-| STT | Dịch vụ | Số lượng | Đơn giá | Thành tiền |
-| 1 | Rà soát hợp đồng | 2 | 10.000.000 | 25.000.000 |
-| Tổng cộng | | | | 25.000.000 |
-
-Điều 3. Đơn phương chấm dứt hợp đồng
-Bên A có quyền đơn phương chấm dứt hợp đồng bất kỳ lúc nào mà không cần báo trước và không phải bồi thường.
-    """
     state: AgentState = {
         "raw_document_path": "",
         "parsed_clauses": [
@@ -104,6 +90,7 @@ Bên A có quyền đơn phương chấm dứt hợp đồng bất kỳ lúc nà
 # ============================================================================
 # 3. TEST NODE 2: LegalResearcher (FastMCP Tools & Arithmetic Auditing)
 # ============================================================================
+
 
 def test_retrieve_statutes_node_execution():
     table_md = """
@@ -151,6 +138,7 @@ def test_retrieve_statutes_node_execution():
 # 4. TEST NODE 3: LoopholeAuditor (Reasoning & Redline Generation)
 # ============================================================================
 
+
 def test_audit_vulnerabilities_node_generation():
     state: AgentState = {
         "raw_document_path": "contract.pdf",
@@ -190,6 +178,7 @@ def test_audit_vulnerabilities_node_generation():
 # ============================================================================
 # 5. TEST NODE 4 & CONDITIONAL ROUTING: HallucinationGrader
 # ============================================================================
+
 
 def test_hallucination_grader_pass():
     """Grounded citations pass with accuracy score 1.0."""
@@ -328,10 +317,10 @@ def test_hallucination_grader_rejects_cross_statute_mismatch():
     assert len(out["verified_findings"]) == 0
 
 
-
 # ============================================================================
 # 6. TEST FULL STATEGRAPH COMPILATION & EXECUTION
 # ============================================================================
+
 
 def test_full_stategraph_compilation():
     graph = create_lexiguard_graph()

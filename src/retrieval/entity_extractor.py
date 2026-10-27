@@ -13,8 +13,8 @@ High-precision, deterministic regex extractor for Vietnamese statutory citations
 import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
-from loguru import logger
 
+from loguru import logger
 
 from src.core.legal_norm import canonical_law_slug
 
@@ -22,6 +22,7 @@ from src.core.legal_norm import canonical_law_slug
 @dataclass
 class ExtractedLegalCitation:
     """Represents a structured statutory citation extracted from text."""
+
     raw_text: str
     article_num: int
     clause_num: Optional[int] = None
@@ -40,38 +41,76 @@ class LegalEntityExtractor:
 
     # Common law detection shortcuts
     LAW_PATTERNS = [
-        (re.compile(r'\b(?:bộ\s+luật\s+dân\s+sự|blds)(?:\s*2015)?\b', re.IGNORECASE), "VN_BLDS_2015"),
-        (re.compile(r'\b(?:bộ\s+luật\s+lao\s+động|blld)(?:\s*2019)?\b', re.IGNORECASE), "VN_BLLD_2019"),
-        (re.compile(r'\b(?:luật\s+thương\s+mại|ltm)(?:\s*2005)?\b', re.IGNORECASE), "VN_LTM_2005"),
-        (re.compile(r'\b(?:luật\s+doanh\s+nghiệp|ldn)(?:\s*2020)?\b', re.IGNORECASE), "VN_LDN_2020"),
-        (re.compile(r'\b(?:luật\s+trọng\s+tài\s+thương\s+mại|ltttm)(?:\s*2010)?\b', re.IGNORECASE), "VN_LTTTM_2010"),
-        (re.compile(r'\b(?:luật\s+đất\s+đai|ldd)(?:\s*2024|\s*2013)?\b', re.IGNORECASE), "VN_LDD_2024"),
-        (re.compile(r'\b(?:luật\s+nhà\s+ở|lno)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LNO_2023"),
-        (re.compile(r'\b(?:luật\s+kinh\s+doanh\s+bất\s+động\s+sản|lkdbds)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LKDBDS_2023"),
-        (re.compile(r'\b(?:luật\s+sở\s+hữu\s+trí\s+tuệ|lshtt)(?:\s*2022|\s*2005)?\b', re.IGNORECASE), "VN_LSHTT_2022"),
-        (re.compile(r'\b(?:luật\s+an\s+ninh\s+mạng|lanm)(?:\s*2018)?\b', re.IGNORECASE), "VN_LANM_2018"),
-        (re.compile(r'\b(?:luật\s+an\s+toàn\s+thông\s+tin\s+mạng|latttm)(?:\s*2015)?\b', re.IGNORECASE), "VN_LATTTM_2015"),
+        (
+            re.compile(r"\b(?:bộ\s+luật\s+dân\s+sự|blds)(?:\s*2015)?\b", re.IGNORECASE),
+            "VN_BLDS_2015",
+        ),
+        (
+            re.compile(r"\b(?:bộ\s+luật\s+lao\s+động|blld)(?:\s*2019)?\b", re.IGNORECASE),
+            "VN_BLLD_2019",
+        ),
+        (re.compile(r"\b(?:luật\s+thương\s+mại|ltm)(?:\s*2005)?\b", re.IGNORECASE), "VN_LTM_2005"),
+        (
+            re.compile(r"\b(?:luật\s+doanh\s+nghiệp|ldn)(?:\s*2020)?\b", re.IGNORECASE),
+            "VN_LDN_2020",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s+trọng\s+tài\s+thương\s+mại|ltttm)(?:\s*2010)?\b", re.IGNORECASE
+            ),
+            "VN_LTTTM_2010",
+        ),
+        (
+            re.compile(r"\b(?:luật\s+đất\s+đai|ldd)(?:\s*2024|\s*2013)?\b", re.IGNORECASE),
+            "VN_LDD_2024",
+        ),
+        (
+            re.compile(r"\b(?:luật\s+nhà\s+ở|lno)(?:\s*2023|\s*2014)?\b", re.IGNORECASE),
+            "VN_LNO_2023",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s+kinh\s+doanh\s+bất\s+động\s+sản|lkdbds)(?:\s*2023|\s*2014)?\b",
+                re.IGNORECASE,
+            ),
+            "VN_LKDBDS_2023",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s+sở\s+hữu\s+trí\s+tuệ|lshtt)(?:\s*2022|\s*2005)?\b", re.IGNORECASE
+            ),
+            "VN_LSHTT_2022",
+        ),
+        (
+            re.compile(r"\b(?:luật\s+an\s+ninh\s+mạng|lanm)(?:\s*2018)?\b", re.IGNORECASE),
+            "VN_LANM_2018",
+        ),
+        (
+            re.compile(
+                r"\b(?:luật\s+an\s+toàn\s+thông\s+tin\s+mạng|latttm)(?:\s*2015)?\b", re.IGNORECASE
+            ),
+            "VN_LATTTM_2015",
+        ),
     ]
 
     # Universal pattern matching ANY Vietnamese statute, decree, circular, decision, or regulation
     # Excludes common phrases like "quy định tại", "quy định này", "quy định pháp luật"
     UNIVERSAL_LAW_PATTERN = re.compile(
-        r'\b((?:bộ\s+luật|luật|nghị\s+định|thông\s+tư|quy\s+chế|quy\s+định|pháp\s+lệnh|nghị\s+quyết|quuyết\s+định)'
-        r'\s+(?!(?:tại|này|trên|sau|đó|pháp\s+luật)\b)(?:[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)'
-        r'(?:\s+(?!(?:tại|theo|và|hoặc|được|bị|để)\s+(?:điều|khoản|điểm)\b)[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)*)',
-        re.IGNORECASE
+        r"\b((?:bộ\s+luật|luật|nghị\s+định|thông\s+tư|quy\s+chế|quy\s+định|pháp\s+lệnh|nghị\s+quyết|quuyết\s+định)"
+        r"\s+(?!(?:tại|này|trên|sau|đó|pháp\s+luật)\b)(?:[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)"
+        r"(?:\s+(?!(?:tại|theo|và|hoặc|được|bị|để)\s+(?:điều|khoản|điểm)\b)[A-ZÀ-Ỹa-zà-ỹ0-9/_.\-]+)*)",
+        re.IGNORECASE,
     )
 
     # Specific clause + article pattern.
     CLAUSE_ARTICLE_PATTERN = re.compile(
-        r'(?:khoản|khoan|k\.?)\s*(\d+)\s*(?:[,\s]+của\s+|[,\s]+)?(?:điều|đieu|điu|đ\.?)\s*(\d+)',
-        re.IGNORECASE
+        r"(?:khoản|khoan|k\.?)\s*(\d+)\s*(?:[,\s]+của\s+|[,\s]+)?(?:điều|đieu|điu|đ\.?)\s*(\d+)",
+        re.IGNORECASE,
     )
 
     # Chained or standalone article pattern.
     ARTICLE_PATTERN = re.compile(
-        r'(?:điều|đieu|điu|đ\.?)\s*(\d+)((?:\s*(?:,|và|va)\s*\d+)*)',
-        re.IGNORECASE
+        r"(?:điều|đieu|điu|đ\.?)\s*(\d+)((?:\s*(?:,|và|va)\s*\d+)*)", re.IGNORECASE
     )
 
     def __init__(self, default_law_code: str = "VN_BLDS_2015"):
@@ -80,7 +119,7 @@ class LegalEntityExtractor:
 
     def register_law(self, name_or_pattern: str, canonical_code: str) -> None:
         """Dynamically registers a new legal instrument into this extractor instance."""
-        pat = re.compile(r'\b' + re.escape(name_or_pattern) + r'\b', re.IGNORECASE)
+        pat = re.compile(r"\b" + re.escape(name_or_pattern) + r"\b", re.IGNORECASE)
         self._custom_patterns.insert(0, (pat, canonical_code))
 
     def _find_law_spans(self, text: str) -> List[Tuple[int, int, str]]:
@@ -92,7 +131,7 @@ class LegalEntityExtractor:
         covered_ranges: List[Tuple[int, int]] = []
 
         # 1. Custom and registered shortcuts
-        for pattern, code in (self._custom_patterns + self.LAW_PATTERNS):
+        for pattern, code in self._custom_patterns + self.LAW_PATTERNS:
             for m in pattern.finditer(text):
                 spans.append((m.start(), m.end(), code))
                 covered_ranges.append((m.start(), m.end()))
@@ -105,7 +144,7 @@ class LegalEntityExtractor:
                 continue
             matched_text = m.group(1).strip()
             # Clean trailing punctuation
-            matched_text = re.sub(r'[,;.\)]+$', '', matched_text).strip()
+            matched_text = re.sub(r"[,;.\)]+$", "", matched_text).strip()
             # Disallow single-word generic prefix matches like just "Luật" or "Quy định" without title
             if len(matched_text.split()) < 2:
                 continue
@@ -208,7 +247,7 @@ class LegalEntityExtractor:
             all_arts = [first_art]
             rest = m.group(2)
             if rest:
-                extra_numbers = re.findall(r'\d+', rest)
+                extra_numbers = re.findall(r"\d+", rest)
                 for num_str in extra_numbers:
                     all_arts.append(int(num_str))
 
@@ -251,6 +290,8 @@ class LegalEntityExtractor:
                 node_ids.append(c.article_node_id)
 
         if node_ids:
-            logger.info(f"Entity Fast-Path parsed {len(node_ids)} seed node ID(s) from query: {node_ids}")
+            logger.info(
+                f"Entity Fast-Path parsed {len(node_ids)} seed node ID(s) from query: {node_ids}"
+            )
 
         return node_ids

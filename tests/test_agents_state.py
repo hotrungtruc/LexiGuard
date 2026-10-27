@@ -8,21 +8,20 @@ Validates:
 - Structured LLM output formats across Nodes 1, 3, and 4
 """
 
-import pytest
 from src.agents.state import (
     AgentState,
-    ContractProvenance,
-    LegalGrounding,
-    VulnerabilityItem,
-    ContractAuditReport,
-    ExtractedClauseItem,
-    ClauseExtractionList,
-    AuditFindingItem,
     AuditDraftReport,
-    HallucinationGrade,
-    VulnerabilityCategory,
+    AuditFindingItem,
+    ClauseExtractionList,
+    ContractAuditReport,
+    ContractProvenance,
     DisputeForum,
     DisputePrecedentInsight,
+    ExtractedClauseItem,
+    HallucinationGrade,
+    LegalGrounding,
+    VulnerabilityCategory,
+    VulnerabilityItem,
 )
 
 
@@ -111,7 +110,9 @@ def test_node3_audit_draft_schemas():
     dumped = draft.model_dump()
     assert dumped["dispute_forum_focus"] == "VIAC"
     assert len(dumped["findings"]) == 1
-    assert dumped["findings"][0]["vulnerability_classification"] == "PENALTY_EXCEEDING_STATUTORY_CAP"
+    assert (
+        dumped["findings"][0]["vulnerability_classification"] == "PENALTY_EXCEEDING_STATUTORY_CAP"
+    )
 
     reloaded = AuditDraftReport.model_validate(dumped)
     assert reloaded.findings[0].statutory_citation == "Điều 301 Luật Thương mại 2005"

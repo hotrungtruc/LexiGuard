@@ -15,12 +15,13 @@ import re
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from loguru import logger
 
+from loguru import logger
 
 # ============================================================================
 # 1. VIETNAMESE LEGAL TOKENIZATION & QUERY DENOISING
 # ============================================================================
+
 
 def denoise_query(text: str) -> str:
     """
@@ -30,8 +31,8 @@ def denoise_query(text: str) -> str:
     if not text:
         return ""
     return re.sub(
-        r'[,.]?\s*(đúng hay sai|đúng không|như vậy đúng không|theo bạn việc này đúng hay sai|theo bạn đúng hay sai)\??$',
-        '',
+        r"[,.]?\s*(đúng hay sai|đúng không|như vậy đúng không|theo bạn việc này đúng hay sai|theo bạn đúng hay sai)\??$",
+        "",
         text,
         flags=re.IGNORECASE,
     ).strip()
@@ -48,16 +49,17 @@ def tokenize_vietnamese_legal(text: str, is_query: bool = False) -> List[str]:
         return []
     if is_query:
         text = denoise_query(text)
-    words = re.findall(r'\w+', text.lower())
+    words = re.findall(r"\w+", text.lower())
     if not words:
         return []
-    bigrams = [f"{words[i]}_{words[i+1]}" for i in range(len(words) - 1)]
+    bigrams = [f"{words[i]}_{words[i + 1]}" for i in range(len(words) - 1)]
     return words + bigrams
 
 
 # ============================================================================
 # 2. IN-MEMORY OKAPI BM25 ENGINE
 # ============================================================================
+
 
 class BM25Index:
     """
@@ -106,8 +108,7 @@ class BM25Index:
 
         # Lucene/Okapi smoothed IDF
         self.idf: Dict[str, float] = {
-            w: math.log((self.N - freq + 0.5) / (freq + 0.5) + 1.0)
-            for w, freq in df.items()
+            w: math.log((self.N - freq + 0.5) / (freq + 0.5) + 1.0) for w, freq in df.items()
         }
 
         # Pre-calculate term frequencies per document
@@ -154,6 +155,7 @@ class BM25Index:
 # 3. PRODUCTION BM25 LEGAL RETRIEVER
 # ============================================================================
 
+
 class BM25LexicalRetriever:
     """
     Primary statutory retrieval engine for LexiGuard.
@@ -190,7 +192,9 @@ class BM25LexicalRetriever:
 
     @staticmethod
     def _load_corpus_chunks(path: Optional[Union[str, Path]] = None) -> List[Dict[str, Any]]:
-        target_path = Path(path) if path else Path("data/extracted_laws/combined_qdrant_chunks.json")
+        target_path = (
+            Path(path) if path else Path("data/extracted_laws/combined_qdrant_chunks.json")
+        )
         if target_path.exists():
             try:
                 with open(target_path, "r", encoding="utf-8") as f:
@@ -213,6 +217,7 @@ class BM25LexicalRetriever:
         """
         Synchronous search with metadata filtering.
         """
+
         def _filter(idx: int, doc: Dict[str, Any]) -> bool:
             if active_only and not doc.get("is_active", True):
                 return False
@@ -297,14 +302,18 @@ class BM25LexicalRetriever:
 
         for item in candidates:
             rank = item.get("final_rank", 1)
-            citation = item.get("canonical_citation") or item.get("article_title") or item.get("chunk_id")
+            citation = (
+                item.get("canonical_citation") or item.get("article_title") or item.get("chunk_id")
+            )
             content = (item.get("content") or item.get("context_enriched_text") or "").strip()
             score = item.get("relevance_score") or item.get("score", 0.0)
             chunk_id = item.get("chunk_id", "")
 
             sections.append(f"#### [{rank}] {citation} (Mã: `{chunk_id}`)")
-            sections.append(f"- **Nguồn kiểm chứng**: BM25 Compound N-grams | **Điểm BM25**: `{score}`")
-            sections.append(f"- **Nội dung nguyên văn**:\n  > \"{content}\"")
+            sections.append(
+                f"- **Nguồn kiểm chứng**: BM25 Compound N-grams | **Điểm BM25**: `{score}`"
+            )
+            sections.append(f'- **Nội dung nguyên văn**:\n  > "{content}"')
             sections.append("")
 
         return "\n".join(sections)

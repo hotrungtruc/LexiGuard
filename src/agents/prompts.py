@@ -10,8 +10,6 @@ Fully generalized, domain-agnostic prompt architecture:
 """
 
 from typing import Any, Dict, List, Optional
-import json
-
 
 # ============================================================================
 # 1. SYSTEM PERSONAS & COGNITIVE SCAFFOLDING
@@ -48,6 +46,7 @@ Nhiệm vụ của bạn là bảo đảm 100% TÍNH XÁC THỰC CỦA ĐIỀU L
 # ============================================================================
 # 2. COMPOSABLE DYNAMIC PROMPT BUILDERS
 # ============================================================================
+
 
 def build_clause_extractor_prompt(contract_markdown: str, max_chars: int = 8000) -> str:
     """
@@ -91,7 +90,9 @@ def build_loophole_auditor_prompt(
         txt = c.get("verbatim_text", "")[:250]
         tbl = " [CHỨA BẢNG BIỂU SỐ LIỆU]" if c.get("is_table") else ""
         clauses_text_list.append(f"- [{ref}]{tbl}: {txt}")
-    clauses_block = "\n".join(clauses_text_list) if clauses_text_list else "Không có điều khoản trích xuất."
+    clauses_block = (
+        "\n".join(clauses_text_list) if clauses_text_list else "Không có điều khoản trích xuất."
+    )
 
     # 2. Format Retrieved Statutory Grounding (Limit to top 8 statutory items)
     statutes_text_list = []
@@ -105,20 +106,24 @@ def build_loophole_auditor_prompt(
         statutes_text_list.append(
             f"- [{cit}] (ID: {c_id}, category_id: {category_id}, risk_tier: {risk_tier}): {cnt}"
         )
-    statutes_block = "\n".join(statutes_text_list) if statutes_text_list else "Không có dữ liệu luật tra cứu."
+    statutes_block = (
+        "\n".join(statutes_text_list) if statutes_text_list else "Không có dữ liệu luật tra cứu."
+    )
 
     # 3. Format Dynamically Retrieved Precedents from Database & Knowledge Graph
     precedents_block = ""
     if retrieved_precedents:
         prec_lines = []
         for p in retrieved_precedents[:6]:
-            p_name = p.get("precedent_number") or p.get("title") or p.get("name") or "Án lệ / Bản án"
+            p_name = (
+                p.get("precedent_number") or p.get("title") or p.get("name") or "Án lệ / Bản án"
+            )
             p_court = p.get("court", "Cơ quan tài phán TAND / VIAC")
             p_rule = p.get("legal_rule") or p.get("case_summary") or p.get("content", "")
             prec_lines.append(f"- [{p_name}] ({p_court}): {p_rule[:250]}")
         if prec_lines:
             precedents_block = (
-                f"=== NGUỒN ÁN LỆ & TIỀN LỆ XÉT XỬ TAND / VIAC TRA CỨU TỪ HỆ THỐNG ===\n"
+                "=== NGUỒN ÁN LỆ & TIỀN LỆ XÉT XỬ TAND / VIAC TRA CỨU TỪ HỆ THỐNG ===\n"
                 + "\n".join(prec_lines)
                 + "\n"
             )
@@ -133,7 +138,11 @@ def build_loophole_auditor_prompt(
                 f"(Thực tế: {af.get('actual_value', 0):,.0f} vs Tính toán: {af.get('expected_value', 0):,.0f}) "
                 f"- Rủi ro: {af.get('legal_risk')}"
             )
-        arith_block = f"\n=== KẾT QUẢ KIỂM TOÁN SỐ HỌC BẢNG BIỂU TỪ FASTMCP ===\n" + "\n".join(arith_lines) + "\n"
+        arith_block = (
+            "\n=== KẾT QUẢ KIỂM TOÁN SỐ HỌC BẢNG BIỂU TỪ FASTMCP ===\n"
+            + "\n".join(arith_lines)
+            + "\n"
+        )
 
     # 5. Feedback Critique from Hallucination Grader (Self-Reflection Loop)
     critique_block = ""
@@ -149,14 +158,8 @@ def build_loophole_auditor_prompt(
 
     if critique_block:
         parts.append(critique_block)
-    parts.append(
-        f"=== DANH SÁCH ĐIỀU KHOẢN HỢP ĐỒNG CẦN THẨM ĐỊNH ===\n"
-        f"{clauses_block}\n"
-    )
-    parts.append(
-        f"=== NGUỒN CĂN CỨ LUẬT ĐÃ TRA CỨU (GROUNDED CONTEXT) ===\n"
-        f"{statutes_block}\n"
-    )
+    parts.append(f"=== DANH SÁCH ĐIỀU KHOẢN HỢP ĐỒNG CẦN THẨM ĐỊNH ===\n{clauses_block}\n")
+    parts.append(f"=== NGUỒN CĂN CỨ LUẬT ĐÃ TRA CỨU (GROUNDED CONTEXT) ===\n{statutes_block}\n")
     if precedents_block:
         parts.append(precedents_block)
 
@@ -164,11 +167,11 @@ def build_loophole_auditor_prompt(
         parts.append(arith_block)
 
     parts.append(
-        f"HÃY THỰC HIỆN KIỂM TOÁN VÀ XUẤT RA DỮ LIỆU ĐÚNG CHUẨN CẤU TRÚC AuditDraftReport:\n"
-        f"1. Đối chiếu từng điều khoản với căn cứ luật và tiền lệ TAND/VIAC tra cứu được.\n"
-        f"2. Gán chính xác vulnerability_classification và rủi ro risk_tier (CRITICAL/HIGH/MEDIUM/LOW).\n"
-        f"3. Cung cấp câu chữ Redline thay thế có thể dùng ngay trong thực tế đàm phán.\n"
-        f"4. Luận cứ đàm phán ngắn gọn, sắc bén để bảo vệ thân chủ."
+        "HÃY THỰC HIỆN KIỂM TOÁN VÀ XUẤT RA DỮ LIỆU ĐÚNG CHUẨN CẤU TRÚC AuditDraftReport:\n"
+        "1. Đối chiếu từng điều khoản với căn cứ luật và tiền lệ TAND/VIAC tra cứu được.\n"
+        "2. Gán chính xác vulnerability_classification và rủi ro risk_tier (CRITICAL/HIGH/MEDIUM/LOW).\n"
+        "3. Cung cấp câu chữ Redline thay thế có thể dùng ngay trong thực tế đàm phán.\n"
+        "4. Luận cứ đàm phán ngắn gọn, sắc bén để bảo vệ thân chủ."
     )
 
     return "\n\n".join(parts)
@@ -187,7 +190,9 @@ def build_hallucination_grader_prompt(
         f_id = f.get("finding_id", "f")
         cit = f.get("statutory_citation", "")
         findings_citations.append(f"- [{f_id}]: {cit}")
-    findings_block = "\n".join(findings_citations) if findings_citations else "Không có trích dẫn nào."
+    findings_block = (
+        "\n".join(findings_citations) if findings_citations else "Không có trích dẫn nào."
+    )
 
     valid_statutes = []
     for s in retrieved_statutes:

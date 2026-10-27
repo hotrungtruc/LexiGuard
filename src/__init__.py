@@ -1,4 +1,5 @@
 """LexiGuard AI Package Root"""
+
 import os
 
 # Prevent pandas/pyarrow timezone initialization from loading an incompatible

@@ -7,8 +7,9 @@ Downloads the complete VLegal-Bench dataset from Hugging Face to data/vlegal_ben
 import sys
 import time
 from pathlib import Path
-from loguru import logger
+
 from huggingface_hub import snapshot_download
+from loguru import logger
 
 # Windows console encoding fix
 if hasattr(sys.stdout, "reconfigure"):
@@ -39,7 +40,6 @@ def main():
         # Summary of downloaded files
         all_files = list(TARGET_DIR.rglob("*"))
         jsonl_files = list(TARGET_DIR.rglob("*.jsonl"))
-        py_files = list(TARGET_DIR.rglob("*.py"))
         total_size = sum(f.stat().st_size for f in all_files if f.is_file())
 
         logger.info(f"Total files: {len([f for f in all_files if f.is_file()])}")

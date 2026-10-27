@@ -33,7 +33,10 @@ def test_agent_benchmark_scores_macro_f1_critical_recall_and_dynamic_category():
 def test_citation_verification_is_separate_from_classification():
     cases = [
         AgentBenchmarkCase(
-            "q1", "positive", "RULE_A", "HIGH",
+            "q1",
+            "positive",
+            "RULE_A",
+            "HIGH",
             supported_citations={"LAW_ART_1"},
         )
     ]

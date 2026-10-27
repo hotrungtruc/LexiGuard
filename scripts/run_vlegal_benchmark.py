@@ -17,7 +17,6 @@ Exports:
 import argparse
 import json
 import sys
-import time
 from pathlib import Path
 
 # Ensure project root is in sys.path
@@ -30,6 +29,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from loguru import logger
+
 from src.evaluation.vlegal_evaluator import (
     VLegalMasterBenchmarkSuite,
 )
@@ -44,7 +44,7 @@ def generate_markdown_report(results: dict, output_path: Path):
 
     total_samples = t23.get("total_samples", 0) + t34.get("total_samples", 0)
 
-    md = fr"""# BÁO CÁO ĐÁNH GIÁ HỆ THỐNG LEXIGUARD TRÊN VLEGAL-BENCH (TASK 2.3 & TASK 3.4)
+    md = rf"""# BÁO CÁO ĐÁNH GIÁ HỆ THỐNG LEXIGUARD TRÊN VLEGAL-BENCH (TASK 2.3 & TASK 3.4)
 
 > **Bộ benchmark**: `CMC-OPENAI/VLegal-Bench`
 > **Phạm vi đánh giá cốt lõi**:
@@ -54,24 +54,24 @@ def generate_markdown_report(results: dict, output_path: Path):
 >
 > **Tổng số mẫu dữ liệu thực tế**: **{total_samples:,} mẫu**
 > **Thời gian thực thi hoàn tất**: **{elapsed} giây**
-> **Thời điểm xuất báo cáo**: `{results.get('timestamp')}`
+> **Thời điểm xuất báo cáo**: `{results.get("timestamp")}`
 
 ---
 
 ## I. MỤC TIÊU: XÂY DỰNG ĐỒ THỊ TRI THỨC PHÁP LÝ (TASK 2.3 - LEGAL GRAPH STRUCTURING)
 
-Đánh giá năng lực tự động phân tích và trích xuất các bộ ba quan hệ pháp lý `(Thực thể 1, Mối quan hệ, Thực thể 2)` trên **{t23.get('total_samples', 0):,} mẫu tài liệu sửa đổi/bổ sung** nhằm xây dựng **Legal Knowledge Graph (Neo4j / GraphRAG)**.
+Đánh giá năng lực tự động phân tích và trích xuất các bộ ba quan hệ pháp lý `(Thực thể 1, Mối quan hệ, Thực thể 2)` trên **{t23.get("total_samples", 0):,} mẫu tài liệu sửa đổi/bổ sung** nhằm xây dựng **Legal Knowledge Graph (Neo4j / GraphRAG)**.
 - Các nhóm quan hệ chính: `sửa đổi bổ sung`, `bổ sung`, `bãi bỏ`, `hướng dẫn`.
 
 | Chỉ số đánh giá | Kết quả | Ý nghĩa xây dựng Knowledge Graph |
 | :--- | :---: | :--- |
-| **Tổng số Triplet thực tế (Ground-Truth Triplets)** | **{t23.get('total_gold_triplets', 0):,}** | Số quan hệ pháp lý chuẩn trong dataset |
-| **Tổng số Triplet trích xuất (Predicted Triplets)** | **{t23.get('total_predicted_triplets', 0):,}** | Số quan hệ LexiGuard trích xuất thành công |
-| **Số Triplet khớp chính xác tuyệt đối (Correct Triplets)** | **{t23.get('correct_triplets', 0):,}** | Số liên kết đồ thị đúng hoàn toàn cả 3 thành phần (Chủ thể, Quan hệ, Đích) |
-| **Precision (Độ chuẩn xác quan hệ)** | **{t23.get('precision', 0.0)*100:.2f}%** | Tỷ lệ cạnh đồ thị tạo ra là chính xác |
-| **Recall (Độ bao phủ quan hệ)** | **{t23.get('recall', 0.0)*100:.2f}%** | Tỷ lệ bao phủ các quan hệ sửa đổi/bổ sung thực tế |
-| **F1-Score đồ thị** | **{t23.get('f1_score', 0.0):.4f}** | Điểm cân bằng tổng hợp của trích xuất quan hệ |
-| **Exact Sample Match Rate** | **{t23.get('exact_sample_match_rate', 0.0)*100:.2f}%** | Tỷ lệ tài liệu trích xuất đúng 100% toàn bộ các triplet |
+| **Tổng số Triplet thực tế (Ground-Truth Triplets)** | **{t23.get("total_gold_triplets", 0):,}** | Số quan hệ pháp lý chuẩn trong dataset |
+| **Tổng số Triplet trích xuất (Predicted Triplets)** | **{t23.get("total_predicted_triplets", 0):,}** | Số quan hệ LexiGuard trích xuất thành công |
+| **Số Triplet khớp chính xác tuyệt đối (Correct Triplets)** | **{t23.get("correct_triplets", 0):,}** | Số liên kết đồ thị đúng hoàn toàn cả 3 thành phần (Chủ thể, Quan hệ, Đích) |
+| **Precision (Độ chuẩn xác quan hệ)** | **{t23.get("precision", 0.0) * 100:.2f}%** | Tỷ lệ cạnh đồ thị tạo ra là chính xác |
+| **Recall (Độ bao phủ quan hệ)** | **{t23.get("recall", 0.0) * 100:.2f}%** | Tỷ lệ bao phủ các quan hệ sửa đổi/bổ sung thực tế |
+| **F1-Score đồ thị** | **{t23.get("f1_score", 0.0):.4f}** | Điểm cân bằng tổng hợp của trích xuất quan hệ |
+| **Exact Sample Match Rate** | **{t23.get("exact_sample_match_rate", 0.0) * 100:.2f}%** | Tỷ lệ tài liệu trích xuất đúng 100% toàn bộ các triplet |
 
 ### Phân tích chuyên sâu:
 - Năng lực bóc tách quan hệ đồ thị dựa trên Regex pháp lý chuẩn thức (`Điều...`, `Khoản...`, `Nghị định...`) kết hợp tiền xử lý chuẩn hóa ký hiệu văn bản giúp LexiGuard tạo ra các node và edge quan hệ có độ chính xác cao.
@@ -81,7 +81,7 @@ def generate_markdown_report(results: dict, output_path: Path):
 
 ## II. MỤC TIÊU: PHÁT HIỆN ĐÚNG LỖI (TASK 3.4 - CONFLICT & CONSISTENCY DETECTION)
 
-Đánh giá module **LoopholeAuditor / LegalConflictAuditor** trên **{t34.get('total_samples', 0)} cặp quy phạm pháp luật** (Quy phạm được kiểm tra vs. Quy phạm làm căn cứ rà soát).
+Đánh giá module **LoopholeAuditor / LegalConflictAuditor** trên **{t34.get("total_samples", 0)} cặp quy phạm pháp luật** (Quy phạm được kiểm tra vs. Quy phạm làm căn cứ rà soát).
 
 ### 1. Ma trận nhầm lẫn (Confusion Matrix)
 
@@ -90,40 +90,40 @@ def generate_markdown_report(results: dict, output_path: Path):
                   ┌─────────────────┬─────────────────┐
                   │   Có Mâu thuẫn  │  Không Mâu thuẫn│
   ┌───────────────┼─────────────────┼─────────────────┤
-  │ Có Mâu thuẫn  │   TP = {t34.get('true_positives', 0):3d}      │    FN = {t34.get('false_negatives', 0):3d}      │
+  │ Có Mâu thuẫn  │   TP = {t34.get("true_positives", 0):3d}      │    FN = {t34.get("false_negatives", 0):3d}      │
 TỰ├───────────────┼─────────────────┼─────────────────┤
-SỰ│ Không Mâu thuẫn│   FP = {t34.get('false_positives', 0):3d}      │    TN = {t34.get('true_negatives', 0):3d}      │
+SỰ│ Không Mâu thuẫn│   FP = {t34.get("false_positives", 0):3d}      │    TN = {t34.get("true_negatives", 0):3d}      │
   └───────────────┴─────────────────┴─────────────────┘
 ```
 
-- **True Positives (TP)**: `{t34.get('true_positives', 0)}` trường hợp phát hiện chính xác quy phạm trái luật / mâu thuẫn.
-- **False Positives (FP)**: `{t34.get('false_positives', 0)}` trường hợp cảnh báo sai (báo động giả).
-- **True Negatives (TN)**: `{t34.get('true_negatives', 0)}` trường hợp xác nhận đúng tính tuân thủ và đồng bộ.
-- **False Negatives (FN)**: `{t34.get('false_negatives', 0)}` trường hợp bỏ sót mâu thuẫn pháp lý.
+- **True Positives (TP)**: `{t34.get("true_positives", 0)}` trường hợp phát hiện chính xác quy phạm trái luật / mâu thuẫn.
+- **False Positives (FP)**: `{t34.get("false_positives", 0)}` trường hợp cảnh báo sai (báo động giả).
+- **True Negatives (TN)**: `{t34.get("true_negatives", 0)}` trường hợp xác nhận đúng tính tuân thủ và đồng bộ.
+- **False Negatives (FN)**: `{t34.get("false_negatives", 0)}` trường hợp bỏ sót mâu thuẫn pháp lý.
 
 ### 2. Các chỉ số rà soát chi tiết
 
 | Chỉ số đánh giá | Kết quả | Ý nghĩa trong rà soát hợp đồng / văn bản |
 | :--- | :---: | :--- |
-| **Accuracy (Độ chính xác tổng thể)** | **{t34.get('accuracy', 0.0)*100:.2f}%** | Tỷ lệ phán quyết đúng trên toàn bộ 166 tình huống |
-| **Precision (Lớp Có Mâu thuẫn)** | **{t34.get('precision_conflict', 0.0)*100:.2f}%** | Khi Auditor cảnh báo lỗi, độ tin cậy đạt gần tuyệt đối |
-| **Recall (Lớp Có Mâu thuẫn)** | **{t34.get('recall_conflict', 0.0)*100:.2f}%** | Khả năng quét sạch không bỏ sót vi phạm |
-| **F1-Score (Lớp Có Mâu thuẫn)** | **{t34.get('f1_conflict', 0.0):.4f}** | Cân bằng điều hòa giữa bắt đúng lỗi và tránh báo sai |
-| **Precision (Lớp Không Mâu thuẫn)** | **{t34.get('precision_consistent', 0.0)*100:.2f}%** | Độ tin cậy khi khẳng định điều khoản hợp pháp |
-| **Recall (Lớp Không Mâu thuẫn)** | **{t34.get('recall_consistent', 0.0)*100:.2f}%** | Khả năng nhận diện chính xác các điều khoản tuân thủ |
-| **Macro-F1** | **{t34.get('macro_f1', 0.0):.4f}** | Trung bình F1 của 2 lớp phân loại |
-| **Weighted Macro-F1 (VLegal Chuẩn)** | **{t34.get('weighted_macro_f1', 0.0):.4f}** | Điểm số chuẩn thức của VLegal-Bench (trọng số 3 cho Không mâu thuẫn) |
+| **Accuracy (Độ chính xác tổng thể)** | **{t34.get("accuracy", 0.0) * 100:.2f}%** | Tỷ lệ phán quyết đúng trên toàn bộ 166 tình huống |
+| **Precision (Lớp Có Mâu thuẫn)** | **{t34.get("precision_conflict", 0.0) * 100:.2f}%** | Khi Auditor cảnh báo lỗi, độ tin cậy đạt gần tuyệt đối |
+| **Recall (Lớp Có Mâu thuẫn)** | **{t34.get("recall_conflict", 0.0) * 100:.2f}%** | Khả năng quét sạch không bỏ sót vi phạm |
+| **F1-Score (Lớp Có Mâu thuẫn)** | **{t34.get("f1_conflict", 0.0):.4f}** | Cân bằng điều hòa giữa bắt đúng lỗi và tránh báo sai |
+| **Precision (Lớp Không Mâu thuẫn)** | **{t34.get("precision_consistent", 0.0) * 100:.2f}%** | Độ tin cậy khi khẳng định điều khoản hợp pháp |
+| **Recall (Lớp Không Mâu thuẫn)** | **{t34.get("recall_consistent", 0.0) * 100:.2f}%** | Khả năng nhận diện chính xác các điều khoản tuân thủ |
+| **Macro-F1** | **{t34.get("macro_f1", 0.0):.4f}** | Trung bình F1 của 2 lớp phân loại |
+| **Weighted Macro-F1 (VLegal Chuẩn)** | **{t34.get("weighted_macro_f1", 0.0):.4f}** | Điểm số chuẩn thức của VLegal-Bench (trọng số 3 cho Không mâu thuẫn) |
 
 ---
 
 ## III. TỔNG KẾT & KẾT LUẬN HỆ THỐNG
 
 1. **Hiệu năng phát hiện vi phạm pháp lý (Task 3.4)**:
-   - Module **LoopholeAuditor** đạt hiệu năng vượt trội: **Accuracy {t34.get('accuracy', 0.0)*100:.2f}%**, **Precision (Có mâu thuẫn) {t34.get('precision_conflict', 0.0)*100:.2f}%**, **Recall {t34.get('recall_conflict', 0.0)*100:.2f}%**, và **F1 {t34.get('f1_conflict', 0.0):.4f}**.
+   - Module **LoopholeAuditor** đạt hiệu năng vượt trội: **Accuracy {t34.get("accuracy", 0.0) * 100:.2f}%**, **Precision (Có mâu thuẫn) {t34.get("precision_conflict", 0.0) * 100:.2f}%**, **Recall {t34.get("recall_conflict", 0.0) * 100:.2f}%**, và **F1 {t34.get("f1_conflict", 0.0):.4f}**.
    - Phân tích thứ bậc hiệu lực văn bản (Luật > Nghị định > Thông tư > Quyết định UBND) và phát hiện thẩm quyền ban hành điều kiện kinh doanh/thủ tục hành chính hoạt động cực kỳ chính xác.
 
 2. **Khả năng xây dựng Đồ thị Tri thức (Task 2.3)**:
-   - Trích xuất thành công **{t23.get('correct_triplets', 0):,} triplets** chuẩn xác tuyệt đối cả 3 thành phần (chủ thể, quan hệ, điều khoản đích), đạt **F1 {t23.get('f1_score', 0.0):.4f}** và **Exact Document Match {t23.get('exact_sample_match_rate', 0.0)*100:.2f}%**.
+   - Trích xuất thành công **{t23.get("correct_triplets", 0):,} triplets** chuẩn xác tuyệt đối cả 3 thành phần (chủ thể, quan hệ, điều khoản đích), đạt **F1 {t23.get("f1_score", 0.0):.4f}** và **Exact Document Match {t23.get("exact_sample_match_rate", 0.0) * 100:.2f}%**.
    - Cung cấp dữ liệu quan hệ cho cơ sở dữ liệu đồ thị Neo4j, phục vụ các truy vấn kiểm tra hiệu lực còn hay mất của điều khoản hợp đồng/luật.
 
 3. **Tập trung vào 2 trụ cột của LexiGuard**:
@@ -136,9 +136,19 @@ SỰ│ Không Mâu thuẫn│   FP = {t34.get('false_positives', 0):3d}      �
 
 
 def main():
-    parser = argparse.ArgumentParser(description="VLegal-Bench Core Evaluation Suite Runner (Task 2.3 & Task 3.4)")
-    parser.add_argument("--json-out", default="reports/vlegal_benchmark_results.json", help="Path to save JSON metrics")
-    parser.add_argument("--report-out", default="reports/VLEGAL_BENCHMARK_REPORT.md", help="Path to save Markdown report")
+    parser = argparse.ArgumentParser(
+        description="VLegal-Bench Core Evaluation Suite Runner (Task 2.3 & Task 3.4)"
+    )
+    parser.add_argument(
+        "--json-out",
+        default="reports/vlegal_benchmark_results.json",
+        help="Path to save JSON metrics",
+    )
+    parser.add_argument(
+        "--report-out",
+        default="reports/VLEGAL_BENCHMARK_REPORT.md",
+        help="Path to save Markdown report",
+    )
     args = parser.parse_args()
 
     print("=" * 70)
@@ -169,15 +179,25 @@ def main():
     print("BẢNG TỔNG HỢP KẾT QUẢ VLEGAL-BENCH (TASK 2.3 & TASK 3.4)")
     print("=" * 70)
     print(f"1. LEGAL GRAPH STRUCTURING (Task 2.3 - {t23['total_samples']} samples):")
-    print(f"   - Triplets: Gold={t23['total_gold_triplets']} | Pred={t23['total_predicted_triplets']} | Correct={t23['correct_triplets']}")
-    print(f"   - Precision: {t23['precision']*100:.2f}% | Recall: {t23['recall']*100:.2f}% | F1: {t23['f1_score']:.4f}")
-    print(f"   - Exact Sample Match: {t23['exact_sample_match_rate']*100:.2f}%")
+    print(
+        f"   - Triplets: Gold={t23['total_gold_triplets']} | Pred={t23['total_predicted_triplets']} | Correct={t23['correct_triplets']}"
+    )
+    print(
+        f"   - Precision: {t23['precision'] * 100:.2f}% | Recall: {t23['recall'] * 100:.2f}% | F1: {t23['f1_score']:.4f}"
+    )
+    print(f"   - Exact Sample Match: {t23['exact_sample_match_rate'] * 100:.2f}%")
 
     print(f"\n2. PHÁT HIỆN LỖI: XUNG ĐỘT QUY PHẠM (Task 3.4 - {t34['total_samples']} samples):")
-    print(f"   - Confusion Matrix: TP={t34['true_positives']} | FP={t34['false_positives']} | TN={t34['true_negatives']} | FN={t34['false_negatives']}")
-    print(f"   - Accuracy: {t34['accuracy']*100:.2f}%")
-    print(f"   - Precision (Conflict): {t34['precision_conflict']*100:.2f}% | Recall (Conflict): {t34['recall_conflict']*100:.2f}%")
-    print(f"   - F1 (Conflict): {t34['f1_conflict']:.4f} | Macro-F1: {t34['macro_f1']:.4f} | Weighted Macro-F1: {t34['weighted_macro_f1']:.4f}")
+    print(
+        f"   - Confusion Matrix: TP={t34['true_positives']} | FP={t34['false_positives']} | TN={t34['true_negatives']} | FN={t34['false_negatives']}"
+    )
+    print(f"   - Accuracy: {t34['accuracy'] * 100:.2f}%")
+    print(
+        f"   - Precision (Conflict): {t34['precision_conflict'] * 100:.2f}% | Recall (Conflict): {t34['recall_conflict'] * 100:.2f}%"
+    )
+    print(
+        f"   - F1 (Conflict): {t34['f1_conflict']:.4f} | Macro-F1: {t34['macro_f1']:.4f} | Weighted Macro-F1: {t34['weighted_macro_f1']:.4f}"
+    )
     print("=" * 70)
 
 

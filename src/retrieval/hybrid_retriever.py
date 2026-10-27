@@ -11,6 +11,7 @@ Orchestrates the 3-step statutory retrieval and cross-referencing pipeline:
 
 import asyncio
 from typing import Any, Callable, Dict, List, Optional
+
 from loguru import logger
 
 from src.core.config import settings
@@ -40,6 +41,7 @@ class LegalCrossEncoderReranker:
         """Lazy load CrossEncoder model."""
         if self._model is None and self._custom_rerank_fn is None:
             from sentence_transformers import CrossEncoder
+
             logger.info(f"Loading CrossEncoder reranker model: {self.model_name}")
             self._model = CrossEncoder(self.model_name)
         return self._model
@@ -58,7 +60,11 @@ class LegalCrossEncoderReranker:
 
         # Prepare pairs for cross-attention
         candidate_texts = [
-            c.get("context_enriched_text") or c.get("content") or c.get("article_title") or c.get("canonical_citation") or ""
+            c.get("context_enriched_text")
+            or c.get("content")
+            or c.get("article_title")
+            or c.get("canonical_citation")
+            or ""
             for c in candidates
         ]
 
@@ -83,7 +89,9 @@ class LegalCrossEncoderReranker:
         for rank_idx, item in enumerate(final_top):
             item["final_rank"] = rank_idx + 1
 
-        logger.info(f"Cross-Encoder reranked {len(candidates)} candidates down to top {len(final_top)}.")
+        logger.info(
+            f"Cross-Encoder reranked {len(candidates)} candidates down to top {len(final_top)}."
+        )
         return final_top
 
 
@@ -126,9 +134,13 @@ class HybridLegalRetriever:
         """Activates a statute synchronously across both Qdrant and Neo4j."""
         return await self.lifecycle_manager.activate_statute_async(law_id)
 
-    async def sync_statute_lifecycle_async(self, law_id: str, is_active: bool = False) -> Dict[str, Any]:
+    async def sync_statute_lifecycle_async(
+        self, law_id: str, is_active: bool = False
+    ) -> Dict[str, Any]:
         """Coordinates lifecycle validity status update across both Qdrant and Neo4j."""
-        return await self.lifecycle_manager.sync_statute_lifecycle_async(law_id, is_active=is_active)
+        return await self.lifecycle_manager.sync_statute_lifecycle_async(
+            law_id, is_active=is_active
+        )
 
     def deactivate_statute(self, law_id: str) -> Dict[str, Any]:
         """Synchronous wrapper for deactivate_statute_async."""
@@ -152,9 +164,12 @@ class HybridLegalRetriever:
         (Vietnamese Compound N-grams) for sub-millisecond, top-precision statutory retrieval.
         """
         if self.use_bm25_only:
-            logger.info(f"=== [BM25 Lexical Mode] Executing Compound N-grams Retrieval for: '{query[:60]}' ===")
+            logger.info(
+                f"=== [BM25 Lexical Mode] Executing Compound N-grams Retrieval for: '{query[:60]}' ==="
+            )
             if self._bm25_retriever is None:
                 from src.retrieval.bm25_retriever import BM25LexicalRetriever
+
                 self._bm25_retriever = BM25LexicalRetriever()
             return self._bm25_retriever.search(
                 query=query,
@@ -162,7 +177,9 @@ class HybridLegalRetriever:
                 active_only=active_only,
             )
 
-        logger.info(f"=== Starting 3-Step Hybrid Legal Retrieval for query: '{query[:60]}' (active_only={active_only}) ===")
+        logger.info(
+            f"=== Starting 3-Step Hybrid Legal Retrieval for query: '{query[:60]}' (active_only={active_only}) ==="
+        )
 
         # ----------------------------------------------------------------------
         # FAST PATH: Extract statutory article identifiers from the query.
@@ -176,7 +193,9 @@ class HybridLegalRetriever:
         # ----------------------------------------------------------------------
         # STEP 1: Qdrant hybrid search (RRF dense + BM25), taking 12 results.
         # ----------------------------------------------------------------------
-        logger.info(f"[Bước 1] Querying Qdrant Hybrid Search (limit={qdrant_limit}, active_only={active_only})...")
+        logger.info(
+            f"[Bước 1] Querying Qdrant Hybrid Search (limit={qdrant_limit}, active_only={active_only})..."
+        )
         qdrant_candidates = await self.qdrant_store.hybrid_search_async(
             query=query,
             top_k=qdrant_limit,
@@ -205,7 +224,7 @@ class HybridLegalRetriever:
         # ----------------------------------------------------------------------
         # Put fast-path article nodes at the front of the Neo4j expansion seed list.
         seed_nodes = list(dict.fromkeys(fast_path_node_ids + candidate_node_ids))
-        nodes_to_expand = seed_nodes[:max(6, len(fast_path_node_ids))]
+        nodes_to_expand = seed_nodes[: max(6, len(fast_path_node_ids))]
 
         logger.info(
             f"[Bước 2] Expanding {len(nodes_to_expand)} candidate seeds via Neo4j Knowledge Graph "
@@ -234,7 +253,9 @@ class HybridLegalRetriever:
                         root_info = root_entities[fp_id]
                         # Automatically remove inactive provisions when active_only=True.
                         if active_only and root_info.get("is_active") is False:
-                            logger.info(f"[Entity Fast-Path] Bỏ qua điều khoản hết hiệu lực: '{fp_id}'")
+                            logger.info(
+                                f"[Entity Fast-Path] Bỏ qua điều khoản hết hiệu lực: '{fp_id}'"
+                            )
                             continue
 
                         unified_candidates[fp_id] = {
@@ -314,7 +335,9 @@ class HybridLegalRetriever:
                         unified_candidates[ref_id] = ref_candidate
                         expanded_count += 1
             except Exception as exc:
-                logger.warning(f"Neo4j consolidated expansion failed for nodes {nodes_to_expand}: {exc}")
+                logger.warning(
+                    f"Neo4j consolidated expansion failed for nodes {nodes_to_expand}: {exc}"
+                )
 
         candidate_pool = list(unified_candidates.values())
         logger.info(
@@ -337,7 +360,9 @@ class HybridLegalRetriever:
         )
         return final_ranked_candidates
 
-    def retrieve(self, query: str, top_k: int = 5, active_only: bool = True) -> List[Dict[str, Any]]:
+    def retrieve(
+        self, query: str, top_k: int = 5, active_only: bool = True
+    ) -> List[Dict[str, Any]]:
         """
         Synchronous interface for HybridLegalRetriever.
         """
@@ -345,15 +370,20 @@ class HybridLegalRetriever:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(
                         asyncio.run,
-                        self.retrieve_async(query=query, top_k=top_k, active_only=active_only)
+                        self.retrieve_async(query=query, top_k=top_k, active_only=active_only),
                     )
                     return future.result()
-            return loop.run_until_complete(self.retrieve_async(query=query, top_k=top_k, active_only=active_only))
+            return loop.run_until_complete(
+                self.retrieve_async(query=query, top_k=top_k, active_only=active_only)
+            )
         except RuntimeError:
-            return asyncio.run(self.retrieve_async(query=query, top_k=top_k, active_only=active_only))
+            return asyncio.run(
+                self.retrieve_async(query=query, top_k=top_k, active_only=active_only)
+            )
 
     def format_context_for_prompt(self, candidates: List[Dict[str, Any]]) -> str:
         """
@@ -371,7 +401,9 @@ class HybridLegalRetriever:
 
         for item in candidates:
             rank = item.get("final_rank", 1)
-            citation = item.get("canonical_citation") or item.get("article_title") or item.get("chunk_id")
+            citation = (
+                item.get("canonical_citation") or item.get("article_title") or item.get("chunk_id")
+            )
             content = (item.get("content") or item.get("context_enriched_text") or "").strip()
             source = item.get("retrieval_source", "hybrid")
             score = item.get("rerank_score", 0.0)
@@ -384,10 +416,14 @@ class HybridLegalRetriever:
             }.get(source, source)
 
             sections.append(f"#### [{rank}] {citation} (Mã: `{node_id}`)")
-            sections.append(f"- **Nguồn kiểm chứng**: {source_label} | **Rerank Score**: `{score:.4f}`")
+            sections.append(
+                f"- **Nguồn kiểm chứng**: {source_label} | **Rerank Score**: `{score:.4f}`"
+            )
             if item.get("relationship_citations"):
-                sections.append(f"- **Mệnh đề dẫn chiếu**: *\"{'; '.join(item['relationship_citations'])}\"*")
-            sections.append(f"- **Nội dung nguyên văn**:\n  > \"{content}\"")
+                sections.append(
+                    f'- **Mệnh đề dẫn chiếu**: *"{"; ".join(item["relationship_citations"])}"*'
+                )
+            sections.append(f'- **Nội dung nguyên văn**:\n  > "{content}"')
 
             precedents = item.get("precedents") or []
             if precedents:

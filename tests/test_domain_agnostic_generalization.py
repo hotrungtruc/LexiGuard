@@ -6,14 +6,13 @@ for ANY legal corpus (e.g., Cybersecurity Law, Personal Data Protection Decree,
 Internal Corporate Financial SOPs, IP Law), without hardcoded statutory assumptions.
 """
 
-import pytest
-from src.core.legal_norm import canonical_law_slug, register_custom_law
-from src.core.schemas import LegalArticle, LegalChapter, LegalDocument, LegalChunk
-from src.ingestion.legal_chunker import LegalChunker
+from src.agents.nodes import _is_citation_grounded
+from src.core.legal_norm import canonical_law_slug
+from src.core.schemas import LegalChunk
 from src.ingestion.graph_extractor import LegalGraphExtractor
-from src.retrieval.entity_extractor import LegalEntityExtractor
+from src.ingestion.legal_chunker import LegalChunker
 from src.mcp_server.legal_tools import FastMCPFilters
-from src.agents.nodes import _extract_explicit_law_code, _is_citation_grounded
+from src.retrieval.entity_extractor import LegalEntityExtractor
 
 
 def test_universal_slug_generation_across_varied_domains():
@@ -85,10 +84,12 @@ def test_graph_extraction_on_arbitrary_statute_with_dynamic_cross_references():
         content="Nghiêm cấm hành vi theo quy định của Luật An toàn thông tin mạng và Điều 12.",
         canonical_citation="Khoản 1 Điều 8 Luật An ninh mạng 2018",
         context_enriched_text="Context",
-        cross_references=["Điều 12", "Luật An toàn thông tin mạng"]
+        cross_references=["Điều 12", "Luật An toàn thông tin mạng"],
     )
 
-    graph_result = extractor.extract_from_chunks([chunk], law_id="luat-an-ninh-mang-2018", law_title="Luật An ninh mạng 2018")
+    graph_result = extractor.extract_from_chunks(
+        [chunk], law_id="luat-an-ninh-mang-2018", law_title="Luật An ninh mạng 2018"
+    )
 
     node_ids = [n.node_id for n in graph_result.nodes]
     # Verify root law node
@@ -160,33 +161,45 @@ def test_anti_hallucination_grading_with_dynamic_arbitrary_statutes():
             "law_id": "nghi-dinh-13-2023-nd-cp",
             "article_num": 4,
             "content": "Nguyên tắc bảo vệ dữ liệu cá nhân.",
-        }
+        },
     ]
 
     # Valid citation from newly ingested law (Luật An ninh mạng 2018)
-    assert _is_citation_grounded(
-        cit_text="Điều 8 Luật An ninh mạng 2018",
-        article_id="VN_LANM_2018_D008",
-        retrieved_statutes=retrieved_statutes,
-    ) is True
+    assert (
+        _is_citation_grounded(
+            cit_text="Điều 8 Luật An ninh mạng 2018",
+            article_id="VN_LANM_2018_D008",
+            retrieved_statutes=retrieved_statutes,
+        )
+        is True
+    )
 
     # Valid citation from newly ingested decree (Nghị định 13/2023/NĐ-CP)
-    assert _is_citation_grounded(
-        cit_text="Điều 4 Nghị định 13/2023/NĐ-CP",
-        article_id="VN_ND13_2023_D004",
-        retrieved_statutes=retrieved_statutes,
-    ) is True
+    assert (
+        _is_citation_grounded(
+            cit_text="Điều 4 Nghị định 13/2023/NĐ-CP",
+            article_id="VN_ND13_2023_D004",
+            retrieved_statutes=retrieved_statutes,
+        )
+        is True
+    )
 
     # Hallucinated citation: Citing Điều 8 BLDS instead of Điều 8 LANM
-    assert _is_citation_grounded(
-        cit_text="Điều 8 Bộ luật Dân sự 2015",
-        article_id=None,
-        retrieved_statutes=retrieved_statutes,
-    ) is False, "Cross-statute hallucination must be rejected"
+    assert (
+        _is_citation_grounded(
+            cit_text="Điều 8 Bộ luật Dân sự 2015",
+            article_id=None,
+            retrieved_statutes=retrieved_statutes,
+        )
+        is False
+    ), "Cross-statute hallucination must be rejected"
 
     # Fabricated article number in valid law
-    assert _is_citation_grounded(
-        cit_text="Điều 99 Luật An ninh mạng 2018",
-        article_id=None,
-        retrieved_statutes=retrieved_statutes,
-    ) is False, "Non-existent article in valid statute must be rejected"
+    assert (
+        _is_citation_grounded(
+            cit_text="Điều 99 Luật An ninh mạng 2018",
+            article_id=None,
+            retrieved_statutes=retrieved_statutes,
+        )
+        is False
+    ), "Non-existent article in valid statute must be rejected"

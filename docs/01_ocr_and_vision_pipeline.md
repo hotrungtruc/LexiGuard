@@ -61,7 +61,7 @@ if self.do_ocr:
 pipeline_options.do_table_structure = self.do_table_structure
 pipeline_options.accelerator_options = AcceleratorOptions(
     device=AcceleratorDevice.CUDA if torch.cuda.is_available() else AcceleratorDevice.CPU,
-    num_threads=self.num_threads
+    num_threads=self.num_threads,
 )
 ```
 
@@ -117,18 +117,10 @@ The following output is a historical corpus run and should not be interpreted as
 from pathlib import Path
 from src.ingestion.docling_parser import DoclingParser
 
-parser = DoclingParser(
-    do_ocr=True,
-    do_table_structure=False,
-    ocr_engine="easyocr",
-    device="cuda"
-)
+parser = DoclingParser(do_ocr=True, do_table_structure=False, ocr_engine="easyocr", device="cuda")
 
 # Parse full statute with 15-page batch slicing
-doc = parser.parse(
-    "data/raw_laws/bo-luat-dan-su-2015.pdf",
-    batch_size=15
-)
+doc = parser.parse("data/raw_laws/bo-luat-dan-su-2015.pdf", batch_size=15)
 
 print(f"Extracted {len(doc.full_markdown)} characters across {doc.total_pages} pages.")
 for elem in doc.elements[:5]:

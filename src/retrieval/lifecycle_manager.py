@@ -12,6 +12,7 @@ enabling automatic filtering during retrieval.
 
 import asyncio
 from typing import Any, Dict, List, Optional
+
 from loguru import logger
 
 from src.retrieval.neo4j_store import Neo4jStore
@@ -58,14 +59,18 @@ class LegalLifecycleManager:
 
         # 1. Update Qdrant
         try:
-            qdrant_ok = await self.qdrant_store.update_statute_active_status_async(law_id, is_active)
+            qdrant_ok = await self.qdrant_store.update_statute_active_status_async(
+                law_id, is_active
+            )
         except Exception as exc:
             logger.error(f"Failed to update Qdrant lifecycle status for '{law_id}': {exc}")
             errors.append(f"Qdrant error: {exc}")
 
         # 2. Update Neo4j
         try:
-            neo4j_count = await self.neo4j_store.update_statute_active_status_async(law_id, is_active)
+            neo4j_count = await self.neo4j_store.update_statute_active_status_async(
+                law_id, is_active
+            )
         except Exception as exc:
             logger.error(f"Failed to update Neo4j lifecycle status for '{law_id}': {exc}")
             errors.append(f"Neo4j error: {exc}")
@@ -90,10 +95,11 @@ class LegalLifecycleManager:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                     return executor.submit(
                         asyncio.run,
-                        self.sync_statute_lifecycle_async(law_id=law_id, is_active=is_active)
+                        self.sync_statute_lifecycle_async(law_id=law_id, is_active=is_active),
                     ).result()
             return loop.run_until_complete(
                 self.sync_statute_lifecycle_async(law_id=law_id, is_active=is_active)

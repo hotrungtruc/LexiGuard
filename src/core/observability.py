@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import time
 import os
+import time
 from dataclasses import dataclass, field
 from statistics import mean
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional
 
 from loguru import logger
 
@@ -126,9 +126,15 @@ def observe(
     metadata: Optional[Mapping[str, Any]] = None,
 ) -> tuple[Any, Observation]:
     """Measure a synchronous operation and optionally emit one Langfuse trace."""
-    tags = trace_metadata(case_id, session_id=session_id, cache_mode=cache_mode, **dict(metadata or {}))
+    tags = trace_metadata(
+        case_id, session_id=session_id, cache_mode=cache_mode, **dict(metadata or {})
+    )
     client = get_langfuse_client()
-    trace = client.trace(name="lexiguard.workflow", session_id=tags["session_id"], metadata=tags) if client else None
+    trace = (
+        client.trace(name="lexiguard.workflow", session_id=tags["session_id"], metadata=tags)
+        if client
+        else None
+    )
     started = time.perf_counter()
     error: Optional[str] = None
     try:

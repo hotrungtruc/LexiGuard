@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Set
 
 
 @dataclass(frozen=True)
@@ -43,11 +42,7 @@ def _classification_metrics(
     predictions: Mapping[str, Mapping[str, Any]],
 ) -> Dict[str, Any]:
     labels = sorted(
-        {
-            case.expected_category
-            for case in cases
-            if case.expected_category is not None
-        }
+        {case.expected_category for case in cases if case.expected_category is not None}
         | {
             predictions.get(case.case_id, {}).get("category")
             for case in cases
@@ -61,7 +56,9 @@ def _classification_metrics(
             and case.expected_category == label
             for case in cases
         )
-        predicted = sum(predictions.get(case.case_id, {}).get("category") == label for case in cases)
+        predicted = sum(
+            predictions.get(case.case_id, {}).get("category") == label for case in cases
+        )
         expected = sum(case.expected_category == label for case in cases)
         precision = tp / predicted if predicted else 0.0
         recall = tp / expected if expected else 0.0
@@ -85,7 +82,9 @@ def _classification_metrics(
         "macro_f1": round(
             sum(item["f1"] for item in per_label.values()) / len(per_label),
             6,
-        ) if per_label else 0.0,
+        )
+        if per_label
+        else 0.0,
         "critical_recall": round(critical_hits / len(critical_cases), 6) if critical_cases else 1.0,
         "abstention_accuracy": round(abstention_hits / len(cases), 6) if cases else 1.0,
         "per_category": per_label,
@@ -116,9 +115,9 @@ def evaluate_citation_verification(
         "citation_recall": round(verified_hits / expected_total, 6) if expected_total else 1.0,
         "unsupported_citation_count": float(unsupported_total),
         "hallucination_count": float(hallucinated),
-        "hallucination_rate": round(
-            hallucinated / unsupported_total, 6
-        ) if unsupported_total else 0.0,
+        "hallucination_rate": round(hallucinated / unsupported_total, 6)
+        if unsupported_total
+        else 0.0,
     }
 
 
@@ -139,4 +138,8 @@ def evaluate_agent_predictions(
             and prediction.get("category") != case.expected_category
         ):
             failures.append(f"{case.case_id}: classification mismatch")
-    return {"classification": classification, "citation_verification": citation, "failures": failures}
+    return {
+        "classification": classification,
+        "citation_verification": citation,
+        "failures": failures,
+    }

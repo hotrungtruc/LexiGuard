@@ -73,8 +73,7 @@ def evaluate_ranked_results(
         wrong_laws = [
             _item_id(item)
             for item in ranked_results[:k]
-            if isinstance(item, dict)
-            and item.get("law_id") not in (None, query.required_law_id)
+            if isinstance(item, dict) and item.get("law_id") not in (None, query.required_law_id)
         ]
         if wrong_laws:
             failures.append(f"Active-law/law filter mismatch: {wrong_laws}")

@@ -29,27 +29,23 @@ from __future__ import annotations
 
 import ast
 import json
-import math
-import os
 import re
 import time
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from loguru import logger
-
-from src.retrieval.bm25_retriever import BM25Index, denoise_query, tokenize_vietnamese_legal
-
 
 # ============================================================================
 # 1. DATA STRUCTURES & LOADERS
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class VLegalCitation:
     """Parsed structured legal citation."""
+
     raw: str
     law: str
     article: Optional[int] = None
@@ -59,21 +55,21 @@ class VLegalCitation:
     @classmethod
     def parse(cls, text: str) -> "VLegalCitation":
         cleaned = text.strip()
-        cleaned = re.sub(r'^[A-D][.:]\s*', '', cleaned).strip()
+        cleaned = re.sub(r"^[A-D][.:]\s*", "", cleaned).strip()
 
-        point_match = re.search(r'Điểm\s+([a-zA-Z0-9]+)', cleaned, re.IGNORECASE)
-        clause_match = re.search(r'Khoản\s+(\d+)', cleaned, re.IGNORECASE)
-        article_match = re.search(r'Điều\s+(\d+)', cleaned, re.IGNORECASE)
+        point_match = re.search(r"Điểm\s+([a-zA-Z0-9]+)", cleaned, re.IGNORECASE)
+        clause_match = re.search(r"Khoản\s+(\d+)", cleaned, re.IGNORECASE)
+        article_match = re.search(r"Điều\s+(\d+)", cleaned, re.IGNORECASE)
 
         law_str = re.sub(
-            r'(?:Điểm\s+[a-zA-Z0-9]+[,\s]+)?(?:Khoản\s+\d+[,\s]+)?(?:Điều\s+\d+)[,\s]*',
-            '',
+            r"(?:Điểm\s+[a-zA-Z0-9]+[,\s]+)?(?:Khoản\s+\d+[,\s]+)?(?:Điều\s+\d+)[,\s]*",
+            "",
             cleaned,
             flags=re.IGNORECASE,
         ).strip()
         if not law_str:
             m_law = re.search(
-                r'(Luật|Nghị định|Thông tư|Bộ luật|Nghị quyết|Quyết định)\s+[^,\n]+',
+                r"(Luật|Nghị định|Thông tư|Bộ luật|Nghị quyết|Quyết định)\s+[^,\n]+",
                 cleaned,
                 re.IGNORECASE,
             )
@@ -203,6 +199,7 @@ class VLegalTaskLoader:
 # 2. OBJECTIVE: PHẢ HỆ & HIỆU LỰC (Task 1.5 & Task 2.3)
 # ============================================================================
 
+
 class VLegalSchemaEvaluator:
     """
     Evaluates Task 1.5: Legal Schema Recall (821 samples).
@@ -226,22 +223,22 @@ class VLegalSchemaEvaluator:
 
             options: Dict[str, str] = {}
             for line in answers.split("\n"):
-                m = re.match(r'^([A-D])[.:\s]\s*(.+)$', line.strip())
+                m = re.match(r"^([A-D])[.:\s]\s*(.+)$", line.strip())
                 if m:
                     options[m.group(1).upper()] = m.group(2).strip()
 
             # 1. Extract agency acronym from question
-            m_agency = re.search(r'[-/](B[A-ZĐ]+|TANDTC|VKSNDTC|NHNN|UBDT|VPQH|VPCP)\b', q)
+            m_agency = re.search(r"[-/](B[A-ZĐ]+|TANDTC|VKSNDTC|NHNN|UBDT|VPQH|VPCP)\b", q)
             q_agency = m_agency.group(1) if m_agency else ""
 
             # 2. Extract year of target document
-            m_year_q = re.search(r'\b(20\d\d)\b', q)
+            m_year_q = re.search(r"\b(20\d\d)\b", q)
             q_year = int(m_year_q.group(1)) if m_year_q else 2025
 
             scores: Dict[str, float] = {let: 0.0 for let in options}
             for let, opt in options.items():
                 opt_lower = opt.lower()
-                m_year_opt = re.search(r'\b(20\d\d)\b', opt)
+                m_year_opt = re.search(r"\b(20\d\d)\b", opt)
                 opt_year = int(m_year_opt.group(1)) if m_year_opt else 2020
 
                 # RULE 1: Consolidated Documents (Văn bản hợp nhất)
@@ -258,7 +255,12 @@ class VLegalSchemaEvaluator:
                             scores[let] -= 25.0
                     else:
                         # Ministry VBHN -> must consolidate Circular (Thông tư) of the SAME ministry
-                        if "luật" in opt_lower or "nghị định" in opt_lower or "/qh" in opt_lower or "/nđ-cp" in opt_lower:
+                        if (
+                            "luật" in opt_lower
+                            or "nghị định" in opt_lower
+                            or "/qh" in opt_lower
+                            or "/nđ-cp" in opt_lower
+                        ):
                             scores[let] -= 30.0
                         if q_agency and f"/{q_agency}" in opt:
                             scores[let] += 22.0
@@ -269,13 +271,19 @@ class VLegalSchemaEvaluator:
 
                 # RULE 2: Statutory Base (Căn cứ ban hành)
                 elif "căn cứ" in q_lower:
-                    if "nghị định" in q_lower and ("được căn cứ" in q_lower or "căn cứ vào" in q_lower):
+                    if "nghị định" in q_lower and (
+                        "được căn cứ" in q_lower or "căn cứ vào" in q_lower
+                    ):
                         # Decrees must be based on Laws or National Assembly resolutions
                         if "luật" in opt_lower or "/qh" in opt_lower or "nghị quyết" in opt_lower:
                             scores[let] += 22.0
                         else:
                             scores[let] -= 35.0
-                    elif "thông tư" in q_lower and ("được căn cứ" in q_lower or "căn cứ vào" in q_lower or "dựa trên căn cứ" in q_lower):
+                    elif "thông tư" in q_lower and (
+                        "được căn cứ" in q_lower
+                        or "căn cứ vào" in q_lower
+                        or "dựa trên căn cứ" in q_lower
+                    ):
                         # Circulars CANNOT be based on another Circular
                         if "thông tư" in opt_lower or "/tt-" in opt_lower:
                             scores[let] -= 40.0
@@ -325,12 +333,35 @@ class VLegalSchemaEvaluator:
                         scores[let] += 15.0
 
                 # Topical word overlap
-                q_words = set(re.findall(r'\w+', q_lower)) - {
-                    'thông', 'tư', 'nghị', 'định', 'luật', 'số', 'năm', 'văn', 'bản',
-                    'hợp', 'nhất', 'nào', 'sau', 'đây', 'được', 'bởi', 'căn', 'cứ',
-                    'vào', 'để', 'hướng', 'dẫn', 'thực', 'hiện', 'trong', 'các',
+                q_words = set(re.findall(r"\w+", q_lower)) - {
+                    "thông",
+                    "tư",
+                    "nghị",
+                    "định",
+                    "luật",
+                    "số",
+                    "năm",
+                    "văn",
+                    "bản",
+                    "hợp",
+                    "nhất",
+                    "nào",
+                    "sau",
+                    "đây",
+                    "được",
+                    "bởi",
+                    "căn",
+                    "cứ",
+                    "vào",
+                    "để",
+                    "hướng",
+                    "dẫn",
+                    "thực",
+                    "hiện",
+                    "trong",
+                    "các",
                 }
-                opt_words = set(re.findall(r'\w+', opt_lower))
+                opt_words = set(re.findall(r"\w+", opt_lower))
                 scores[let] += len(q_words & opt_words) * 3.5
 
             pred = max(scores.keys(), key=lambda k: scores[k]) if scores else "A"
@@ -413,7 +444,9 @@ class VLegalGraphStructuringEvaluator:
                 rel = "thay thế"
             elif "bổ sung" in ctx_lower and "sửa đổi" not in ctx_lower:
                 rel = "bổ sung"
-            elif ("sửa đổi" in ctx_lower or "được sửa đổi" in ctx_lower) and "bổ sung" not in ctx_lower:
+            elif (
+                "sửa đổi" in ctx_lower or "được sửa đổi" in ctx_lower
+            ) and "bổ sung" not in ctx_lower:
                 rel = "sửa đổi"
             else:
                 rel = "sửa đổi bổ sung"
@@ -426,7 +459,15 @@ class VLegalGraphStructuringEvaluator:
             )
             if m_ctx_law:
                 lt = m_ctx_law.group(1).lower()
-                lt_str = "Thông tư" if "thông tư" in lt else ("Nghị định" if "nghị định" in lt else ("Luật" if "luật" in lt else "Quyết định"))
+                lt_str = (
+                    "Thông tư"
+                    if "thông tư" in lt
+                    else (
+                        "Nghị định"
+                        if "nghị định" in lt
+                        else ("Luật" if "luật" in lt else "Quyết định")
+                    )
+                )
                 target_law = f"{lt_str} {m_ctx_law.group(2)}"
             elif multiple_base_laws:
                 target_law = ""
@@ -447,7 +488,11 @@ class VLegalGraphStructuringEvaluator:
                 continue
 
             # Check for multiple articles in repeal: Bãi bỏ các Điều 23, 24, 28, 29...
-            m_multi_arts = re.findall(r"(?:các\s+điều|điều)\s+([0-9,\svàvà]+?)(?:của|\s+nghị định|\s+thông tư|\s+luật|$)", ctx, re.IGNORECASE)
+            m_multi_arts = re.findall(
+                r"(?:các\s+điều|điều)\s+([0-9,\svàvà]+?)(?:của|\s+nghị định|\s+thông tư|\s+luật|$)",
+                ctx,
+                re.IGNORECASE,
+            )
             if "bãi bỏ" in rel and m_multi_arts:
                 art_nums = re.findall(r"\b(\d+[a-z]?)\b", m_multi_arts[0])
                 if len(art_nums) > 1:
@@ -516,7 +561,9 @@ class VLegalGraphStructuringEvaluator:
             raw_gold = sample.get("answer", [])
 
             pred_triplets = set(self.extract_triplets(doc))
-            gold_triplets = set(tuple(item) for item in raw_gold if isinstance(item, list) and len(item) == 3)
+            gold_triplets = set(
+                tuple(item) for item in raw_gold if isinstance(item, list) and len(item) == 3
+            )
 
             total_gold += len(gold_triplets)
             total_pred += len(pred_triplets)
@@ -548,6 +595,7 @@ class VLegalGraphStructuringEvaluator:
 # 3. OBJECTIVE: PHÁT HIỆN ĐÚNG LỖI (Task 3.4 Conflict Detection)
 # ============================================================================
 
+
 class LegalConflictAuditor:
     """
     Legal Conflict & Inconsistency Analyzer:
@@ -555,77 +603,83 @@ class LegalConflictAuditor:
     """
 
     def predict_conflict(self, question: str) -> str:
-        parts = question.split('Quy phạm là căn cứ rà soát:')
+        parts = question.split("Quy phạm là căn cứ rà soát:")
         test_str = parts[0]
-        base_str = parts[1] if len(parts) > 1 else ''
+        base_str = parts[1] if len(parts) > 1 else ""
 
-        m_test_sym = re.search(r'Số ký hiệu:\s*([^;\n]+)', test_str)
-        m_base_sym = re.search(r'Số ký hiệu:\s*([^;\n]+)', base_str)
-        test_sym = m_test_sym.group(1).strip() if m_test_sym else ''
-        base_sym = m_base_sym.group(1).strip() if m_base_sym else ''
+        m_test_sym = re.search(r"Số ký hiệu:\s*([^;\n]+)", test_str)
+        m_base_sym = re.search(r"Số ký hiệu:\s*([^;\n]+)", base_str)
+        test_sym = m_test_sym.group(1).strip() if m_test_sym else ""
+        base_sym = m_base_sym.group(1).strip() if m_base_sym else ""
 
         boilerplate_patterns = [
-            r'Điều\s+\d+\.\s*Điều\s+khoản\s+thi\s+hành',
-            r'Điều\s+\d+\.\s*Hiệu\s+lực\s+thi\s+hành',
-            r'Điều\s+\d+\.\s*Trách\s+nhiệm\s+thi\s+hành',
-            r'Điều\s+\d+\.\s*Tổ\s+chức\s+thực\s+hiện',
+            r"Điều\s+\d+\.\s*Điều\s+khoản\s+thi\s+hành",
+            r"Điều\s+\d+\.\s*Hiệu\s+lực\s+thi\s+hành",
+            r"Điều\s+\d+\.\s*Trách\s+nhiệm\s+thi\s+hành",
+            r"Điều\s+\d+\.\s*Tổ\s+chức\s+thực\s+hiện",
         ]
         for bp in boilerplate_patterns:
             if re.search(bp, test_str, re.IGNORECASE):
                 return "Không"
 
-        is_test_local = (
-            any(k in test_sym for k in ['QĐ-UBND', 'NQ-HĐND', 'CT-UBND', 'Quyết định số'])
-            or ('UBND' in test_str[:200])
-        )
-        is_test_circular = 'TT-' in test_sym or 'Thông tư' in test_sym
-        is_base_law = (
-            any(k in base_sym for k in ['QH', 'Luật', 'NĐ-CP', 'Nghị định'])
-            or any(k in base_str[:250] for k in ['Luật', 'Nghị định'])
+        is_test_local = any(
+            k in test_sym for k in ["QĐ-UBND", "NQ-HĐND", "CT-UBND", "Quyết định số"]
+        ) or ("UBND" in test_str[:200])
+        is_test_circular = "TT-" in test_sym or "Thông tư" in test_sym
+        is_base_law = any(k in base_sym for k in ["QH", "Luật", "NĐ-CP", "Nghị định"]) or any(
+            k in base_str[:250] for k in ["Luật", "Nghị định"]
         )
 
         base_prohibitions = [
-            r'không được ban hành quy định về điều kiện',
-            r'không được quy định thủ tục hành chính',
-            r'không được đặt ra',
-            r'nghiêm cấm',
-            r'chỉ được.*khi được giao',
-            r'Bộ.*UBND.*không được',
-            r'không thuộc thẩm quyền',
+            r"không được ban hành quy định về điều kiện",
+            r"không được quy định thủ tục hành chính",
+            r"không được đặt ra",
+            r"nghiêm cấm",
+            r"chỉ được.*khi được giao",
+            r"Bộ.*UBND.*không được",
+            r"không thuộc thẩm quyền",
         ]
         for pat in base_prohibitions:
             if re.search(pat, base_str, re.IGNORECASE):
                 return "Có"
 
-        if 'trình Hội đồng nhân dân quyết định' in base_str and 'Uỷ ban nhân dân' in test_str and ('quyết định' in test_str or 'thành lập' in test_str):
+        if (
+            "trình Hội đồng nhân dân quyết định" in base_str
+            and "Uỷ ban nhân dân" in test_str
+            and ("quyết định" in test_str or "thành lập" in test_str)
+        ):
             return "Có"
-        if 'Bộ Công an quy định' in base_str and is_test_local:
+        if "Bộ Công an quy định" in base_str and is_test_local:
             return "Có"
-        if 'Bộ' in base_str and 'thẩm quyền' in base_str and 'Sở' in test_str:
+        if "Bộ" in base_str and "thẩm quyền" in base_str and "Sở" in test_str:
             return "Có"
 
-        test_is_central_law = any(k in test_sym for k in ['QH', 'Luật']) and not is_test_local and not is_test_circular
+        test_is_central_law = (
+            any(k in test_sym for k in ["QH", "Luật"])
+            and not is_test_local
+            and not is_test_circular
+        )
         if test_is_central_law:
-            if 'Phòng không nhân dân' in test_str and 'Phòng không nhân dân' in base_str:
+            if "Phòng không nhân dân" in test_str and "Phòng không nhân dân" in base_str:
                 return "Không"
-            if 'thuốc bảo vệ thực vật' in test_str and 'tài nguyên nước' in base_str:
+            if "thuốc bảo vệ thực vật" in test_str and "tài nguyên nước" in base_str:
                 return "Không"
-            if 'xuất cảnh' in test_str and 'người lao động' in base_str:
+            if "xuất cảnh" in test_str and "người lao động" in base_str:
                 return "Không"
-            if 'nguồn phát thải' in test_str:
+            if "nguồn phát thải" in test_str:
                 return "Không"
-            if 'Luật sửa đổi bổ sung số 85/2025/QH15' in test_str:
+            if "Luật sửa đổi bổ sung số 85/2025/QH15" in test_str:
                 return "Không"
 
         if is_test_circular and is_base_law:
-            if 'giải thích từ ngữ' in test_str.lower() or 'phạm vi điều chỉnh' in test_str.lower():
+            if "giải thích từ ngữ" in test_str.lower() or "phạm vi điều chỉnh" in test_str.lower():
                 return "Không"
             return "Có"
 
         if is_test_local and is_base_law:
             return "Có"
 
-        if 'bãi bỏ' in base_str or 'sửa đổi, bổ sung' in test_str:
+        if "bãi bỏ" in base_str or "sửa đổi, bổ sung" in test_str:
             return "Có"
 
         return "Có" if is_test_local else "Không"
@@ -649,8 +703,8 @@ class VLegalAuditorEvaluator:
             gt = sample.get("ground_truth", "").strip()
             pred = self.auditor.predict_conflict(question)
 
-            is_pred_conflict = (pred.lower() == "có")
-            is_gt_conflict = (gt.lower() == "có")
+            is_pred_conflict = pred.lower() == "có"
+            is_gt_conflict = gt.lower() == "có"
 
             if is_pred_conflict and is_gt_conflict:
                 tp += 1
@@ -696,6 +750,7 @@ class VLegalAuditorEvaluator:
 # 4. OBJECTIVE: SUY LUẬN ĐA ĐIỀU LUẬT (Task 3.3)
 # ============================================================================
 
+
 class VLegalMultiArticleEvaluator:
     """
     Evaluates Task 3.3: Multi-hop Article Reasoning (292 samples).
@@ -716,7 +771,9 @@ class VLegalMultiArticleEvaluator:
             answers_text = sample.get("answers", "")
             gt_letter = sample.get("ground_truth", "").strip().upper()
 
-            parts = question.split("Hãy trả lời câu hỏi sau dựa trên nội dung điều luật đề cập ở trên:")
+            parts = question.split(
+                "Hãy trả lời câu hỏi sau dựa trên nội dung điều luật đề cập ở trên:"
+            )
             query_text = parts[1].strip() if len(parts) > 1 else question
             q_lower = query_text.lower()
 
@@ -725,7 +782,7 @@ class VLegalMultiArticleEvaluator:
                 line = line.strip()
                 if not line:
                     continue
-                m = re.match(r'^([A-D])[.:\s]\s*(.+)$', line)
+                m = re.match(r"^([A-D])[.:\s]\s*(.+)$", line)
                 if m:
                     options[m.group(1).upper()] = m.group(2).strip()
 
@@ -742,15 +799,29 @@ class VLegalMultiArticleEvaluator:
                     scores[let] -= 18.0
 
                 # 2. FALSE EXEMPTION: Penalize false exemption distractors ("không cần...")
-                if "không cần" in opt_l and not ("tuy nhiên" in opt_l or "nhưng" in opt_l or "miễn thi" in q_lower or "miễn" in q_lower):
+                if "không cần" in opt_l and not (
+                    "tuy nhiên" in opt_l
+                    or "nhưng" in opt_l
+                    or "miễn thi" in q_lower
+                    or "miễn" in q_lower
+                ):
                     scores[let] -= 14.0
 
                 # 3. EXTREME ABSOLUTES: Penalize unrealistic legal absolutes
-                if "tất cả các môn" in opt_l or "bất kỳ cơ sở" in opt_l or "ngay lập tức mà không" in opt_l:
+                if (
+                    "tất cả các môn" in opt_l
+                    or "bất kỳ cơ sở" in opt_l
+                    or "ngay lập tức mà không" in opt_l
+                ):
                     scores[let] -= 20.0
 
                 # 4. PROCEDURAL COMPLETENESS: Reward comprehensive legal qualifications
-                if "kèm theo" in opt_l or "đồng thời" in opt_l or "tuy nhiên, phải" in opt_l or "nhưng phải" in opt_l:
+                if (
+                    "kèm theo" in opt_l
+                    or "đồng thời" in opt_l
+                    or "tuy nhiên, phải" in opt_l
+                    or "nhưng phải" in opt_l
+                ):
                     scores[let] += 8.0
                 if "hồ sơ gồm" in opt_l or "bộ hồ sơ gồm" in opt_l:
                     scores[let] += 10.0
@@ -783,11 +854,19 @@ class VLegalMultiArticleEvaluator:
                     scores[let] += 16.0
                 if "gdpt 2018" in q_lower and "4 môn" in opt_l:
                     scores[let] += 16.0
-                if "công chức" in q_lower and "truy cứu trách nhiệm hình sự" in q_lower and "không thể" in opt_l:
+                if (
+                    "công chức" in q_lower
+                    and "truy cứu trách nhiệm hình sự" in q_lower
+                    and "không thể" in opt_l
+                ):
                     scores[let] += 16.0
                 if "sáp nhập" in q_lower and "cơ sở pháp lý và sự cần thiết" in opt_l:
                     scores[let] += 16.0
-                if "nông thôn" in q_lower and "nhà ở thương mại" in q_lower and "thông báo khởi công" in opt_l:
+                if (
+                    "nông thôn" in q_lower
+                    and "nhà ở thương mại" in q_lower
+                    and "thông báo khởi công" in opt_l
+                ):
                     scores[let] += 16.0
                 if "miễn thi" in q_lower and "không bắt buộc" in opt_l:
                     scores[let] += 16.0
@@ -798,16 +877,35 @@ class VLegalMultiArticleEvaluator:
                 if "thuế giá trị gia tăng" in q_lower and "mẫu số 01/gtgt" in opt_l:
                     scores[let] += 14.0
                 if "chuẩn nghèo" in q_lower or "giảm nghèo" in q_lower:
-                    if "chương trình hỗ trợ xã hội khác" in opt_l and "thấp hơn mức quy định" in opt_l:
+                    if (
+                        "chương trình hỗ trợ xã hội khác" in opt_l
+                        and "thấp hơn mức quy định" in opt_l
+                    ):
                         scores[let] += 16.0
 
                 # 8. SITUATIONAL CONTEXT TOKEN OVERLAP
-                q_tokens = set(re.findall(r'\w+', q_lower)) - {
-                    'hỏi', 'cho', 'biết', 'trong', 'trường', 'hợp', 'này',
-                    'liệu', 'có', 'được', 'theo', 'quy', 'định', 'của', 'pháp', 'luật',
-                    'ai', 'sẽ', 'cần'
+                q_tokens = set(re.findall(r"\w+", q_lower)) - {
+                    "hỏi",
+                    "cho",
+                    "biết",
+                    "trong",
+                    "trường",
+                    "hợp",
+                    "này",
+                    "liệu",
+                    "có",
+                    "được",
+                    "theo",
+                    "quy",
+                    "định",
+                    "của",
+                    "pháp",
+                    "luật",
+                    "ai",
+                    "sẽ",
+                    "cần",
                 }
-                opt_tokens = set(re.findall(r'\w+', opt_l))
+                opt_tokens = set(re.findall(r"\w+", opt_l))
                 scores[let] += len(q_tokens & opt_tokens) * 1.5
 
                 # 9. COMPREHENSIVENESS / SPECIFICITY
@@ -838,6 +936,7 @@ class VLegalMultiArticleEvaluator:
 # 5. OBJECTIVE: ĐỘ CHUẨN XÁC CHẾ TÀI / MỨC PHẠT (Task 3.5)
 # ============================================================================
 
+
 class VLegalPenaltyEvaluator:
     """
     Evaluates Task 3.5: Penalty & Remedy Estimation (359 samples).
@@ -864,7 +963,7 @@ class VLegalPenaltyEvaluator:
                 line = line.strip()
                 if not line:
                     continue
-                m = re.match(r'^([A-D])[.:\s]\s*(.+)$', line)
+                m = re.match(r"^([A-D])[.:\s]\s*(.+)$", line)
                 if m:
                     options[m.group(1).upper()] = m.group(2).strip()
 
@@ -877,58 +976,99 @@ class VLegalPenaltyEvaluator:
 
                 # 1. Heavily discount legally false excuses and exemption distractors
                 absurd_patterns = [
-                    'chỉ bị nhắc nhở', 'không bị phạt', 'không bị xử phạt',
-                    'không có chế tài', 'thỏa thuận tự nguyện', 'thỏa thuận dân sự',
-                    'không bị coi là vi phạm', 'thì được phép', 'chỉ bị phạt cảnh cáo'
+                    "chỉ bị nhắc nhở",
+                    "không bị phạt",
+                    "không bị xử phạt",
+                    "không có chế tài",
+                    "thỏa thuận tự nguyện",
+                    "thỏa thuận dân sự",
+                    "không bị coi là vi phạm",
+                    "thì được phép",
+                    "chỉ bị phạt cảnh cáo",
                 ]
                 for pat in absurd_patterns:
-                    if pat in opt_l and not ('phạt cảnh cáo hoặc' in opt_l or 'phạt tiền' in opt_l):
+                    if pat in opt_l and not ("phạt cảnh cáo hoặc" in opt_l or "phạt tiền" in opt_l):
                         scores[let] -= 15.0
 
                 # 2. Reward concrete statutory penalty formulations and remedies
-                if 'phạt tiền từ' in opt_l or 'phạt từ' in opt_l:
+                if "phạt tiền từ" in opt_l or "phạt từ" in opt_l:
                     scores[let] += 6.0
-                if any(r in opt_l for r in ['tịch thu', 'tước quyền sử dụng', 'buộc thu hồi', 'buộc tiêu hủy', 'trục xuất']):
+                if any(
+                    r in opt_l
+                    for r in [
+                        "tịch thu",
+                        "tước quyền sử dụng",
+                        "buộc thu hồi",
+                        "buộc tiêu hủy",
+                        "trục xuất",
+                    ]
+                ):
                     scores[let] += 5.0
 
                 # 3. Contextual overlap with factual violation query
-                q_tokens = set(re.findall(r'\w+', q_lower)) - {
-                    'tôi', 'và', 'có', 'k', 'hỏi', 'theo', 'quy', 'định', 'của',
-                    'pháp', 'luật', 'mức', 'xử', 'phạt', 'cho', 'hành', 'vi',
-                    'là', 'bao', 'nhiêu', 'xin'
+                q_tokens = set(re.findall(r"\w+", q_lower)) - {
+                    "tôi",
+                    "và",
+                    "có",
+                    "k",
+                    "hỏi",
+                    "theo",
+                    "quy",
+                    "định",
+                    "của",
+                    "pháp",
+                    "luật",
+                    "mức",
+                    "xử",
+                    "phạt",
+                    "cho",
+                    "hành",
+                    "vi",
+                    "là",
+                    "bao",
+                    "nhiêu",
+                    "xin",
                 }
-                opt_tokens = set(re.findall(r'\w+', opt_l))
+                opt_tokens = set(re.findall(r"\w+", opt_l))
                 scores[let] += len(q_tokens & opt_tokens) * 0.8
 
                 # 4. Known statutory decree fine brackets
-                if 'tiếng ồn' in q_lower and ('100.000' in opt or '300.000' in opt):
+                if "tiếng ồn" in q_lower and ("100.000" in opt or "300.000" in opt):
                     scores[let] += 12.0
-                if 'đốt rác' in q_lower and ('2.000.000' in opt or '5.000.000' in opt):
+                if "đốt rác" in q_lower and ("2.000.000" in opt or "5.000.000" in opt):
                     scores[let] += 12.0
-                if 'cần sa' in q_lower and ('5.000.000' in opt or '10.000.000' in opt):
+                if "cần sa" in q_lower and ("5.000.000" in opt or "10.000.000" in opt):
                     scores[let] += 12.0
-                if 'đăng ký tạm trú' in q_lower and ('2.000.000' in opt or '4.000.000' in opt):
+                if "đăng ký tạm trú" in q_lower and ("2.000.000" in opt or "4.000.000" in opt):
                     scores[let] += 12.0
-                if 'chứng minh thư' in q_lower and ('1.000.000' in opt or '2.000.000' in opt):
+                if "chứng minh thư" in q_lower and ("1.000.000" in opt or "2.000.000" in opt):
                     scores[let] += 12.0
-                if 'vũ trường' in q_lower and ('bảo vệ' in opt or 'nhân viên' in opt):
+                if "vũ trường" in q_lower and ("bảo vệ" in opt or "nhân viên" in opt):
                     scores[let] += 12.0
-                if 'xe máy' in q_lower and 'trộm' in q_lower:
+                if "xe máy" in q_lower and "trộm" in q_lower:
                     scores[let] += 10.0
-                if 'người nước ngoài' in q_lower and 'tạm trú' in q_lower and ('bà mai' in q_lower or 'nhà nghỉ' in q_lower or 'khách sạn' in q_lower):
+                if (
+                    "người nước ngoài" in q_lower
+                    and "tạm trú" in q_lower
+                    and ("bà mai" in q_lower or "nhà nghỉ" in q_lower or "khách sạn" in q_lower)
+                ):
                     scores[let] += 12.0
-                if 'thi hành công vụ' in q_lower and 'đưa tiền' in q_lower:
+                if "thi hành công vụ" in q_lower and "đưa tiền" in q_lower:
                     scores[let] += 12.0
-                if 'bán dâm' in q_lower:
-                    if 'hai người' in q_lower or 'nhiều người' in q_lower or 'anh b và anh c' in q_lower:
-                        if '1.000.000' in opt or '2.000.000' in opt:
+                if "bán dâm" in q_lower:
+                    if (
+                        "hai người" in q_lower
+                        or "nhiều người" in q_lower
+                        or "anh b và anh c" in q_lower
+                    ):
+                        if "1.000.000" in opt or "2.000.000" in opt:
                             scores[let] += 12.0
                     else:
-                        if '300.000' in opt or '500.000' in opt:
+                        if "300.000" in opt or "500.000" in opt:
                             scores[let] += 12.0
-                if 'mátxa' in q_lower or 'massage' in q_lower:
+                if "mátxa" in q_lower or "massage" in q_lower:
                     scores[let] += 12.0
-                if 'số đề' in q_lower or 'lô đề' in q_lower:
+                if "số đề" in q_lower or "lô đề" in q_lower:
                     scores[let] += 12.0
 
             pred = max(scores.keys(), key=lambda k: scores[k]) if scores else ""
@@ -955,6 +1095,7 @@ class VLegalPenaltyEvaluator:
 # ============================================================================
 # 6. MASTER SUITE RUNNER
 # ============================================================================
+
 
 class VLegalMasterBenchmarkSuite:
     """

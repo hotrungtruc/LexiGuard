@@ -8,22 +8,19 @@ Verifies:
 4. Fast-path and retriever-level automatic filtering of repealed statutes.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import (
-    Distance,
-    PointStruct,
     SparseVector,
-    VectorParams,
 )
 
 from src.core.schemas import LegalChunk
+from src.retrieval.hybrid_retriever import HybridLegalRetriever, LegalCrossEncoderReranker
 from src.retrieval.lifecycle_manager import LegalLifecycleManager
 from src.retrieval.neo4j_store import Neo4jStore
 from src.retrieval.qdrant_store import QdrantStore
-from src.retrieval.hybrid_retriever import HybridLegalRetriever, LegalCrossEncoderReranker
 
 
 @pytest.mark.asyncio
@@ -46,8 +43,12 @@ async def test_lifecycle_manager_deactivate_and_activate():
     assert res_deact["is_active"] is False
     assert res_deact["qdrant_updated"] is True
     assert res_deact["neo4j_nodes_updated"] == 128
-    mock_qdrant.update_statute_active_status_async.assert_called_once_with("bo-luat-dan-su-2005", False)
-    mock_neo4j.update_statute_active_status_async.assert_called_once_with("bo-luat-dan-su-2005", False)
+    mock_qdrant.update_statute_active_status_async.assert_called_once_with(
+        "bo-luat-dan-su-2005", False
+    )
+    mock_neo4j.update_statute_active_status_async.assert_called_once_with(
+        "bo-luat-dan-su-2005", False
+    )
 
     # 2. Activate statute
     res_act = await manager.activate_statute_async("bo-luat-dan-su-2015")
@@ -172,40 +173,44 @@ async def test_neo4j_cypher_active_only_filtering():
 async def test_hybrid_retriever_active_only_filters_repealed_provisions():
     """Verify HybridLegalRetriever filters out inactive provisions during end-to-end retrieval."""
     mock_qdrant = MagicMock()
-    mock_qdrant.hybrid_search_async = AsyncMock(return_value=[
-        {
-            "chunk_id": "VN_BLDS_2015_D357",
-            "neo4j_node_id": "VN_BLDS_2015_D357",
-            "canonical_citation": "Điều 357 BLDS 2015",
-            "content": "Nội dung Điều 357",
-            "is_active": True,
-        }
-    ])
+    mock_qdrant.hybrid_search_async = AsyncMock(
+        return_value=[
+            {
+                "chunk_id": "VN_BLDS_2015_D357",
+                "neo4j_node_id": "VN_BLDS_2015_D357",
+                "canonical_citation": "Điều 357 BLDS 2015",
+                "content": "Nội dung Điều 357",
+                "is_active": True,
+            }
+        ]
+    )
 
     mock_neo4j = MagicMock()
-    mock_neo4j.expand_referenced_articles_async = AsyncMock(return_value={
-        "root_id": "VN_BLDS_2015_D357",
-        "root_ids": ["VN_BLDS_2015_D357"],
-        "root_entities": {
-            "VN_BLDS_2015_D357": {
-                "node_id": "VN_BLDS_2015_D357",
-                "name": "Điều 357",
-                "content": "Nội dung",
-                "is_active": True,
-            }
-        },
-        "total_referenced": 1,
-        "referenced_articles": [
-            {
-                "node_id": "VN_BLDS_2015_D468",
-                "name": "Điều 468",
-                "title": "Lãi suất",
-                "content": "Lãi suất vay...",
-                "is_active": True,
-                "precedents": [],
-            }
-        ],
-    })
+    mock_neo4j.expand_referenced_articles_async = AsyncMock(
+        return_value={
+            "root_id": "VN_BLDS_2015_D357",
+            "root_ids": ["VN_BLDS_2015_D357"],
+            "root_entities": {
+                "VN_BLDS_2015_D357": {
+                    "node_id": "VN_BLDS_2015_D357",
+                    "name": "Điều 357",
+                    "content": "Nội dung",
+                    "is_active": True,
+                }
+            },
+            "total_referenced": 1,
+            "referenced_articles": [
+                {
+                    "node_id": "VN_BLDS_2015_D468",
+                    "name": "Điều 468",
+                    "title": "Lãi suất",
+                    "content": "Lãi suất vay...",
+                    "is_active": True,
+                    "precedents": [],
+                }
+            ],
+        }
+    )
 
     reranker = LegalCrossEncoderReranker(custom_rerank_fn=lambda q, texts: [0.9] * len(texts))
     retriever = HybridLegalRetriever(

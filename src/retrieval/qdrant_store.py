@@ -7,11 +7,10 @@ Utilizes FastEmbed (Qdrant's lightweight ONNX-optimized embedding library):
 - Core Engine Hybrid Search: Prefetch(dense) + Prefetch(sparse) + FusionQuery(Fusion.RRF)
 """
 
-import asyncio
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
+
 from loguru import logger
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.http import models as rest_models
 from qdrant_client.models import (
     Distance,
     FieldCondition,
@@ -28,7 +27,7 @@ from qdrant_client.models import (
     VectorParams,
 )
 
-from src.core.config import get_async_qdrant_client, settings, run_coroutine_sync
+from src.core.config import get_async_qdrant_client, run_coroutine_sync, settings
 from src.core.schemas import (
     DENSE_VECTOR_DIM,
     DENSE_VECTOR_NAME,
@@ -61,6 +60,7 @@ class FastEmbedHybridPipeline:
         """Lazy load fastembed SparseTextEmbedding for BM25."""
         if self._sparse_model is None:
             from fastembed import SparseTextEmbedding
+
             logger.info(f"Loading ONNX SparseTextEmbedding: {self.sparse_model_name}")
             self._sparse_model = SparseTextEmbedding(model_name=self.sparse_model_name)
         return self._sparse_model
@@ -70,6 +70,7 @@ class FastEmbedHybridPipeline:
         """Lazy load dense embedding model."""
         if self._dense_model is None:
             from fastembed import TextEmbedding
+
             supported = [m["model"] for m in TextEmbedding.list_supported_models()]
             if self.dense_model_name in supported:
                 logger.info(f"Loading ONNX TextEmbedding: {self.dense_model_name}")
@@ -78,10 +79,12 @@ class FastEmbedHybridPipeline:
                 # Try loading via SentenceTransformer with safetensors support
                 try:
                     from sentence_transformers import SentenceTransformer
-                    logger.info(f"Loading SentenceTransformer: {self.dense_model_name} (use_safetensors=True)")
+
+                    logger.info(
+                        f"Loading SentenceTransformer: {self.dense_model_name} (use_safetensors=True)"
+                    )
                     self._dense_model = SentenceTransformer(
-                        self.dense_model_name,
-                        model_kwargs={"use_safetensors": True}
+                        self.dense_model_name, model_kwargs={"use_safetensors": True}
                     )
                 except Exception as exc:
                     fallback_model = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
@@ -96,8 +99,12 @@ class FastEmbedHybridPipeline:
         """Generate a SparseVector (indices and values) using fastembed BM25."""
         raw_sparse = list(self.sparse_model.embed([text]))[0]
         return SparseVector(
-            indices=raw_sparse.indices.tolist() if hasattr(raw_sparse.indices, "tolist") else list(raw_sparse.indices),
-            values=raw_sparse.values.tolist() if hasattr(raw_sparse.values, "tolist") else list(raw_sparse.values),
+            indices=raw_sparse.indices.tolist()
+            if hasattr(raw_sparse.indices, "tolist")
+            else list(raw_sparse.indices),
+            values=raw_sparse.values.tolist()
+            if hasattr(raw_sparse.values, "tolist")
+            else list(raw_sparse.values),
         )
 
     def embed_sparse_batch(self, texts: List[str]) -> List[SparseVector]:
@@ -109,8 +116,12 @@ class FastEmbedHybridPipeline:
         for raw in raw_list:
             sparse_vectors.append(
                 SparseVector(
-                    indices=raw.indices.tolist() if hasattr(raw.indices, "tolist") else list(raw.indices),
-                    values=raw.values.tolist() if hasattr(raw.values, "tolist") else list(raw.values),
+                    indices=raw.indices.tolist()
+                    if hasattr(raw.indices, "tolist")
+                    else list(raw.indices),
+                    values=raw.values.tolist()
+                    if hasattr(raw.values, "tolist")
+                    else list(raw.values),
                 )
             )
         return sparse_vectors
@@ -156,10 +167,14 @@ class QdrantStore:
         collection_name: Optional[str] = None,
         pipeline: Optional[FastEmbedHybridPipeline] = None,
     ):
-        self.collection_name = collection_name or settings.QDRANT_COLLECTION or QDRANT_COLLECTION_NAME
+        self.collection_name = (
+            collection_name or settings.QDRANT_COLLECTION or QDRANT_COLLECTION_NAME
+        )
         self.client: AsyncQdrantClient = client or get_async_qdrant_client()
         self.pipeline: FastEmbedHybridPipeline = pipeline or FastEmbedHybridPipeline()
-        logger.info(f"Initialized QdrantStore for collection '{self.collection_name}' with AsyncQdrantClient.")
+        logger.info(
+            f"Initialized QdrantStore for collection '{self.collection_name}' with AsyncQdrantClient."
+        )
 
     async def ensure_collection_exists(self, dense_dim: int = DENSE_VECTOR_DIM) -> bool:
         """
@@ -174,7 +189,9 @@ class QdrantStore:
                 await self.ensure_payload_indices()
                 return True
 
-            logger.info(f"Creating hybrid collection '{self.collection_name}' (Dense: {dense_dim}d, Sparse: BM25)...")
+            logger.info(
+                f"Creating hybrid collection '{self.collection_name}' (Dense: {dense_dim}d, Sparse: BM25)..."
+            )
             await self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config={
@@ -184,9 +201,7 @@ class QdrantStore:
                     )
                 },
                 sparse_vectors_config={
-                    SPARSE_VECTOR_NAME: SparseVectorParams(
-                        index=SparseIndexParams(on_disk=False)
-                    )
+                    SPARSE_VECTOR_NAME: SparseVectorParams(index=SparseIndexParams(on_disk=False))
                 },
             )
             logger.info(f"Successfully configured hybrid collection '{self.collection_name}'.")
@@ -219,7 +234,9 @@ class QdrantStore:
         ]
         for field_name, schema_type in index_specs:
             try:
-                if hasattr(self.client, "create_payload_index") and callable(self.client.create_payload_index):
+                if hasattr(self.client, "create_payload_index") and callable(
+                    self.client.create_payload_index
+                ):
                     await self.client.create_payload_index(
                         collection_name=self.collection_name,
                         field_name=field_name,
@@ -230,7 +247,6 @@ class QdrantStore:
             except Exception as exc:
                 # Silently bypass if already exists, unsupported in memory, or client is a mock
                 logger.debug(f"Payload index note for '{field_name}': {exc}")
-
 
     async def async_upsert_chunks(
         self,
@@ -270,12 +286,14 @@ class QdrantStore:
 
         batch_size = 100
         for i in range(0, len(points), batch_size):
-            batch = points[i:i + batch_size]
+            batch = points[i : i + batch_size]
             await self.client.upsert(
                 collection_name=self.collection_name,
                 points=batch,
             )
-        logger.info(f"Successfully upserted {len(points)} chunks in {len(points)//batch_size + 1} batches into Qdrant collection '{self.collection_name}'.")
+        logger.info(
+            f"Successfully upserted {len(points)} chunks in {len(points) // batch_size + 1} batches into Qdrant collection '{self.collection_name}'."
+        )
         return len(points)
 
     async def async_upsert_entities(
@@ -310,7 +328,9 @@ class QdrantStore:
             collection_name=self.collection_name,
             points=points,
         )
-        logger.info(f"Upserted {len(points)} entities into Qdrant collection '{self.collection_name}'.")
+        logger.info(
+            f"Upserted {len(points)} entities into Qdrant collection '{self.collection_name}'."
+        )
         return len(points)
 
     async def hybrid_search_async(
@@ -330,7 +350,9 @@ class QdrantStore:
         3. Reciprocal Rank Fusion: FusionQuery(Fusion.RRF) combines both ranking spaces.
         4. When active_only=True, automatically filters out repealed statutory provisions (is_active=False).
         """
-        logger.info(f"Executing Qdrant hybrid search for query: '{query[:60]}...' (top_k={top_k}, active_only={active_only})")
+        logger.info(
+            f"Executing Qdrant hybrid search for query: '{query[:60]}...' (top_k={top_k}, active_only={active_only})"
+        )
 
         # Compute embeddings if not supplied
         if dense_vector is None:
@@ -347,7 +369,9 @@ class QdrantStore:
             else:
                 existing_must_not = list(effective_filter.must_not or [])
                 existing_must_not.append(inactive_condition)
-                effective_filter = effective_filter.model_copy(update={"must_not": existing_must_not})
+                effective_filter = effective_filter.model_copy(
+                    update={"must_not": existing_must_not}
+                )
 
         # Build dual prefetch branches
         prefetch = [
@@ -379,29 +403,35 @@ class QdrantStore:
         results: List[Dict[str, Any]] = []
         for point in response.points:
             payload = point.payload or {}
-            results.append({
-                "point_id": str(point.id),
-                "score": point.score,
-                "chunk_id": payload.get("chunk_id", ""),
-                "neo4j_node_id": payload.get("neo4j_node_id", payload.get("chunk_id", "")),
-                "neo4j_node_type": payload.get("neo4j_node_type", "Article"),
-                "canonical_citation": payload.get("canonical_citation", ""),
-                "article_title": payload.get("article_title", ""),
-                "content": payload.get("content", ""),
-                "context_enriched_text": payload.get("context_enriched_text", ""),
-                "law_title": payload.get("law_title", ""),
-                "cross_references": payload.get("cross_references", []),
-                "payload": payload,
-            })
+            results.append(
+                {
+                    "point_id": str(point.id),
+                    "score": point.score,
+                    "chunk_id": payload.get("chunk_id", ""),
+                    "neo4j_node_id": payload.get("neo4j_node_id", payload.get("chunk_id", "")),
+                    "neo4j_node_type": payload.get("neo4j_node_type", "Article"),
+                    "canonical_citation": payload.get("canonical_citation", ""),
+                    "article_title": payload.get("article_title", ""),
+                    "content": payload.get("content", ""),
+                    "context_enriched_text": payload.get("context_enriched_text", ""),
+                    "law_title": payload.get("law_title", ""),
+                    "cross_references": payload.get("cross_references", []),
+                    "payload": payload,
+                }
+            )
 
         logger.info(f"Qdrant RRF hybrid search returned {len(results)} ranked matches.")
         return results
 
-    def hybrid_search(self, query: str, top_k: int = 10, active_only: bool = True) -> List[Dict[str, Any]]:
+    def hybrid_search(
+        self, query: str, top_k: int = 10, active_only: bool = True
+    ) -> List[Dict[str, Any]]:
         """
         Synchronous wrapper for hybrid search.
         """
-        return run_coroutine_sync(self.hybrid_search_async, query, top_k=top_k, active_only=active_only)
+        return run_coroutine_sync(
+            self.hybrid_search_async, query, top_k=top_k, active_only=active_only
+        )
 
     async def update_statute_active_status_async(
         self,
@@ -426,7 +456,9 @@ class QdrantStore:
                 points=filter_spec,
                 wait=True,
             )
-            logger.info(f"Qdrant: Successfully updated is_active={is_active} for law_id='{law_id}'.")
+            logger.info(
+                f"Qdrant: Successfully updated is_active={is_active} for law_id='{law_id}'."
+            )
             return True
         except Exception as exc:
             logger.error(f"Failed to update Qdrant payload is_active for law_id='{law_id}': {exc}")
@@ -438,7 +470,9 @@ class QdrantStore:
         is_active: bool = False,
     ) -> bool:
         """Synchronous wrapper for update_statute_active_status_async."""
-        return run_coroutine_sync(self.update_statute_active_status_async, law_id=law_id, is_active=is_active)
+        return run_coroutine_sync(
+            self.update_statute_active_status_async, law_id=law_id, is_active=is_active
+        )
 
     async def update_point_active_status_async(
         self,
@@ -461,10 +495,14 @@ class QdrantStore:
                 points=filter_spec,
                 wait=True,
             )
-            logger.info(f"Qdrant: Successfully updated is_active={is_active} for node '{chunk_id_or_node_id}'.")
+            logger.info(
+                f"Qdrant: Successfully updated is_active={is_active} for node '{chunk_id_or_node_id}'."
+            )
             return True
         except Exception as exc:
-            logger.error(f"Failed to update Qdrant payload is_active for node '{chunk_id_or_node_id}': {exc}")
+            logger.error(
+                f"Failed to update Qdrant payload is_active for node '{chunk_id_or_node_id}': {exc}"
+            )
             raise
 
     def update_point_active_status(
@@ -473,7 +511,11 @@ class QdrantStore:
         is_active: bool = False,
     ) -> bool:
         """Synchronous wrapper for update_point_active_status_async."""
-        return run_coroutine_sync(self.update_point_active_status_async, chunk_id_or_node_id=chunk_id_or_node_id, is_active=is_active)
+        return run_coroutine_sync(
+            self.update_point_active_status_async,
+            chunk_id_or_node_id=chunk_id_or_node_id,
+            is_active=is_active,
+        )
 
     async def close(self) -> None:
         """Release underlying AsyncQdrantClient connection."""

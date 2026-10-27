@@ -2,19 +2,19 @@
 Audit route for contract uploads and SSE (Server-Sent Events) report streaming.
 """
 
-import asyncio
 import json
 import os
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
+from src.agents.state import AgentState
 from src.agents.workflow import lexiguard_agent
-from src.agents.state import AgentState, ContractAuditReport
 
 router = APIRouter()
 

@@ -27,9 +27,7 @@ def test_document_extraction_metrics_match_element_and_provenance():
         IngestionBenchmarkCase(
             case_id="DOC-001",
             reference_text="Article 1. Payment",
-            expected_elements=[
-                ExpectedElement("heading", "Article 1. Payment", page_no=1)
-            ],
+            expected_elements=[ExpectedElement("heading", "Article 1. Payment", page_no=1)],
         ),
         document,
     )

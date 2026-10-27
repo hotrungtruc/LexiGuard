@@ -13,12 +13,12 @@ Core Capability:
   full verbatim text and legal rules of cross-referenced statutes and applicable precedents.
 """
 
-import asyncio
 from typing import Any, Dict, List, Optional, Union
+
 from loguru import logger
 from neo4j import AsyncDriver
 
-from src.core.config import get_async_neo4j_driver, settings, run_coroutine_sync
+from src.core.config import get_async_neo4j_driver, run_coroutine_sync, settings
 from src.core.schemas import (
     GraphEdge,
     GraphNode,
@@ -35,7 +35,9 @@ class Neo4jStore:
 
     def __init__(self, driver: Optional[AsyncDriver] = None):
         self.driver: AsyncDriver = driver or get_async_neo4j_driver()
-        logger.info(f"Initialized Neo4jStore connected to {settings.NEO4J_URI} (DB: '{settings.NEO4J_DATABASE}').")
+        logger.info(
+            f"Initialized Neo4jStore connected to {settings.NEO4J_URI} (DB: '{settings.NEO4J_DATABASE}')."
+        )
 
     async def execute_write(
         self,
@@ -50,7 +52,10 @@ class Neo4jStore:
         db = database or settings.NEO4J_DATABASE
         async with self.driver.session(database=db) as session:
             from unittest.mock import Mock
-            if isinstance(session, Mock) and not getattr(session.execute_write, "_mock_side_effect", None):
+
+            if isinstance(session, Mock) and not getattr(
+                session.execute_write, "_mock_side_effect", None
+            ):
                 result = await session.run(query, parameters or {})
                 if hasattr(result, "data") and callable(result.data):
                     return await result.data()
@@ -77,7 +82,10 @@ class Neo4jStore:
         db = database or settings.NEO4J_DATABASE
         async with self.driver.session(database=db) as session:
             from unittest.mock import Mock
-            if isinstance(session, Mock) and not getattr(session.execute_read, "_mock_side_effect", None):
+
+            if isinstance(session, Mock) and not getattr(
+                session.execute_read, "_mock_side_effect", None
+            ):
                 result = await session.run(query, parameters or {})
                 if hasattr(result, "data") and callable(result.data):
                     return await result.data()
@@ -179,7 +187,9 @@ class Neo4jStore:
             f"Ingested Precedent '{precedent.precedent_number}' linked to {len(precedent.applied_statutes)} statutes."
         )
 
-    async def async_batch_ingest_graph(self, extraction_result: LegalGraphExtractionResult) -> Dict[str, int]:
+    async def async_batch_ingest_graph(
+        self, extraction_result: LegalGraphExtractionResult
+    ) -> Dict[str, int]:
         """
         Batch ingests an entire extracted legal graph (all nodes and edges).
         """
@@ -228,7 +238,9 @@ class Neo4jStore:
             else (article_or_clause_id if article_or_clause_id is not None else root_ids)
         )
         if target is None:
-            raise ValueError("article_or_clause_ids (or article_or_clause_id / root_ids) must be provided.")
+            raise ValueError(
+                "article_or_clause_ids (or article_or_clause_id / root_ids) must be provided."
+            )
 
         if isinstance(target, str):
             root_ids = [target]
@@ -291,8 +303,7 @@ class Neo4jStore:
         """
 
         records = await self.execute_read(
-            cypher_query,
-            {"root_ids": root_ids, "root_id": root_ids[0]}
+            cypher_query, {"root_ids": root_ids, "root_id": root_ids[0]}
         )
 
         start_entities: Dict[str, Dict[str, Any]] = {}
@@ -307,7 +318,9 @@ class Neo4jStore:
                     "name": rec.get("start_name"),
                     "content": rec.get("start_content"),
                     "law_id": rec.get("start_law_id"),
-                    "is_active": rec.get("start_is_active", True) if rec.get("start_is_active") is not None else True,
+                    "is_active": rec.get("start_is_active", True)
+                    if rec.get("start_is_active") is not None
+                    else True,
                 }
 
             ref_id = rec.get("referenced_id")
@@ -317,21 +330,27 @@ class Neo4jStore:
                 raw_precedents = rec.get("precedents") or []
                 clean_precedents = [p for p in raw_precedents if p.get("precedent_id") is not None]
 
-                referenced_articles.append({
-                    "node_id": ref_id,
-                    "name": rec.get("referenced_name") or ref_id,
-                    "title": rec.get("referenced_title") or "",
-                    "content": rec.get("referenced_content") or "",
-                    "citation": rec.get("referenced_citation") or "",
-                    "law_id": rec.get("referenced_law_id") or "",
-                    "is_active": rec.get("referenced_is_active", True) if rec.get("referenced_is_active") is not None else True,
-                    "entity_type": rec.get("target_labels", ["Article"])[0] if rec.get("target_labels") else "Article",
-                    "hop_distance": rec.get("hop_distance") or 1,
-                    "relationship_types": rec.get("relationship_types") or [],
-                    "relationship_citations": rec.get("relationship_citations") or [],
-                    "precedents": clean_precedents if include_precedents else [],
-                    "parent_referencing_node": start_id,
-                })
+                referenced_articles.append(
+                    {
+                        "node_id": ref_id,
+                        "name": rec.get("referenced_name") or ref_id,
+                        "title": rec.get("referenced_title") or "",
+                        "content": rec.get("referenced_content") or "",
+                        "citation": rec.get("referenced_citation") or "",
+                        "law_id": rec.get("referenced_law_id") or "",
+                        "is_active": rec.get("referenced_is_active", True)
+                        if rec.get("referenced_is_active") is not None
+                        else True,
+                        "entity_type": rec.get("target_labels", ["Article"])[0]
+                        if rec.get("target_labels")
+                        else "Article",
+                        "hop_distance": rec.get("hop_distance") or 1,
+                        "relationship_types": rec.get("relationship_types") or [],
+                        "relationship_citations": rec.get("relationship_citations") or [],
+                        "precedents": clean_precedents if include_precedents else [],
+                        "parent_referencing_node": start_id,
+                    }
+                )
 
         first_root_id = root_ids[0] if root_ids else ""
         logger.info(
@@ -339,7 +358,9 @@ class Neo4jStore:
         )
 
         return {
-            "root_id": first_root_id if single_input else (root_ids[0] if len(root_ids) == 1 else root_ids),
+            "root_id": first_root_id
+            if single_input
+            else (root_ids[0] if len(root_ids) == 1 else root_ids),
             "root_ids": root_ids,
             "root_entity": start_entities.get(first_root_id, {}),
             "root_entities": start_entities,
@@ -384,7 +405,9 @@ class Neo4jStore:
         """
         records = await self.execute_write(cypher, {"law_id": law_id, "is_active": is_active})
         count = records[0].get("updated_count", 0) if records else 0
-        logger.info(f"Neo4j: Updated is_active={is_active} for {count} nodes with law_id='{law_id}'.")
+        logger.info(
+            f"Neo4j: Updated is_active={is_active} for {count} nodes with law_id='{law_id}'."
+        )
         return count
 
     def update_statute_active_status(

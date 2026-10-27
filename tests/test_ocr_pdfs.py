@@ -2,15 +2,15 @@
 Unit Tests for Single-Branch Legal OCR Engine (IBM Docling + EasyOCR) & Extracted Legal PDFs
 """
 
-from pathlib import Path
 import os
-import pytest
+from pathlib import Path
+
 import pypdf
+import pytest
+
 from src.ingestion.docling_parser import (
     DoclingParser,
     ParsedDocument,
-    BoundingBox,
-    ItemProvenance,
 )
 
 

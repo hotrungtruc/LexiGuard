@@ -1,5 +1,11 @@
 """Deterministic evaluation utilities for LexiGuard benchmark suites."""
 
+from src.evaluation.agent_benchmark import (
+    AgentBenchmarkCase,
+    AgentBenchmarkResult,
+    evaluate_agent_predictions,
+    evaluate_citation_verification,
+)
 from src.evaluation.ingestion_benchmark import (
     IngestionBenchmarkCase,
     IngestionBenchmarkResult,
@@ -7,17 +13,11 @@ from src.evaluation.ingestion_benchmark import (
     evaluate_document_extraction,
 )
 from src.evaluation.retrieval_benchmark import (
-    RetrievalQuery,
     RetrievalBenchmarkResult,
+    RetrievalQuery,
     aggregate_results,
     evaluate_graph_paths,
     evaluate_ranked_results,
-)
-from src.evaluation.agent_benchmark import (
-    AgentBenchmarkCase,
-    AgentBenchmarkResult,
-    evaluate_agent_predictions,
-    evaluate_citation_verification,
 )
 
 __all__ = [

@@ -13,7 +13,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Configure UTF-8 for console output on Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -27,29 +27,27 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from loguru import logger
 from neo4j import AsyncGraphDatabase
+
 from src.core.config import settings
+from src.core.legal_norm import canonical_law_slug
 from src.core.schemas import LegalChunk, LegalDocument, LegalGraphExtractionResult, LegalPrecedent
 from src.ingestion.docling_parser import DoclingParser
-from src.ingestion.legal_chunker import LegalChunker
 from src.ingestion.graph_extractor import LegalGraphExtractor
-
-
-from src.core.legal_norm import canonical_law_slug
-
+from src.ingestion.legal_chunker import LegalChunker
 
 RAW_LAWS_CONFIG = [
     {
         "filename": "bo-luat-dan-su-2015.pdf",
         "law_id": "bo-luat-dan-su-2015",
         "law_title": "Bộ luật Dân sự 2015",
-        "code": "VN_BLDS_2015"
+        "code": "VN_BLDS_2015",
     },
     {
         "filename": "bo-luat-lao-dong-2019.pdf",
         "law_id": "bo-luat-lao-dong-2019",
         "law_title": "Bộ luật Lao động 2019",
-        "code": "VN_BLLD_2019"
-    }
+        "code": "VN_BLLD_2019",
+    },
 ]
 
 
@@ -60,7 +58,7 @@ def ingest_single_law(
     extractor: LegalGraphExtractor,
     output_dir: Path,
     max_pages: Optional[int] = None,
-    batch_size: Optional[int] = 15
+    batch_size: Optional[int] = 15,
 ) -> Dict[str, Any]:
     """
     Processes a single raw law PDF through GPU-accelerated OCR layout extraction.
@@ -86,9 +84,13 @@ def ingest_single_law(
     config["law_title"] = law_title
     config["code"] = code
 
-    page_budget_desc = f"{max_pages} pages" if max_pages and max_pages > 0 else "FULL DOCUMENT (All Pages)"
+    page_budget_desc = (
+        f"{max_pages} pages" if max_pages and max_pages > 0 else "FULL DOCUMENT (All Pages)"
+    )
     logger.info(f"===> Ingesting [{config['law_title']}] (Code: {code})...")
-    logger.info(f"Target file: {pdf_path.name} | Page processing budget: {page_budget_desc} | Batch size: {batch_size}")
+    logger.info(
+        f"Target file: {pdf_path.name} | Page processing budget: {page_budget_desc} | Batch size: {batch_size}"
+    )
 
     # 1. OCR Layout Parsing (GPU/CUDA if available, else CPU)
     pages_arg = max_pages if max_pages and max_pages > 0 else None
@@ -102,9 +104,7 @@ def ingest_single_law(
 
     # 2. Hierarchical Chunking (Chương -> Điều -> Khoản)
     chunks: List[LegalChunk] = chunker.chunk_statute(
-        markdown_text,
-        law_id=config["law_id"],
-        law_title=config["law_title"]
+        markdown_text, law_id=config["law_id"], law_title=config["law_title"]
     )
 
     # Build hierarchical LegalDocument AST
@@ -112,14 +112,12 @@ def ingest_single_law(
         markdown_text,
         law_id=config["law_id"],
         law_title=config["law_title"],
-        source_file=config["filename"]
+        source_file=config["filename"],
     )
 
     # 3. Knowledge Graph Extraction (Neo4j Triples)
     graph_result: LegalGraphExtractionResult = extractor.extract_from_chunks(
-        chunks,
-        law_id=config["law_id"],
-        law_title=config["law_title"]
+        chunks, law_id=config["law_id"], law_title=config["law_title"]
     )
     cypher_queries = extractor.to_cypher_statements(graph_result)
 
@@ -146,7 +144,7 @@ def ingest_single_law(
         "law_title": config["law_title"],
         "nodes": [n.model_dump() for n in graph_result.nodes],
         "edges": [e.model_dump() for e in graph_result.edges],
-        "cypher_statements": cypher_queries
+        "cypher_statements": cypher_queries,
     }
     graph_file.write_text(json.dumps(graph_data, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -160,7 +158,7 @@ def ingest_single_law(
         "law_title": config["law_title"],
         "chunks": chunks,
         "graph_result": graph_result,
-        "cypher_queries": cypher_queries
+        "cypher_queries": cypher_queries,
     }
 
 
@@ -168,8 +166,7 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
     """Synchronizes extracted graph entities and relationships into live Neo4j."""
     logger.info("Connecting to Neo4j to synchronize Legal Knowledge Graph...")
     driver = AsyncGraphDatabase.driver(
-        settings.NEO4J_URI,
-        auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+        settings.NEO4J_URI, auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
     )
     async with driver.session() as session:
         # 1. Uniqueness constraints
@@ -196,15 +193,14 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
                 props["node_id"] = node.node_id
                 if "is_active" not in props:
                     props["is_active"] = getattr(node, "is_active", True)
-                nodes_by_type.setdefault(node.node_type, []).append({
-                    "node_id": node.node_id,
-                    "props": props
-                })
+                nodes_by_type.setdefault(node.node_type, []).append(
+                    {"node_id": node.node_id, "props": props}
+                )
 
             for node_type, node_list in nodes_by_type.items():
                 batch_size = 500
                 for i in range(0, len(node_list), batch_size):
-                    batch = node_list[i:i + batch_size]
+                    batch = node_list[i : i + batch_size]
                     cypher = f"""
                     UNWIND $batch AS item
                     MERGE (n:{node_type} {{node_id: item.node_id}})
@@ -216,18 +212,22 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
             # 2. Insert Edges by relation type in batches using UNWIND
             edges_by_rel: Dict[str, List[dict]] = {}
             for edge in gr.edges:
-                rel_str = edge.relation.value if hasattr(edge.relation, "value") else str(edge.relation)
-                edges_by_rel.setdefault(rel_str, []).append({
-                    "source_id": edge.source_id,
-                    "target_id": edge.target_id,
-                    "citation": edge.citation_text,
-                    "confidence": edge.confidence,
-                })
+                rel_str = (
+                    edge.relation.value if hasattr(edge.relation, "value") else str(edge.relation)
+                )
+                edges_by_rel.setdefault(rel_str, []).append(
+                    {
+                        "source_id": edge.source_id,
+                        "target_id": edge.target_id,
+                        "citation": edge.citation_text,
+                        "confidence": edge.confidence,
+                    }
+                )
 
             for rel_str, edge_list in edges_by_rel.items():
                 batch_size = 500
                 for i in range(0, len(edge_list), batch_size):
-                    batch = edge_list[i:i + batch_size]
+                    batch = edge_list[i : i + batch_size]
                     cypher = f"""
                     UNWIND $batch AS item
                     MATCH (s {{node_id: item.source_id}}), (t {{node_id: item.target_id}})
@@ -247,7 +247,7 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
                 promulgation_date="2016-04-06",
                 case_summary="Tranh chấp về hiệu lực thỏa thuận phạt cọc và nghĩa vụ bồi thường thiệt hại khi một bên từ chối thực hiện hợp đồng.",
                 legal_rule="Nếu bên đặt cọc từ chối giao kết hoặc thực hiện hợp đồng thì tài sản đặt cọc thuộc về bên nhận đặt cọc theo quy định về đặt cọc.",
-                applied_statutes=["VN_BLDS_2015_D003", "VN_BLDS_2015_D004", "VN_BLDS_2015_D002"]
+                applied_statutes=["VN_BLDS_2015_D003", "VN_BLDS_2015_D004", "VN_BLDS_2015_D002"],
             ),
             LegalPrecedent(
                 precedent_id="VN_AL_09_2016",
@@ -257,7 +257,7 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
                 promulgation_date="2016-10-17",
                 case_summary="Xác định lãi suất nợ quá hạn và phương thức tính lãi trên nợ gốc chưa thanh toán.",
                 legal_rule="Bên vay chậm trả tiền vay phải trả lãi trên nợ gốc theo lãi suất thỏa thuận hoặc trần quy định của Bộ luật Dân sự.",
-                applied_statutes=["VN_BLDS_2015_D003", "VN_BLDS_2015_D005"]
+                applied_statutes=["VN_BLDS_2015_D003", "VN_BLDS_2015_D005"],
             ),
             LegalPrecedent(
                 precedent_id="VN_AL_46_2021",
@@ -267,8 +267,8 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
                 promulgation_date="2021-11-25",
                 case_summary="Xác định tính bất hợp pháp của hành vi đơn phương chấm dứt HĐLĐ mà không tuân thủ thời hạn báo trước hoặc căn cứ theo quy định của BLLD.",
                 legal_rule="Người sử dụng lao động đơn phương chấm dứt hợp đồng lao động trái pháp luật phải bồi thường tiền lương và nhận người lao động trở lại làm việc.",
-                applied_statutes=["VN_BLLD_2019_D005", "VN_BLLD_2019_D006", "VN_BLLD_2019_D007"]
-            )
+                applied_statutes=["VN_BLLD_2019_D005", "VN_BLLD_2019_D006", "VN_BLLD_2019_D007"],
+            ),
         ]
 
         for p in precedents:
@@ -283,33 +283,37 @@ async def sync_to_neo4j(graph_results: List[LegalGraphExtractionResult]):
                 prec.name = $title,
                 prec.is_active = true
             """
-            await session.run(p_cypher, {
-                "precedent_id": p.precedent_id,
-                "precedent_number": p.precedent_number,
-                "title": p.title,
-                "court": p.court,
-                "promulgation_date": p.promulgation_date,
-                "case_summary": p.case_summary,
-                "legal_rule": p.legal_rule
-            })
+            await session.run(
+                p_cypher,
+                {
+                    "precedent_id": p.precedent_id,
+                    "precedent_number": p.precedent_number,
+                    "title": p.title,
+                    "court": p.court,
+                    "promulgation_date": p.promulgation_date,
+                    "case_summary": p.case_summary,
+                    "legal_rule": p.legal_rule,
+                },
+            )
 
             for stat_id in p.applied_statutes:
                 rel_cypher = """
                 MATCH (prec:Precedent {node_id: $precedent_id}), (art:Article {node_id: $stat_id})
                 MERGE (prec)-[:APPLIES_STATUTE]->(art)
                 """
-                await session.run(rel_cypher, {
-                    "precedent_id": p.precedent_id,
-                    "stat_id": stat_id
-                })
+                await session.run(rel_cypher, {"precedent_id": p.precedent_id, "stat_id": stat_id})
 
         # Summary verification
-        label_res = await session.run("MATCH (n) RETURN labels(n)[0] as label, count(n) as cnt ORDER BY cnt DESC")
+        label_res = await session.run(
+            "MATCH (n) RETURN labels(n)[0] as label, count(n) as cnt ORDER BY cnt DESC"
+        )
         label_counts = {record["label"]: record["cnt"] async for record in label_res}
-        rel_res = await session.run("MATCH ()-[r]->() RETURN type(r) as rel, count(r) as cnt ORDER BY cnt DESC")
+        rel_res = await session.run(
+            "MATCH ()-[r]->() RETURN type(r) as rel, count(r) as cnt ORDER BY cnt DESC"
+        )
         rel_counts = {record["rel"]: record["cnt"] async for record in rel_res}
 
-        logger.info(f"Neo4j Knowledge Graph Ingestion Finished!")
+        logger.info("Neo4j Knowledge Graph Ingestion Finished!")
         logger.info(f"Current Neo4j Labels: {label_counts}")
         logger.info(f"Current Neo4j Relationships: {rel_counts}")
 
@@ -320,81 +324,84 @@ async def sync_to_qdrant(chunks: List[LegalChunk]):
     """Syncs extracted legal chunks to Qdrant vector database."""
     try:
         from src.retrieval.qdrant_store import QdrantStore
-        logger.info(f"Connecting to Qdrant to upsert {len(chunks)} chunks with hybrid embeddings...")
+
+        logger.info(
+            f"Connecting to Qdrant to upsert {len(chunks)} chunks with hybrid embeddings..."
+        )
         store = QdrantStore()
         await store.ensure_collection_exists()
         count = await store.async_upsert_chunks(chunks)
-        logger.info(f"Successfully upserted {count} chunks into Qdrant collection '{store.collection_name}'.")
+        logger.info(
+            f"Successfully upserted {count} chunks into Qdrant collection '{store.collection_name}'."
+        )
         await store.client.close()
     except Exception as q_err:
         logger.warning(f"Qdrant sync encountered an error: {q_err}")
 
 
 def main():
-    parser_args = argparse.ArgumentParser(description="Ingest Vietnamese Legal Codes into Chunks and Graph")
+    parser_args = argparse.ArgumentParser(
+        description="Ingest Vietnamese Legal Codes into Chunks and Graph"
+    )
     parser_args.add_argument(
         "--max-pages",
         type=int,
         default=0,
-        help="Number of pages to parse per raw law PDF (0 or omitted = parse ALL pages of the entire code)"
+        help="Number of pages to parse per raw law PDF (0 or omitted = parse ALL pages of the entire code)",
     )
     parser_args.add_argument(
-        "--all-pages",
-        action="store_true",
-        help="Explicitly parse all pages of both legal codes"
+        "--all-pages", action="store_true", help="Explicitly parse all pages of both legal codes"
     )
     parser_args.add_argument(
         "--device",
         type=str,
         default="auto",
         choices=["auto", "cuda", "cpu"],
-        help="Accelerator device: auto (detect GPU/CUDA), cuda (force GPU), or cpu (force CPU)"
+        help="Accelerator device: auto (detect GPU/CUDA), cuda (force GPU), or cpu (force CPU)",
     )
     parser_args.add_argument(
         "--engine",
         type=str,
         default="easyocr",
         choices=["easyocr", "docling", "rapidocr"],
-        help="OCR engine: easyocr (standard GPU OCR with full Vietnamese diacritics), docling, or rapidocr"
+        help="OCR engine: easyocr (standard GPU OCR with full Vietnamese diacritics), docling, or rapidocr",
     )
     parser_args.add_argument(
         "--batch-size",
         type=int,
         default=15,
-        help="Page batch size for incremental OCR processing and progress tracking (default: 15 pages)"
+        help="Page batch size for incremental OCR processing and progress tracking (default: 15 pages)",
     )
     parser_args.add_argument(
         "--pdf",
         type=str,
         default=None,
-        help="Path to an arbitrary legal statute PDF (e.g. data/raw_laws/luat-an-ninh-mang-2018.pdf)"
+        help="Path to an arbitrary legal statute PDF (e.g. data/raw_laws/luat-an-ninh-mang-2018.pdf)",
     )
     parser_args.add_argument(
         "--law-title",
         type=str,
         default=None,
-        help="Human-readable title of the legal instrument (e.g. 'Luật An ninh mạng 2018')"
+        help="Human-readable title of the legal instrument (e.g. 'Luật An ninh mạng 2018')",
     )
     parser_args.add_argument(
         "--law-id",
         type=str,
         default=None,
-        help="Custom statutory identifier slug (e.g. 'luat-an-ninh-mang-2018')"
+        help="Custom statutory identifier slug (e.g. 'luat-an-ninh-mang-2018')",
     )
     parser_args.add_argument(
         "--scan-all-raw-laws",
         action="store_true",
-        help="Scan and ingest ALL PDF statutes found inside data/raw_laws/"
+        help="Scan and ingest ALL PDF statutes found inside data/raw_laws/",
     )
     parser_args.add_argument(
-        "--no-neo4j-sync",
-        action="store_true",
-        help="Skip direct synchronization to Neo4j database"
+        "--no-neo4j-sync", action="store_true", help="Skip direct synchronization to Neo4j database"
     )
     parser_args.add_argument(
         "--no-qdrant-sync",
         action="store_true",
-        help="Skip direct synchronization to Qdrant database"
+        help="Skip direct synchronization to Qdrant database",
     )
     args = parser_args.parse_args()
 
@@ -404,29 +411,39 @@ def main():
     configs_to_ingest: List[Dict[str, Any]] = []
     if args.pdf:
         pdf_path = Path(args.pdf)
-        configs_to_ingest.append({
-            "filename": str(pdf_path),
-            "law_title": args.law_title or pdf_path.stem.replace("-", " ").title(),
-            "law_id": args.law_id or pdf_path.stem,
-            "code": canonical_law_slug(args.law_id or pdf_path.stem),
-        })
+        configs_to_ingest.append(
+            {
+                "filename": str(pdf_path),
+                "law_title": args.law_title or pdf_path.stem.replace("-", " ").title(),
+                "law_id": args.law_id or pdf_path.stem,
+                "code": canonical_law_slug(args.law_id or pdf_path.stem),
+            }
+        )
     elif args.scan_all_raw_laws:
         raw_dir = Path("data/raw_laws")
         for p in raw_dir.glob("*.pdf"):
-            configs_to_ingest.append({
-                "filename": p.name,
-                "law_title": p.stem.replace("-", " ").title(),
-                "law_id": p.stem,
-                "code": canonical_law_slug(p.stem),
-            })
+            configs_to_ingest.append(
+                {
+                    "filename": p.name,
+                    "law_title": p.stem.replace("-", " ").title(),
+                    "law_id": p.stem,
+                    "code": canonical_law_slug(p.stem),
+                }
+            )
     else:
         configs_to_ingest = list(RAW_LAWS_CONFIG)
 
     logger.info("=================================================================")
     logger.info("Starting LexiGuard Full Legal Corpus Ingestion Pipeline...")
-    logger.info(f"Accelerator Device: {args.device} | OCR Engine: {args.engine} | Batch Size: {args.batch_size}")
-    logger.info(f"Page Scope: {'ALL PAGES (Complete Statutory Codes)' if max_pages is None else f'{max_pages} pages'}")
-    logger.info(f"Target Statutes ({len(configs_to_ingest)}): {[c['law_title'] for c in configs_to_ingest]}")
+    logger.info(
+        f"Accelerator Device: {args.device} | OCR Engine: {args.engine} | Batch Size: {args.batch_size}"
+    )
+    logger.info(
+        f"Page Scope: {'ALL PAGES (Complete Statutory Codes)' if max_pages is None else f'{max_pages} pages'}"
+    )
+    logger.info(
+        f"Target Statutes ({len(configs_to_ingest)}): {[c['law_title'] for c in configs_to_ingest]}"
+    )
     logger.info("=================================================================")
 
     output_dir = Path("data/extracted_laws")
@@ -457,7 +474,7 @@ def main():
             extractor=extractor,
             output_dir=output_dir,
             max_pages=max_pages,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
         )
         all_chunks.extend(res["chunks"])
         all_cypher.extend(res["cypher_queries"])
@@ -469,8 +486,7 @@ def main():
     combined_chunks_path = output_dir / "combined_qdrant_chunks.json"
     combined_chunks_data = [c.model_dump() for c in all_chunks]
     combined_chunks_path.write_text(
-        json.dumps(combined_chunks_data, ensure_ascii=False, indent=2),
-        encoding="utf-8"
+        json.dumps(combined_chunks_data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
     combined_cypher_path = output_dir / "neo4j_import.cypher"

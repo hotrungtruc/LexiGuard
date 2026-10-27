@@ -4,13 +4,17 @@ Core System Configuration using Pydantic BaseSettings
 
 import asyncio
 import os
+
 # Prevent pandas/pyarrow timezone initialization from causing native access violation on Windows
 os.environ.setdefault("PYARROW_IGNORE_TIMEZONE", "1")
 
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from src.core.hardware import hardware_profile, HardwareProfile
+
+from src.core.hardware import HardwareProfile, hardware_profile
+
 
 class Settings(BaseSettings):
     # Environment
@@ -74,11 +78,8 @@ class Settings(BaseSettings):
         """Centralized hardware capabilities and compute profile."""
         return hardware_profile
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
 
 settings = Settings()
 
@@ -87,7 +88,8 @@ settings = Settings()
 # ASYNCHRONOUS DATABASE CLIENT FACTORIES & LIFECYCLE MANAGEMENT
 # ==============================================================================
 
-from typing import Any, Dict, Tuple
+from typing import Tuple
+
 from loguru import logger
 from neo4j import AsyncDriver, AsyncGraphDatabase
 from qdrant_client import AsyncQdrantClient
@@ -138,7 +140,8 @@ def get_async_neo4j_driver(
         target_uri,
         auth=auth_credentials,
         max_connection_lifetime=max_connection_lifetime or settings.NEO4J_MAX_CONNECTION_LIFETIME,
-        max_connection_pool_size=max_connection_pool_size or settings.NEO4J_MAX_CONNECTION_POOL_SIZE,
+        max_connection_pool_size=max_connection_pool_size
+        or settings.NEO4J_MAX_CONNECTION_POOL_SIZE,
         connection_timeout=connection_timeout or settings.NEO4J_CONNECTION_TIMEOUT,
         **kwargs,
     )
@@ -267,10 +270,13 @@ class DatabaseCircuitBreaker:
             return True
         elif state == "OPEN":
             import time
+
             now = time.monotonic()
             if now - info.get("last_failure", 0.0) >= self.recovery_timeout:
                 info["state"] = "HALF_OPEN"
-                logger.info(f"Circuit breaker for '{service}' transitioned to HALF_OPEN (probing connection).")
+                logger.info(
+                    f"Circuit breaker for '{service}' transitioned to HALF_OPEN (probing connection)."
+                )
                 return True
             return False
         elif state == "HALF_OPEN":
@@ -281,12 +287,15 @@ class DatabaseCircuitBreaker:
         """Records a successful operation, resetting the circuit breaker."""
         if service in self._states:
             if self._states[service].get("state") != "CLOSED":
-                logger.info(f"Circuit breaker for '{service}' transitioned to CLOSED (service recovered).")
+                logger.info(
+                    f"Circuit breaker for '{service}' transitioned to CLOSED (service recovered)."
+                )
             self._states[service] = {"state": "CLOSED", "last_failure": 0.0, "failures": 0}
 
     def record_failure(self, service: str, error: Optional[Exception] = None) -> None:
         """Records a failure and trips the circuit breaker to OPEN."""
         import time
+
         now = time.monotonic()
         prev = self._states.get(service, {})
         failures = prev.get("failures", 0) + 1
@@ -325,8 +334,8 @@ def run_coroutine_sync(coro_fn, *args, **kwargs):
 
     if loop and loop.is_running():
         import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             return executor.submit(lambda: asyncio.run(coro_fn(*args, **kwargs))).result()
     else:
         return asyncio.run(coro_fn(*args, **kwargs))
-

@@ -9,6 +9,7 @@ Computes full bi-directional cross-attention between Query and retrieved candida
 """
 
 from typing import Any, List, Optional, Tuple
+
 import torch
 from loguru import logger
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -39,7 +40,7 @@ class CrossEncoderReranker:
 
         logger.info(f"Loading Cross-Encoder Reranker '{model_name}' on {self.device}...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        
+
         # Use fp16 on CUDA for maximum throughput
         if self.device == "cuda":
             self.model = AutoModelForSequenceClassification.from_pretrained(
@@ -86,12 +87,12 @@ class CrossEncoderReranker:
     ) -> List[Tuple[float, Any]]:
         """
         Reranks candidate items based on cross-encoder similarity to query.
-        
+
         Args:
             query: The user natural language question.
             candidates: List of (item_object, passage_text) tuples.
             top_k: Number of highest-ranking items to return.
-            
+
         Returns:
             List of (score, item_object) tuples sorted by descending relevance.
         """

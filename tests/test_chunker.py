@@ -2,16 +2,14 @@
 Unit Test: Kiểm tra logic phân đoạn phân cấp Điều/Khoản và Bóc tách Đồ thị Pháp lý
 """
 
-import pytest
 from src.core.schemas import (
+    GraphRelationType,
     LegalChunk,
     LegalDocument,
     LegalGraphExtractionResult,
-    GraphRelationType,
 )
-from src.ingestion.legal_chunker import LegalChunker
 from src.ingestion.graph_extractor import LegalGraphExtractor
-
+from src.ingestion.legal_chunker import LegalChunker
 
 SAMPLE_STATUTE_TEXT = """
 PHẦN THỨ NHẤT: QUY ĐỊNH CHUNG
@@ -44,9 +42,7 @@ def test_legal_chunker_initialization():
 def test_chunk_statute_hierarchical_parsing():
     chunker = LegalChunker()
     doc = chunker.parse_statute(
-        SAMPLE_STATUTE_TEXT,
-        law_id="bo-luat-dan-su-2015",
-        law_title="Bộ luật Dân sự 2015"
+        SAMPLE_STATUTE_TEXT, law_id="bo-luat-dan-su-2015", law_title="Bộ luật Dân sự 2015"
     )
 
     assert isinstance(doc, LegalDocument)
@@ -67,9 +63,7 @@ def test_chunk_statute_hierarchical_parsing():
 def test_chunk_statute_granular_chunks():
     chunker = LegalChunker()
     chunks = chunker.chunk_statute(
-        SAMPLE_STATUTE_TEXT,
-        law_id="bo-luat-dan-su-2015",
-        law_title="Bộ luật Dân sự 2015"
+        SAMPLE_STATUTE_TEXT, law_id="bo-luat-dan-su-2015", law_title="Bộ luật Dân sự 2015"
     )
 
     assert len(chunks) > 0
@@ -90,14 +84,10 @@ def test_graph_extractor_triples_and_cypher():
     extractor = LegalGraphExtractor()
 
     chunks = chunker.chunk_statute(
-        SAMPLE_STATUTE_TEXT,
-        law_id="bo-luat-dan-su-2015",
-        law_title="Bộ luật Dân sự 2015"
+        SAMPLE_STATUTE_TEXT, law_id="bo-luat-dan-su-2015", law_title="Bộ luật Dân sự 2015"
     )
     result = extractor.extract_from_chunks(
-        chunks,
-        law_id="bo-luat-dan-su-2015",
-        law_title="Bộ luật Dân sự 2015"
+        chunks, law_id="bo-luat-dan-su-2015", law_title="Bộ luật Dân sự 2015"
     )
 
     assert isinstance(result, LegalGraphExtractionResult)

@@ -81,7 +81,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if not args.predictions_dir:
-        parser.error("--predictions-dir is required; the benchmark does not fabricate retrieval results")
+        parser.error(
+            "--predictions-dir is required; the benchmark does not fabricate retrieval results"
+        )
     queries = _load_queries(args.dataset)
     output: Dict[str, Any] = {}
     for prediction_file in sorted(args.predictions_dir.glob("*.json")):

@@ -96,21 +96,23 @@ def main() -> None:
         encoding="utf-8",
     )
     with (args.output / "results.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["case_id", "f1", "precision", "recall", "failures"])
+        writer = csv.DictWriter(
+            handle, fieldnames=["case_id", "f1", "precision", "recall", "failures"]
+        )
         writer.writeheader()
         for result in results:
             discrepancy = result["metrics"].get("discrepancy", {})
-            writer.writerow({
-                "case_id": result["case_id"],
-                "f1": discrepancy.get("f1", ""),
-                "precision": discrepancy.get("precision", ""),
-                "recall": discrepancy.get("recall", ""),
-                "failures": " | ".join(result["failures"]),
-            })
+            writer.writerow(
+                {
+                    "case_id": result["case_id"],
+                    "f1": discrepancy.get("f1", ""),
+                    "precision": discrepancy.get("precision", ""),
+                    "recall": discrepancy.get("recall", ""),
+                    "failures": " | ".join(result["failures"]),
+                }
+            )
 
-    arithmetic_results = [
-        result for result in results if "discrepancy" in result["metrics"]
-    ]
+    arithmetic_results = [result for result in results if "discrepancy" in result["metrics"]]
     recalls = [result["metrics"]["discrepancy"]["recall"] for result in arithmetic_results]
     aggregate_recall = sum(recalls) / len(recalls) if recalls else 0.0
     summary = {
@@ -130,8 +132,7 @@ def main() -> None:
         encoding="utf-8",
     )
     print(
-        f"Arithmetic recall: {summary['arithmetic_recall']:.4f} "
-        f"(threshold {args.min_recall:.4f})"
+        f"Arithmetic recall: {summary['arithmetic_recall']:.4f} (threshold {args.min_recall:.4f})"
     )
     if not summary["passed"]:
         raise SystemExit(1)

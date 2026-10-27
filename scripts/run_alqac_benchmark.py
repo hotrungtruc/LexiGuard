@@ -37,11 +37,12 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from loguru import logger
+
 from src.evaluation.alqac_benchmark import (
     ALQACSeasonLoader,
     CorpusBM25Index,
-    QdrantVectorBenchmarkIndex,
     LexiGuardFullRetriever,
+    QdrantVectorBenchmarkIndex,
     evaluate_method_predictions,
 )
 from src.retrieval.cross_encoder_reranker import CrossEncoderReranker
@@ -54,30 +55,24 @@ def main() -> None:
         type=str,
         default="2023",
         choices=["2023", "2022", "2024", "2025"],
-        help="ALQAC competition season to evaluate (recommended: 2023 or 2022)"
+        help="ALQAC competition season to evaluate (recommended: 2023 or 2022)",
     )
     parser.add_argument(
         "--disable-reranker",
         action="store_true",
-        help="Disable Stage-2 Cross-Encoder neural reranker"
+        help="Disable Stage-2 Cross-Encoder neural reranker",
     )
     parser.add_argument(
-        "--data-dir",
-        type=str,
-        default="data/alqac",
-        help="Root path to alqac datasets directory"
+        "--data-dir", type=str, default="data/alqac", help="Root path to alqac datasets directory"
     )
     parser.add_argument(
-        "--top-k",
-        type=int,
-        default=20,
-        help="Maximum ranking depth K (default: 20)"
+        "--top-k", type=int, default=20, help="Maximum ranking depth K (default: 20)"
     )
     parser.add_argument(
         "--output-report",
         type=str,
         default=None,
-        help="Custom output path for report JSON (default: reports/alqac_benchmark_{season}.json)"
+        help="Custom output path for report JSON (default: reports/alqac_benchmark_{season}.json)",
     )
     args = parser.parse_args()
 
@@ -97,7 +92,7 @@ def main() -> None:
     # 2. Build BM25 Index
     t_bm25_build = time.time()
     bm25_index = CorpusBM25Index(articles)
-    logger.info(f"[1/4] BM25 Index built in {time.time()-t_bm25_build:.2f}s.")
+    logger.info(f"[1/4] BM25 Index built in {time.time() - t_bm25_build:.2f}s.")
 
     # 3. Build & Upsert into Qdrant In-Memory Vector Store
     t_qdrant_build = time.time()
@@ -106,7 +101,9 @@ def main() -> None:
         cache_dir=cache_dir,
         season=args.season,
     )
-    logger.info(f"[2/4] Qdrant In-Memory Vector Store ready in {time.time()-t_qdrant_build:.2f}s.")
+    logger.info(
+        f"[2/4] Qdrant In-Memory Vector Store ready in {time.time() - t_qdrant_build:.2f}s."
+    )
 
     # 4. Initialize Cross-Encoder Reranker (Phase 2 SOTA)
     reranker = None
@@ -114,9 +111,13 @@ def main() -> None:
         try:
             t_reranker_build = time.time()
             reranker = CrossEncoderReranker()
-            logger.info(f"[3/4] Cross-Encoder Neural Reranker ready in {time.time()-t_reranker_build:.2f}s.")
+            logger.info(
+                f"[3/4] Cross-Encoder Neural Reranker ready in {time.time() - t_reranker_build:.2f}s."
+            )
         except Exception as e:
-            logger.warning(f"Cross-Encoder initialization failed: {e}. Running without Stage-2 reranking.")
+            logger.warning(
+                f"Cross-Encoder initialization failed: {e}. Running without Stage-2 reranking."
+            )
 
     lexiguard_full = LexiGuardFullRetriever(
         bm25=bm25_index,
@@ -129,7 +130,9 @@ def main() -> None:
 
     # 5. Execute Retrievals
     total_pipelines = 5 if reranker is not None else 4
-    logger.info(f"Executing benchmark over {len(questions)} questions across {total_pipelines} pipelines...")
+    logger.info(
+        f"Executing benchmark over {len(questions)} questions across {total_pipelines} pipelines..."
+    )
 
     # Method 1: BM25 Lexical
     logger.info("--> Querying Pipeline 1: Okapi BM25 Lexical (Compound N-grams)...")
@@ -139,7 +142,9 @@ def main() -> None:
         res = bm25_index.search(q.text, top_k=args.top_k)
         bm25_preds[q.question_id] = [art.key for score, art in res]
     t_bm25 = time.time() - t0
-    m1_metrics = evaluate_method_predictions("BM25 Lexical", questions, bm25_preds, k_list=k_list, total_time_seconds=t_bm25)
+    m1_metrics = evaluate_method_predictions(
+        "BM25 Lexical", questions, bm25_preds, k_list=k_list, total_time_seconds=t_bm25
+    )
 
     # Method 2: Qdrant Dense Vector
     logger.info("--> Querying Pipeline 2: Qdrant Vector Search (Dense)...")
@@ -149,7 +154,9 @@ def main() -> None:
         res = qdrant_index.search(q.text, top_k=args.top_k)
         dense_preds[q.question_id] = [art.key for score, art in res]
     t_dense = time.time() - t0
-    m2_metrics = evaluate_method_predictions("Qdrant Dense Vector", questions, dense_preds, k_list=k_list, total_time_seconds=t_dense)
+    m2_metrics = evaluate_method_predictions(
+        "Qdrant Dense Vector", questions, dense_preds, k_list=k_list, total_time_seconds=t_dense
+    )
 
     # Method 3: Hybrid Search (BM25 + Qdrant via RRF)
     logger.info("--> Querying Pipeline 3: Hybrid Search (BM25 + Dense RRF)...")
@@ -159,7 +166,13 @@ def main() -> None:
         res = lexiguard_full.search_hybrid(q.text, top_k=args.top_k)
         hybrid_preds[q.question_id] = [art.key for score, art in res]
     t_hybrid = time.time() - t0
-    m3_metrics = evaluate_method_predictions("Hybrid (BM25 + Dense RRF)", questions, hybrid_preds, k_list=k_list, total_time_seconds=t_hybrid)
+    m3_metrics = evaluate_method_predictions(
+        "Hybrid (BM25 + Dense RRF)",
+        questions,
+        hybrid_preds,
+        k_list=k_list,
+        total_time_seconds=t_hybrid,
+    )
 
     # Method 4: LexiGuard Entity-Aware Hybrid Search
     logger.info("--> Querying Pipeline 4: LexiGuard Entity-Aware Hybrid...")
@@ -169,20 +182,34 @@ def main() -> None:
         res = lexiguard_full.search_entity_aware(q.text, top_k=args.top_k)
         entity_preds[q.question_id] = [art.key for score, art in res]
     t_entity = time.time() - t0
-    m4_metrics = evaluate_method_predictions("LexiGuard Entity-Aware", questions, entity_preds, k_list=k_list, total_time_seconds=t_entity)
+    m4_metrics = evaluate_method_predictions(
+        "LexiGuard Entity-Aware",
+        questions,
+        entity_preds,
+        k_list=k_list,
+        total_time_seconds=t_entity,
+    )
 
     methods = [m1_metrics, m2_metrics, m3_metrics, m4_metrics]
 
     # Method 5: Two-Stage Cross-Encoder Neural Reranking (Phase 2 SOTA)
     if reranker is not None:
-        logger.info("--> Querying Pipeline 5: Two-Stage Neural Cross-Encoder Rerank (Phase 2 SOTA)...")
+        logger.info(
+            "--> Querying Pipeline 5: Two-Stage Neural Cross-Encoder Rerank (Phase 2 SOTA)..."
+        )
         t0 = time.time()
         rerank_preds = {}
         for q in questions:
             res = lexiguard_full.search_two_stage_rerank(q.text, top_k=args.top_k, candidates_k=30)
             rerank_preds[q.question_id] = [art.key for score, art in res]
         t_rerank = time.time() - t0
-        m5_metrics = evaluate_method_predictions("LexiGuard SOTA Rerank", questions, rerank_preds, k_list=k_list, total_time_seconds=t_rerank)
+        m5_metrics = evaluate_method_predictions(
+            "LexiGuard SOTA Rerank",
+            questions,
+            rerank_preds,
+            k_list=k_list,
+            total_time_seconds=t_rerank,
+        )
         methods.append(m5_metrics)
 
     # 6. Format and Print Comparison Table
@@ -192,25 +219,29 @@ def main() -> None:
     total_width = metric_col_width + 3 + len(methods) * (col_width + 3)
 
     print("\n" + "=" * total_width)
-    print(f"BENCHMARK RESULTS: ALQAC {args.season} ({len(articles):,} Articles | {len(questions):,} Questions)")
+    print(
+        f"BENCHMARK RESULTS: ALQAC {args.season} ({len(articles):,} Articles | {len(questions):,} Questions)"
+    )
     print("=" * total_width)
-    header = f"{'Evaluation Metric':<{metric_col_width}} | " + " | ".join(f"{name[:col_width]:<{col_width}}" for name in col_names)
+    header = f"{'Evaluation Metric':<{metric_col_width}} | " + " | ".join(
+        f"{name[:col_width]:<{col_width}}" for name in col_names
+    )
     print(header)
     print("-" * total_width)
 
     rows = [
-        ("Hit Rate@5", lambda m: f"{m.hit_rate_at_k[5]*100:.2f}%"),
-        ("Hit Rate@10", lambda m: f"{m.hit_rate_at_k[10]*100:.2f}%"),
-        ("Hit Rate@20", lambda m: f"{m.hit_rate_at_k[20]*100:.2f}%"),
+        ("Hit Rate@5", lambda m: f"{m.hit_rate_at_k[5] * 100:.2f}%"),
+        ("Hit Rate@10", lambda m: f"{m.hit_rate_at_k[10] * 100:.2f}%"),
+        ("Hit Rate@20", lambda m: f"{m.hit_rate_at_k[20] * 100:.2f}%"),
         ("MRR@5", lambda m: f"{m.mrr_at_k[5]:.4f}"),
         ("MRR@10", lambda m: f"{m.mrr_at_k[10]:.4f}"),
         ("MRR@20", lambda m: f"{m.mrr_at_k[20]:.4f}"),
         ("NDCG@5", lambda m: f"{m.ndcg_at_k[5]:.4f}"),
         ("NDCG@10", lambda m: f"{m.ndcg_at_k[10]:.4f}"),
         ("NDCG@20", lambda m: f"{m.ndcg_at_k[20]:.4f}"),
-        ("Recall@5", lambda m: f"{m.recall_at_k[5]*100:.2f}%"),
-        ("Recall@10", lambda m: f"{m.recall_at_k[10]*100:.2f}%"),
-        ("Precision@5", lambda m: f"{m.precision_at_k[5]*100:.2f}%"),
+        ("Recall@5", lambda m: f"{m.recall_at_k[5] * 100:.2f}%"),
+        ("Recall@10", lambda m: f"{m.recall_at_k[10] * 100:.2f}%"),
+        ("Precision@5", lambda m: f"{m.precision_at_k[5] * 100:.2f}%"),
         ("F2-Score@5 (ALQAC)", lambda m: f"{m.f2_at_k[5]:.4f}"),
         ("F2-Score@10", lambda m: f"{m.f2_at_k[10]:.4f}"),
         ("Latency / Query (ms)", lambda m: f"{m.latency_ms_per_query:.2f} ms"),
@@ -239,7 +270,7 @@ def main() -> None:
                 "latency_ms_per_query": m.latency_ms_per_query,
             }
             for m in methods
-        }
+        },
     }
 
     out_path = Path(out_file)

@@ -12,34 +12,29 @@ Verifies:
    - Function: `expand_referenced_articles` (1..2 hops traversal & precedent linkage)
 """
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import SparseVector
 
 from src.core.config import get_async_qdrant_client
 from src.core.schemas import (
-    DENSE_VECTOR_DIM,
-    DENSE_VECTOR_NAME,
-    SPARSE_VECTOR_NAME,
-    GraphEdge,
     GraphNode,
-    GraphRelationType,
     LegalChunk,
     LegalPrecedent,
 )
 from src.retrieval.neo4j_store import Neo4jStore
 from src.retrieval.qdrant_store import FastEmbedHybridPipeline, QdrantStore
 
-
 # ==============================================================================
 # FASTEMBED ONNX & HYBRID QDRANT TESTS
 # ==============================================================================
 
+
 def test_fastembed_bm25_exact_token_matching():
     """Verify FastEmbed SparseTextEmbedding (Qdrant/bm25) extracts statutory keywords."""
     pipeline = FastEmbedHybridPipeline(sparse_model_name="Qdrant/bm25")
-    
+
     # Test query containing exact legal codes and numbers
     query = "Điều 127 Bộ luật Lao động số 45/2019/QH14 phạt 8%"
     sparse_vec = pipeline.embed_sparse(query)
@@ -136,6 +131,7 @@ async def test_qdrant_hybrid_search_rrf_in_memory():
 # ==============================================================================
 # NEO4J LEGAL KNOWLEDGE GRAPH & MULTI-HOP EXPANSION TESTS
 # ==============================================================================
+
 
 def test_legal_precedent_schema():
     """Verify LegalPrecedent schema and conversion to :Precedent GraphNode."""
@@ -413,7 +409,9 @@ async def test_qdrant_payload_indices_creation():
     await store.ensure_payload_indices()
 
     assert mock_client.create_payload_index.call_count == 7
-    indexed_fields = [call[1]["field_name"] for call in mock_client.create_payload_index.call_args_list]
+    indexed_fields = [
+        call[1]["field_name"] for call in mock_client.create_payload_index.call_args_list
+    ]
     assert "law_id" in indexed_fields
     assert "article_num" in indexed_fields
     assert "chapter_num" in indexed_fields
@@ -426,9 +424,12 @@ async def test_qdrant_payload_indices_creation():
 def test_phase_3_entity_extractor_multi_statute_scope_resolution():
     """Verify LegalEntityExtractor correctly parses distinct law codes in mixed queries."""
     from src.retrieval.entity_extractor import LegalEntityExtractor
+
     extractor = LegalEntityExtractor()
 
-    query = "Căn cứ Khoản 1 Điều 357 Bộ luật Dân sự 2015 và Điều 301 Luật Thương mại 2005 để giải quyết"
+    query = (
+        "Căn cứ Khoản 1 Điều 357 Bộ luật Dân sự 2015 và Điều 301 Luật Thương mại 2005 để giải quyết"
+    )
     citations = extractor.extract_citations(query)
 
     assert len(citations) >= 2
@@ -469,8 +470,8 @@ def test_phase_3_graph_node_cypher_serialization_with_lists():
 
 def test_phase_3_dynamic_law_code_resolution_no_collision():
     """Verify legal_chunker and graph_extractor resolve unique prefixes without generic VN_STATUTE collision."""
-    from src.ingestion.legal_chunker import LegalChunker
     from src.ingestion.graph_extractor import LegalGraphExtractor
+    from src.ingestion.legal_chunker import LegalChunker
 
     chunker = LegalChunker
     extractor = LegalGraphExtractor
@@ -488,4 +489,3 @@ def test_phase_3_dynamic_law_code_resolution_no_collision():
 
     assert extractor._get_law_code("luat-dat-dai") == "VN_LDD_2024"
     assert extractor._get_law_code("luat-nha-o") == "VN_LNO_2023"
-

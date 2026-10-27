@@ -10,6 +10,7 @@ Standardized models for Vietnamese Legal Documents:
 import uuid
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
+
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
@@ -23,27 +24,32 @@ def generate_deterministic_uuid(identifier: str) -> str:
 
 class LegalHierarchyLevel(str, Enum):
     """Statutory structural hierarchy levels according to VN Law on Promulgation of Legal Documents."""
+
     LAW = "LAW"
-    PART = "PART"             # Part
-    CHAPTER = "CHAPTER"       # Chapter
-    SECTION = "SECTION"       # Section
-    SUB_SECTION = "SUB_SECTION" # Sub-section
-    ARTICLE = "ARTICLE"       # Article
-    CLAUSE = "CLAUSE"         # Clause
-    POINT = "POINT"           # Point
+    PART = "PART"  # Part
+    CHAPTER = "CHAPTER"  # Chapter
+    SECTION = "SECTION"  # Section
+    SUB_SECTION = "SUB_SECTION"  # Sub-section
+    ARTICLE = "ARTICLE"  # Article
+    CLAUSE = "CLAUSE"  # Clause
+    POINT = "POINT"  # Point
 
 
 class LegalPoint(BaseModel):
     """Represents a specific point within a statutory clause."""
+
     model_config = ConfigDict(extra="ignore")
 
     point_id: str = Field(description="Point identifier (e.g. 'a', 'b', 'c')")
     content: str = Field(description="Verbatim text of the point")
-    canonical_citation: Optional[str] = Field(default=None, description="Full formal legal citation")
+    canonical_citation: Optional[str] = Field(
+        default=None, description="Full formal legal citation"
+    )
 
 
 class LegalClause(BaseModel):
     """Represents an individual clause within an article."""
+
     model_config = ConfigDict(extra="ignore")
 
     clause_num: int = Field(description="Clause number (1, 2, 3...)")
@@ -54,19 +60,25 @@ class LegalClause(BaseModel):
 
 class LegalArticle(BaseModel):
     """Represents a statutory article containing clauses and terms."""
+
     model_config = ConfigDict(extra="ignore")
 
     article_num: int = Field(description="Article number (e.g. 115, 328)")
     title: str = Field(description="Title or heading of the article")
     full_text: str = Field(description="Verbatim combined text of all clauses in this article")
-    clauses: List[LegalClause] = Field(default_factory=list, description="List of structured clauses")
+    clauses: List[LegalClause] = Field(
+        default_factory=list, description="List of structured clauses"
+    )
     canonical_citation: str = Field(description="Canonical legal citation")
-    page_start: Optional[int] = Field(default=None, description="Starting page in original document")
+    page_start: Optional[int] = Field(
+        default=None, description="Starting page in original document"
+    )
     page_end: Optional[int] = Field(default=None, description="Ending page in original document")
 
 
 class LegalSection(BaseModel):
     """Represents a statutory section."""
+
     model_config = ConfigDict(extra="ignore")
 
     section_num: Optional[str] = Field(default=None, description="Section numeral (e.g. '1', '2')")
@@ -76,6 +88,7 @@ class LegalSection(BaseModel):
 
 class LegalChapter(BaseModel):
     """Represents a statutory Chapter (Chương)."""
+
     model_config = ConfigDict(extra="ignore")
 
     chapter_num: str = Field(description="Chapter numeral (e.g. 'I', 'II', 'VII')")
@@ -86,6 +99,7 @@ class LegalChapter(BaseModel):
 
 class LegalPart(BaseModel):
     """Represents a statutory Part (Phần)."""
+
     model_config = ConfigDict(extra="ignore")
 
     part_num: str = Field(description="Part numeral")
@@ -95,29 +109,37 @@ class LegalPart(BaseModel):
 
 class LegalDocument(BaseModel):
     """Hierarchical structured representation of a complete Vietnamese code or statute."""
+
     model_config = ConfigDict(extra="ignore")
 
     law_id: str = Field(description="Unique code identifier (e.g. 'bo-luat-dan-su-2015')")
     title: str = Field(description="Official title")
-    official_number: Optional[str] = Field(default=None, description="Official statute number (e.g. '91/2015/QH13')")
+    official_number: Optional[str] = Field(
+        default=None, description="Official statute number (e.g. '91/2015/QH13')"
+    )
     promulgation_date: Optional[str] = Field(default=None, description="Date of enactment")
     effective_date: Optional[str] = Field(default=None, description="Effective date")
     parts: List[LegalPart] = Field(default_factory=list)
     chapters: List[LegalChapter] = Field(default_factory=list)
     total_articles: int = Field(default=0, description="Total count of parsed articles")
     source_file: str = Field(description="Source PDF filename")
-    is_active: bool = Field(default=True, description="Statutory validity flag: False if the statute is repealed or expired")
+    is_active: bool = Field(
+        default=True,
+        description="Statutory validity flag: False if the statute is repealed or expired",
+    )
 
 
 # ==============================================================================
 # QDRANT HYBRID RETRIEVAL CHUNK SCHEMA
 # ==============================================================================
 
+
 class LegalChunk(BaseModel):
     """
     Standard ingestion payload model stored in Qdrant Vector Database.
     Contains full parent hierarchy context to prevent semantic drifting when embedded with BGE-M3.
     """
+
     model_config = ConfigDict(extra="ignore")
 
     chunk_id: str = Field(
@@ -133,7 +155,9 @@ class LegalChunk(BaseModel):
     section_title: Optional[str] = None
     article_num: int = Field(description="Article number")
     article_title: str = Field(description="Article heading")
-    clause_num: Optional[int] = Field(default=None, description="Clause number if chunk is clause-level")
+    clause_num: Optional[int] = Field(
+        default=None, description="Clause number if chunk is clause-level"
+    )
     point_id: Optional[str] = Field(default=None, description="Point id if point-level")
 
     content: str = Field(description="Exact verbatim legal text of this chunk")
@@ -143,16 +167,17 @@ class LegalChunk(BaseModel):
     )
 
     cross_references: List[str] = Field(
-        default_factory=list,
-        description="Extracted citations to other articles"
+        default_factory=list, description="Extracted citations to other articles"
     )
     is_active: bool = Field(
         default=True,
-        description="Statutory validity flag: False if the statute or provision is repealed or superseded"
+        description="Statutory validity flag: False if the statute or provision is repealed or superseded",
     )
     page_start: int = Field(default=1, ge=1)
     page_end: int = Field(default=1, ge=1)
-    bbox: Optional[List[float]] = Field(default=None, description="[left, top, right, bottom] coordinates")
+    bbox: Optional[List[float]] = Field(
+        default=None, description="[left, top, right, bottom] coordinates"
+    )
 
     @computed_field
     @property
@@ -235,16 +260,18 @@ class LegalChunk(BaseModel):
 # NEO4J KNOWLEDGE GRAPH SCHEMA
 # ==============================================================================
 
+
 class GraphRelationType(str, Enum):
     """Standardized relationship types for Legal Knowledge Graph."""
-    CONTAINS = "CONTAINS"                       # Structural containment (Law -> Chapter -> Article -> Clause)
-    REFERENCES = "REFERENCES"                   # Generic cross-reference
-    EXCEPTION_TO = "EXCEPTION_TO"               # Exception or carve-out
-    CITES_CLAUSE = "CITES_CLAUSE"               # Specific clause reference
-    DEFINED_IN = "DEFINED_IN"                   # Definitional anchor
-    MANDATES_GUIDANCE = "MANDATES_GUIDANCE"     # Detailed specification or decree mandate
-    APPLIES_STATUTE = "APPLIES_STATUTE"         # Precedent applies a statutory article
-    HAS_PRECEDENT = "HAS_PRECEDENT"             # Article has an applicable judicial precedent
+
+    CONTAINS = "CONTAINS"  # Structural containment (Law -> Chapter -> Article -> Clause)
+    REFERENCES = "REFERENCES"  # Generic cross-reference
+    EXCEPTION_TO = "EXCEPTION_TO"  # Exception or carve-out
+    CITES_CLAUSE = "CITES_CLAUSE"  # Specific clause reference
+    DEFINED_IN = "DEFINED_IN"  # Definitional anchor
+    MANDATES_GUIDANCE = "MANDATES_GUIDANCE"  # Detailed specification or decree mandate
+    APPLIES_STATUTE = "APPLIES_STATUTE"  # Precedent applies a statutory article
+    HAS_PRECEDENT = "HAS_PRECEDENT"  # Article has an applicable judicial precedent
 
     # Backward-compatible aliases for legacy references
     THAM_CHIEU_DEN = "REFERENCES"
@@ -258,15 +285,26 @@ class GraphRelationType(str, Enum):
 
 class GraphNode(BaseModel):
     """Node entity in Neo4j Knowledge Graph."""
+
     model_config = ConfigDict(extra="ignore")
 
     node_id: str = Field(description="Unique deterministic identifier (e.g. 'VN_BLLD_2019_D115')")
-    node_type: Literal["Law", "Part", "Chapter", "Section", "Article", "Clause", "Point", "Precedent", "LegalConcept"] = Field(
-        description="Entity label in Neo4j"
-    )
+    node_type: Literal[
+        "Law",
+        "Part",
+        "Chapter",
+        "Section",
+        "Article",
+        "Clause",
+        "Point",
+        "Precedent",
+        "LegalConcept",
+    ] = Field(description="Entity label in Neo4j")
     name: str = Field(description="Human readable display name")
     law_id: str = Field(description="Belonging statute identifier")
-    properties: Dict[str, Any] = Field(default_factory=dict, description="Arbitrary attributes for Cypher indexing")
+    properties: Dict[str, Any] = Field(
+        default_factory=dict, description="Arbitrary attributes for Cypher indexing"
+    )
 
     @computed_field
     @property
@@ -326,6 +364,7 @@ class GraphNode(BaseModel):
 
 class GraphEdge(BaseModel):
     """Directed relationship between two legal entities in Neo4j."""
+
     model_config = ConfigDict(extra="ignore")
 
     edge_id: str = Field(description="Unique relationship ID: {SOURCE}_{REL}_{TARGET}")
@@ -334,12 +373,15 @@ class GraphEdge(BaseModel):
     relation: GraphRelationType = Field(description="Semantic relationship type")
     target_id: str = Field(description="Destination node ID")
     target_type: str = Field(description="Destination node label")
-    citation_text: str = Field(default="", description="Verbatim quote or excerpt establishing the reference")
+    citation_text: str = Field(
+        default="", description="Verbatim quote or excerpt establishing the reference"
+    )
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class LegalGraphExtractionResult(BaseModel):
     """Complete extracted graph representation ready for batch ingestion into Neo4j."""
+
     model_config = ConfigDict(extra="ignore")
 
     law_id: str
@@ -363,21 +405,21 @@ class LegalPrecedent(BaseModel):
     Represents a judicial precedent or court judgment
     in the Vietnamese Legal System, linked to statutory articles in Neo4j.
     """
+
     model_config = ConfigDict(extra="ignore")
 
     precedent_id: str = Field(description="Deterministic ID (e.g. 'VN_AL_01_2016')")
     precedent_number: str = Field(description="Official precedent identifier")
     title: str = Field(description="Case title / topic heading")
     court: str = Field(
-        default="Hội đồng Thẩm phán Tòa án nhân dân tối cao",
-        description="Adjudicating court body"
+        default="Hội đồng Thẩm phán Tòa án nhân dân tối cao", description="Adjudicating court body"
     )
     promulgation_date: Optional[str] = Field(default=None, description="Date of precedent adoption")
     case_summary: str = Field(description="Summary of the actual precedent scenario")
     legal_rule: str = Field(description="Summary of the precedent rule (ratio decidendi)")
     applied_statutes: List[str] = Field(
         default_factory=list,
-        description="Node IDs of statutory articles applied (e.g. ['VN_BLDS_2015_D004'])"
+        description="Node IDs of statutory articles applied (e.g. ['VN_BLDS_2015_D004'])",
     )
 
     def to_graph_node(self) -> GraphNode:
@@ -418,13 +460,22 @@ class SynchronizedLegalEntity(BaseModel):
     - point_uuid: Deterministic UUIDv5 for Qdrant PointStruct ID
     - entity_type: Neo4j Node label ("Article", "Clause", "Point", "Precedent", etc.)
     """
+
     model_config = ConfigDict(extra="ignore")
 
     entity_id: str = Field(description="Deterministic ID (e.g. 'VN_BLDS_2015_D004_K02')")
     point_uuid: str = Field(description="Deterministic UUIDv5 for Qdrant PointStruct ID")
-    entity_type: Literal["Law", "Part", "Chapter", "Section", "Article", "Clause", "Point", "Precedent", "LegalConcept"] = Field(
-        default="Clause", description="Entity type / Neo4j Label"
-    )
+    entity_type: Literal[
+        "Law",
+        "Part",
+        "Chapter",
+        "Section",
+        "Article",
+        "Clause",
+        "Point",
+        "Precedent",
+        "LegalConcept",
+    ] = Field(default="Clause", description="Entity type / Neo4j Label")
 
     # Statutory Hierarchy
     law_id: str
@@ -482,15 +533,17 @@ class SynchronizedLegalEntity(BaseModel):
     def to_graph_node(self) -> GraphNode:
         """Generate corresponding GraphNode for Neo4j Knowledge Graph."""
         props = dict(self.properties)
-        props.update({
-            "article_num": self.article_num,
-            "clause_num": self.clause_num,
-            "point_id": self.point_id,
-            "title": self.article_title,
-            "citation": self.canonical_citation,
-            "content": self.content,
-            "qdrant_point_id": self.point_uuid,
-        })
+        props.update(
+            {
+                "article_num": self.article_num,
+                "clause_num": self.clause_num,
+                "point_id": self.point_id,
+                "title": self.article_title,
+                "citation": self.canonical_citation,
+                "content": self.content,
+                "qdrant_point_id": self.point_uuid,
+            }
+        )
         return GraphNode(
             node_id=self.entity_id,
             node_type=self.entity_type,

@@ -48,9 +48,7 @@ def main() -> None:
     args = parser.parse_args()
 
     cases = _load_cases(args.dataset)
-    predictions: Dict[str, Any] = json.loads(
-        args.predictions.read_text(encoding="utf-8-sig")
-    )
+    predictions: Dict[str, Any] = json.loads(args.predictions.read_text(encoding="utf-8-sig"))
     result = evaluate_agent_predictions(cases, predictions)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "results.json").write_text(

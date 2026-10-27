@@ -10,16 +10,15 @@ Verifies:
 """
 
 import pytest
+
+from src.core.config import get_async_qdrant_client
 from src.core.schemas import (
     DENSE_VECTOR_DIM,
-    DENSE_VECTOR_NAME,
-    GraphNode,
     LegalChunk,
     SynchronizedLegalEntity,
     generate_deterministic_uuid,
 )
 from src.retrieval.qdrant_store import QdrantStore
-from src.core.config import get_async_qdrant_client
 
 
 @pytest.fixture
@@ -59,7 +58,9 @@ def test_legal_chunk_qdrant_and_neo4j_alignment(sample_legal_chunk: LegalChunk):
     assert sample_legal_chunk.chunk_id == "VN_BLDS_2015_D004_K02"
     assert sample_legal_chunk.neo4j_node_id == sample_legal_chunk.chunk_id
     assert sample_legal_chunk.neo4j_node_type == "Clause"
-    assert sample_legal_chunk.qdrant_point_id == generate_deterministic_uuid("VN_BLDS_2015_D004_K02")
+    assert sample_legal_chunk.qdrant_point_id == generate_deterministic_uuid(
+        "VN_BLDS_2015_D004_K02"
+    )
 
     # Qdrant Payload verification
     payload = sample_legal_chunk.to_qdrant_payload()

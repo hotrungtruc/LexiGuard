@@ -2,8 +2,10 @@
 Integration & Unit Test: HybridLegalRetriever (Qdrant + Neo4j + Cross-Encoder Reranker)
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from src.retrieval.hybrid_retriever import (
     HybridLegalRetriever,
     HybridRetriever,
@@ -23,6 +25,7 @@ def test_hybrid_retriever_initialization():
 
 def test_cross_encoder_custom_reranker_fn():
     """Verify LegalCrossEncoderReranker sorts candidates based on relevance scores."""
+
     # Custom scoring: prefer items mentioning Article 468.
     def mock_scorer(query: str, texts: list) -> list:
         return [0.95 if "Điều 468" in t else 0.40 for t in texts]
@@ -49,42 +52,46 @@ async def test_hybrid_legal_retriever_3_step_pipeline():
     - Step 3: Cross-Encoder reranks and formats context
     """
     mock_qdrant = MagicMock()
-    mock_qdrant.hybrid_search_async = AsyncMock(return_value=[
-        {
-            "chunk_id": "VN_BLDS_2015_D357",
-            "neo4j_node_id": "VN_BLDS_2015_D357",
-            "canonical_citation": "Điều 357 Bộ luật Dân sự 2015",
-            "content": "Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền.",
-            "context_enriched_text": "[BLDS 2015] Điều 357: Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền.",
-            "cross_references": ["Điều 468"],
-        }
-    ])
+    mock_qdrant.hybrid_search_async = AsyncMock(
+        return_value=[
+            {
+                "chunk_id": "VN_BLDS_2015_D357",
+                "neo4j_node_id": "VN_BLDS_2015_D357",
+                "canonical_citation": "Điều 357 Bộ luật Dân sự 2015",
+                "content": "Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền.",
+                "context_enriched_text": "[BLDS 2015] Điều 357: Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền.",
+                "cross_references": ["Điều 468"],
+            }
+        ]
+    )
 
     mock_neo4j = MagicMock()
-    mock_neo4j.expand_referenced_articles_async = AsyncMock(return_value={
-        "root_id": "VN_BLDS_2015_D357",
-        "total_referenced": 1,
-        "referenced_articles": [
-            {
-                "node_id": "VN_BLDS_2015_D468",
-                "name": "Điều 468: Lãi suất",
-                "title": "Lãi suất",
-                "content": "Lãi suất vay do các bên thỏa thuận nhưng không được vượt quá 20%/năm.",
-                "citation": "Điều 468 Bộ luật Dân sự 2015",
-                "hop_distance": 1,
-                "relationship_types": ["THAM_CHIEU_DEN"],
-                "relationship_citations": ["quy định tại Điều 468 của Bộ luật này"],
-                "precedents": [
-                    {
-                        "precedent_id": "VN_AL_01_2016",
-                        "precedent_number": "Án lệ số 01/2016/AL",
-                        "title": "Tranh chấp lãi suất chậm trả",
-                        "legal_rule": "Áp dụng Điều 357 và Điều 468 để tính lãi suất quá hạn.",
-                    }
-                ],
-            }
-        ],
-    })
+    mock_neo4j.expand_referenced_articles_async = AsyncMock(
+        return_value={
+            "root_id": "VN_BLDS_2015_D357",
+            "total_referenced": 1,
+            "referenced_articles": [
+                {
+                    "node_id": "VN_BLDS_2015_D468",
+                    "name": "Điều 468: Lãi suất",
+                    "title": "Lãi suất",
+                    "content": "Lãi suất vay do các bên thỏa thuận nhưng không được vượt quá 20%/năm.",
+                    "citation": "Điều 468 Bộ luật Dân sự 2015",
+                    "hop_distance": 1,
+                    "relationship_types": ["THAM_CHIEU_DEN"],
+                    "relationship_citations": ["quy định tại Điều 468 của Bộ luật này"],
+                    "precedents": [
+                        {
+                            "precedent_id": "VN_AL_01_2016",
+                            "precedent_number": "Án lệ số 01/2016/AL",
+                            "title": "Tranh chấp lãi suất chậm trả",
+                            "legal_rule": "Áp dụng Điều 357 và Điều 468 để tính lãi suất quá hạn.",
+                        }
+                    ],
+                }
+            ],
+        }
+    )
 
     # Custom mock reranker
     def mock_rerank(query: str, texts: list) -> list:
@@ -131,38 +138,42 @@ async def test_hybrid_retriever_entity_fast_path():
     """
     mock_qdrant = MagicMock()
     # Simulate Qdrant returning some generic candidate
-    mock_qdrant.hybrid_search_async = AsyncMock(return_value=[
-        {
-            "chunk_id": "VN_BLDS_2015_D001",
-            "neo4j_node_id": "VN_BLDS_2015_D001",
-            "canonical_citation": "Điều 1 Bộ luật Dân sự 2015",
-            "content": "Phạm vi điều chỉnh của Bộ luật Dân sự.",
-            "context_enriched_text": "Điều 1: Phạm vi điều chỉnh",
-            "cross_references": [],
-        }
-    ])
+    mock_qdrant.hybrid_search_async = AsyncMock(
+        return_value=[
+            {
+                "chunk_id": "VN_BLDS_2015_D001",
+                "neo4j_node_id": "VN_BLDS_2015_D001",
+                "canonical_citation": "Điều 1 Bộ luật Dân sự 2015",
+                "content": "Phạm vi điều chỉnh của Bộ luật Dân sự.",
+                "context_enriched_text": "Điều 1: Phạm vi điều chỉnh",
+                "cross_references": [],
+            }
+        ]
+    )
 
     mock_neo4j = MagicMock()
-    mock_neo4j.expand_referenced_articles_async = AsyncMock(return_value={
-        "root_id": "VN_BLDS_2015_D357",
-        "root_ids": ["VN_BLDS_2015_D357", "VN_BLDS_2015_D468", "VN_BLDS_2015_D001"],
-        "root_entities": {
-            "VN_BLDS_2015_D357": {
-                "node_id": "VN_BLDS_2015_D357",
-                "name": "Điều 357: Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền",
-                "content": "Nghĩa vụ trả lãi do chậm trả...",
-                "law_id": "bo-luat-dan-su-2015",
+    mock_neo4j.expand_referenced_articles_async = AsyncMock(
+        return_value={
+            "root_id": "VN_BLDS_2015_D357",
+            "root_ids": ["VN_BLDS_2015_D357", "VN_BLDS_2015_D468", "VN_BLDS_2015_D001"],
+            "root_entities": {
+                "VN_BLDS_2015_D357": {
+                    "node_id": "VN_BLDS_2015_D357",
+                    "name": "Điều 357: Nghĩa vụ trả lãi do chậm thực hiện nghĩa vụ trả tiền",
+                    "content": "Nghĩa vụ trả lãi do chậm trả...",
+                    "law_id": "bo-luat-dan-su-2015",
+                },
+                "VN_BLDS_2015_D468": {
+                    "node_id": "VN_BLDS_2015_D468",
+                    "name": "Điều 468: Lãi suất",
+                    "content": "Lãi suất vay do các bên thỏa thuận không quá 20%/năm...",
+                    "law_id": "bo-luat-dan-su-2015",
+                },
             },
-            "VN_BLDS_2015_D468": {
-                "node_id": "VN_BLDS_2015_D468",
-                "name": "Điều 468: Lãi suất",
-                "content": "Lãi suất vay do các bên thỏa thuận không quá 20%/năm...",
-                "law_id": "bo-luat-dan-su-2015",
-            },
-        },
-        "total_referenced": 0,
-        "referenced_articles": [],
-    })
+            "total_referenced": 0,
+            "referenced_articles": [],
+        }
+    )
 
     def mock_scorer(query: str, texts: list) -> list:
         return [0.98 if "357" in t else (0.95 if "468" in t else 0.3) for t in texts]
@@ -185,7 +196,7 @@ async def test_hybrid_retriever_entity_fast_path():
     assert mock_neo4j.expand_referenced_articles_async.call_count == 1
     call_args, call_kwargs = mock_neo4j.expand_referenced_articles_async.call_args
     passed_seeds = call_kwargs.get("article_or_clause_ids") or call_args[0]
-    
+
     # Both Article 357 and Article 468 must be at the front of the seed list.
     assert "VN_BLDS_2015_D357" in passed_seeds[:2]
     assert "VN_BLDS_2015_D468" in passed_seeds[:2]

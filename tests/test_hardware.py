@@ -9,17 +9,15 @@ Validates:
 - Central integration with Settings and DoclingParser
 """
 
-import os
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import patch
 
+from src.core.config import settings
 from src.core.hardware import (
     HardwareProfile,
     detect_hardware_profile,
     get_hardware_profile,
     hardware_profile,
 )
-from src.core.config import settings
 from src.ingestion.docling_parser import DoclingParser
 
 
@@ -76,10 +74,12 @@ def test_hardware_env_var_overrides(monkeypatch):
 
 def test_hardware_fallback_without_accelerator_and_psutil():
     """Verify fallback heuristics when psutil raises and GPU is absent."""
-    with patch("psutil.cpu_count", side_effect=RuntimeError("psutil unavailable")), \
-         patch("psutil.virtual_memory", side_effect=RuntimeError("vmem unavailable")), \
-         patch("torch.cuda.is_available", return_value=False), \
-         patch("os.cpu_count", return_value=8):
+    with (
+        patch("psutil.cpu_count", side_effect=RuntimeError("psutil unavailable")),
+        patch("psutil.virtual_memory", side_effect=RuntimeError("vmem unavailable")),
+        patch("torch.cuda.is_available", return_value=False),
+        patch("os.cpu_count", return_value=8),
+    ):
         profile = detect_hardware_profile()
         # Hyperthreading heuristic: 8 // 2 = 4
         assert profile.cpu_physical_cores in (4, 8)

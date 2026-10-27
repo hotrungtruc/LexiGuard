@@ -8,19 +8,19 @@ Tests the 3 core MCP tools:
 """
 
 import pytest
+
 from src.mcp_server.legal_tools import (
+    SelfQueryEngine,
+    get_article_graph_context,
     mcp_server,
     search_legal_provisions,
     verify_table_arithmetic,
-    get_article_graph_context,
-    SelfQueryEngine,
-    TableArithmeticAuditor,
 )
-
 
 # ============================================================================
 # 1. TEST SELF-QUERYING METADATA ENGINE
 # ============================================================================
+
 
 def test_self_query_engine_law_detection():
     # Detect Civil Code 2015
@@ -45,7 +45,9 @@ def test_self_query_engine_article_and_clause_detection():
 def test_self_query_engine_explicit_override():
     q = "Điều 4 Bộ luật Dân sự"
     # Caller explicitly forces Labour Code
-    f = SelfQueryEngine.extract_filters(q, explicit_law_id="bo-luat-lao-dong-2019", explicit_article_num=115)
+    f = SelfQueryEngine.extract_filters(
+        q, explicit_law_id="bo-luat-lao-dong-2019", explicit_article_num=115
+    )
     assert f["law_id"] == "bo-luat-lao-dong-2019"
     assert f["article_num"] == 115
 
@@ -53,6 +55,7 @@ def test_self_query_engine_explicit_override():
 # ============================================================================
 # 2. TEST MCP TOOL: search_legal_provisions
 # ============================================================================
+
 
 @pytest.mark.asyncio
 async def test_search_legal_provisions_self_querying():
@@ -87,6 +90,7 @@ async def test_search_legal_provisions_with_explicit_filter():
 # ============================================================================
 # 3. TEST MCP TOOL: verify_table_arithmetic
 # ============================================================================
+
 
 def test_verify_table_arithmetic_column_sum_mismatch():
     """Test detecting vertical addition discrepancy in total row."""
@@ -157,6 +161,7 @@ def test_verify_table_arithmetic_json_input():
 # 4. TEST MCP TOOL: get_article_graph_context
 # ============================================================================
 
+
 @pytest.mark.asyncio
 async def test_get_article_graph_context_by_node_id():
     res = await get_article_graph_context(
@@ -183,6 +188,7 @@ async def test_get_article_graph_context_by_natural_citation():
 # ============================================================================
 # 5. TEST FASTMCP SERVER REGISTRATION & PROTOCOL INVOCATION
 # ============================================================================
+
 
 @pytest.mark.asyncio
 async def test_mcp_server_tool_registration():

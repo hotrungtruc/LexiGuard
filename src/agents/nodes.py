@@ -9,46 +9,47 @@ Orchestrates 4 specialized nodes:
 """
 
 import asyncio
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Optional
-from loguru import logger
-from langchain_ollama import ChatOllama
 
-from src.core.config import settings
-from src.agents.state import (
-    AgentState,
-    ClauseExtractionList,
-    ExtractedClauseItem,
-    AuditDraftReport,
-    AuditFindingItem,
-    HallucinationGrade,
-    ContractAuditReport,
-    VulnerabilityItem,
-    ContractProvenance,
-    LegalGrounding,
-    LegalRuleMetadata,
-    UNCLASSIFIED_VULNERABILITY,
-    DisputeForum,
-    DisputePrecedentInsight,
-)
-from src.mcp_server.legal_tools import (
-    search_legal_provisions,
-    verify_table_arithmetic,
-    get_article_graph_context,
-)
-from src.core.legal_norm import canonical_law_slug
-from src.retrieval.entity_extractor import LegalEntityExtractor
+from langchain_ollama import ChatOllama
+from loguru import logger
+
 from src.agents.prompts import (
     build_clause_extractor_prompt,
-    build_loophole_auditor_prompt,
     build_hallucination_grader_prompt,
+    build_loophole_auditor_prompt,
 )
-
+from src.agents.state import (
+    UNCLASSIFIED_VULNERABILITY,
+    AgentState,
+    AuditDraftReport,
+    AuditFindingItem,
+    ClauseExtractionList,
+    ContractAuditReport,
+    ContractProvenance,
+    DisputeForum,
+    DisputePrecedentInsight,
+    ExtractedClauseItem,
+    HallucinationGrade,
+    LegalGrounding,
+    LegalRuleMetadata,
+    VulnerabilityItem,
+)
+from src.core.config import settings
+from src.core.legal_norm import canonical_law_slug
+from src.mcp_server.legal_tools import (
+    get_article_graph_context,
+    search_legal_provisions,
+    verify_table_arithmetic,
+)
+from src.retrieval.entity_extractor import LegalEntityExtractor
 
 # ============================================================================
 # DYNAMIC VULNERABILITY TAXONOMY & PRECEDENT INSIGHT HELPER
 # ============================================================================
+
 
 def rule_metadata_for(
     statute: Optional[Dict[str, Any]],
@@ -60,10 +61,22 @@ def rule_metadata_for(
         metadata = record.get("metadata")
         if isinstance(metadata, dict):
             merged.update(metadata)
-        merged.update({k: v for k, v in record.items() if k in {
-            "category_id", "category_label", "risk_tier", "forum",
-            "precedent_reference", "judicial_tendency", "redline_template",
-        }})
+        merged.update(
+            {
+                k: v
+                for k, v in record.items()
+                if k
+                in {
+                    "category_id",
+                    "category_label",
+                    "risk_tier",
+                    "forum",
+                    "precedent_reference",
+                    "judicial_tendency",
+                    "redline_template",
+                }
+            }
+        )
     return LegalRuleMetadata.model_validate(merged)
 
 
@@ -82,10 +95,10 @@ def dispute_insight_for(
     )
 
 
-
 # ============================================================================
 # 1. DUAL-LLM CPU CLIENT INITIALIZATION
 # ============================================================================
+
 
 def get_fast_cpu_llm() -> ChatOllama:
     """Fast 3B model for structural parsing and citation grading (~40 t/s on CPU)."""
@@ -113,6 +126,7 @@ def get_reasoning_cpu_llm() -> ChatOllama:
 # 2. NODE 1: ClauseExtractor (Qwen2.5-3B)
 # ============================================================================
 
+
 def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 1: Parses raw contract markdown into high-risk clauses and financial tables.
@@ -128,6 +142,7 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
             path_obj = Path(raw_path)
             if path_obj.suffix.lower() == ".pdf":
                 import pypdf
+
                 reader = pypdf.PdfReader(str(path_obj))
                 contract_text = "\n\n".join([page.extract_text() or "" for page in reader.pages])
             else:
@@ -154,7 +169,9 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
         if isinstance(res, ClauseExtractionList) and res.clauses:
             extracted_items = res.clauses
     except Exception as exc:
-        logger.warning(f"Ollama structured extractor unavailable ({exc}). Using rule-based fallback parser.")
+        logger.warning(
+            f"Ollama structured extractor unavailable ({exc}). Using rule-based fallback parser."
+        )
         # Rule-based fallback parser
         lines = contract_text.splitlines()
         current_ref = "Điều 1"
@@ -163,7 +180,9 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
 
         for line in lines:
             line_s = line.strip()
-            m = re.match(r'^(?:#+\s*)?(?:(?:Điều|ĐIỀU)\s+(\d+)|\[(\d+)\]|(?:Mục|MỤC)\s+(\d+))', line_s)
+            m = re.match(
+                r"^(?:#+\s*)?(?:(?:Điều|ĐIỀU)\s+(\d+)|\[(\d+)\]|(?:Mục|MỤC)\s+(\d+))", line_s
+            )
             if m:
                 if buf:
                     text_blob = "\n".join(buf).strip()
@@ -229,6 +248,7 @@ def extract_clauses_node(state: AgentState) -> Dict[str, Any]:
 # 2. NODE 2: LegalResearcher (Autonomous FastMCP Tools)
 # ============================================================================
 
+
 def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 2: Autonomous legal research via FastMCP tools.
@@ -271,39 +291,52 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
                 rewritten_query = text[:200]
                 # 1. Strip transactional/contractual preamble boilerplate
                 boilerplate_patterns = [
-                    r'\b(?:hai\s+bên|các\s+bên)\s+(?:đồng\s+ý|thỏa\s+thuận|cam\s+kết)(?:\s+rằng)?\b',
-                    r'\b(?:trong\s+mọi\s+trường\s+hợp|trong\s+trường\s+hợp\s+nào)\b',
-                    r'\b(?:trừ\s+khi\s+có\s+thỏa\s+thuận\s+khác)\b',
-                    r'\b(?:vô\s+điều\s+kiện|ngay\s+lập\s+tức)\b',
+                    r"\b(?:hai\s+bên|các\s+bên)\s+(?:đồng\s+ý|thỏa\s+thuận|cam\s+kết)(?:\s+rằng)?\b",
+                    r"\b(?:trong\s+mọi\s+trường\s+hợp|trong\s+trường\s+hợp\s+nào)\b",
+                    r"\b(?:trừ\s+khi\s+có\s+thỏa\s+thuận\s+khác)\b",
+                    r"\b(?:vô\s+điều\s+kiện|ngay\s+lập\s+tức)\b",
                 ]
                 for bp in boilerplate_patterns:
-                    rewritten_query = re.sub(bp, ' ', rewritten_query, flags=re.IGNORECASE)
+                    rewritten_query = re.sub(bp, " ", rewritten_query, flags=re.IGNORECASE)
 
                 # 2. Universal cross-domain statutory concept normalization
                 legal_concept_expansions = [
                     # Commercial / Obligations / Financial
-                    (r'\bphạt\s+tiền\b', 'phạt vi phạm'),
-                    (r'\bbồi\s+thường\s+tối\s+đa\b', 'giới hạn trách nhiệm bồi thường thiệt hại'),
-                    (r'\bhủy\s+hợp\s+đồng\s+ngay\b', 'đơn phương chấm dứt thực hiện hợp đồng'),
-                    (r'\blãi\s+mẹ\s+đẻ\s+lãi\s+con\b', 'tính lãi trên nợ lãi chậm trả'),
-                    (r'\bkhông\s+thể\s+thực\s+hiện\s+do\s+giá\s+tăng\b', 'hoàn cảnh thay đổi cơ bản sự kiện bất khả kháng'),
+                    (r"\bphạt\s+tiền\b", "phạt vi phạm"),
+                    (r"\bbồi\s+thường\s+tối\s+đa\b", "giới hạn trách nhiệm bồi thường thiệt hại"),
+                    (r"\bhủy\s+hợp\s+đồng\s+ngay\b", "đơn phương chấm dứt thực hiện hợp đồng"),
+                    (r"\blãi\s+mẹ\s+đẻ\s+lãi\s+con\b", "tính lãi trên nợ lãi chậm trả"),
+                    (
+                        r"\bkhông\s+thể\s+thực\s+hiện\s+do\s+giá\s+tăng\b",
+                        "hoàn cảnh thay đổi cơ bản sự kiện bất khả kháng",
+                    ),
                     # Labor / Employment
-                    (r'\bgiam\s+lương\b', 'khấu trừ tiền lương'),
-                    (r'\bquỹ\s+giữ\s+chân\b', 'khấu trừ tiền lương'),
-                    (r'\bnghỉ\s+việc\s+ngay\b', 'đơn phương chấm dứt hợp đồng lao động'),
-                    (r'\bcấm\s+làm\s+cho\s+đối\s+thủ\b', 'thỏa thuận không cạnh tranh tự do việc làm'),
+                    (r"\bgiam\s+lương\b", "khấu trừ tiền lương"),
+                    (r"\bquỹ\s+giữ\s+chân\b", "khấu trừ tiền lương"),
+                    (r"\bnghỉ\s+việc\s+ngay\b", "đơn phương chấm dứt hợp đồng lao động"),
+                    (
+                        r"\bcấm\s+làm\s+cho\s+đối\s+thủ\b",
+                        "thỏa thuận không cạnh tranh tự do việc làm",
+                    ),
                     # Tech / IP / Data Protection
-                    (r'\blộ\s+thông\s+tin\s+khách\s+hàng\b', 'bảo vệ dữ liệu cá nhân bí mật kinh doanh'),
-                    (r'\băn\s+cắp\s+mã\s+nguồn\b', 'xâm phạm quyền tác giả quyền sở hữu trí tuệ'),
+                    (
+                        r"\blộ\s+thông\s+tin\s+khách\s+hàng\b",
+                        "bảo vệ dữ liệu cá nhân bí mật kinh doanh",
+                    ),
+                    (r"\băn\s+cắp\s+mã\s+nguồn\b", "xâm phạm quyền tác giả quyền sở hữu trí tuệ"),
                     # Corporate Governance
-                    (r'\bký\s+thay\s+sếp\b', 'thẩm quyền đại diện theo pháp luật'),
+                    (r"\bký\s+thay\s+sếp\b", "thẩm quyền đại diện theo pháp luật"),
                 ]
                 for pat, rep in legal_concept_expansions:
                     rewritten_query = re.sub(pat, rep, rewritten_query, flags=re.IGNORECASE)
 
-                rewritten_query = re.sub(r'\s+', ' ', rewritten_query).strip()
-                logger.info(f"Universal Legal Query Rewriter triggered: '{text[:60]}...' -> '{rewritten_query[:60]}...'")
-                retry_res = await search_legal_provisions(query=rewritten_query, top_k=3, active_only=True)
+                rewritten_query = re.sub(r"\s+", " ", rewritten_query).strip()
+                logger.info(
+                    f"Universal Legal Query Rewriter triggered: '{text[:60]}...' -> '{rewritten_query[:60]}...'"
+                )
+                retry_res = await search_legal_provisions(
+                    query=rewritten_query, top_k=3, active_only=True
+                )
                 provisions = retry_res.get("provisions", [])
 
             for p in provisions:
@@ -322,7 +355,11 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
 
                         # Extract linked judicial precedents from graph context
                         for prec in g_ctx.get("precedents", []):
-                            pid = prec.get("precedent_id") or prec.get("precedent_number") or prec.get("title")
+                            pid = (
+                                prec.get("precedent_id")
+                                or prec.get("precedent_number")
+                                or prec.get("title")
+                            )
                             if pid and pid not in seen_precedent_ids:
                                 seen_precedent_ids.add(pid)
                                 prec_copy = dict(prec)
@@ -353,6 +390,7 @@ def retrieve_statutes_node(state: AgentState) -> Dict[str, Any]:
 # 3. NODE 3: LoopholeAuditor (Qwen2.5-7B)
 # ============================================================================
 
+
 def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
     """
     Node 3: Legal reasoning, loophole assessment, and redline revision.
@@ -366,17 +404,17 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
     arithmetic_findings = state.get("arithmetic_findings", [])
     critique = state.get("hallucination_grade", {})
 
-    feedback_text = ""
-    if critique and not critique.get("is_grounded", True):
-        feedback_text = f"\n[CORRECTION REQUIRED]: {critique.get('critique_feedback', '')}\n"
-
     audit_draft: Optional[AuditDraftReport] = None
 
     try:
         reasoning_llm = get_reasoning_cpu_llm()
         structured_auditor = reasoning_llm.with_structured_output(AuditDraftReport)
 
-        feedback = critique.get("critique_feedback") if critique and not critique.get("is_grounded", True) else None
+        feedback = (
+            critique.get("critique_feedback")
+            if critique and not critique.get("is_grounded", True)
+            else None
+        )
         prompt = build_loophole_auditor_prompt(
             parsed_clauses=parsed_clauses,
             retrieved_statutes=retrieved_statutes,
@@ -391,31 +429,41 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
         if isinstance(res, AuditDraftReport):
             audit_draft = res
     except Exception as exc:
-        logger.warning(f"Ollama 7B auditor unavailable ({exc}). Using deterministic audit fallback.")
+        logger.warning(
+            f"Ollama 7B auditor unavailable ({exc}). Using deterministic audit fallback."
+        )
         # Dynamic fallback synthesizer using retrieved statutes and precedents
         findings: List[AuditFindingItem] = []
         for idx, cl in enumerate(parsed_clauses, start=1):
             ref = cl.get("clause_reference", f"Clause {idx}")
-            txt = cl.get("verbatim_text", "")
 
             # Match associated statutory provisions
             matched_statute = next(
                 (s for s in retrieved_statutes if s.get("source_clause") == ref),
-                retrieved_statutes[0] if retrieved_statutes else None
+                retrieved_statutes[0] if retrieved_statutes else None,
             )
 
             statute_cit = (
                 matched_statute.get("canonical_citation", "Unspecified legal provision")
-                if matched_statute else "Unspecified legal provision"
+                if matched_statute
+                else "Unspecified legal provision"
             )
             art_id = matched_statute.get("chunk_id") if matched_statute else None
 
             # Match associated precedent
             matched_prec = next(
-                (p for p in retrieved_precedents if p.get("source_clause") == ref or p.get("applied_statute") == art_id),
-                retrieved_precedents[0] if retrieved_precedents else None
+                (
+                    p
+                    for p in retrieved_precedents
+                    if p.get("source_clause") == ref or p.get("applied_statute") == art_id
+                ),
+                retrieved_precedents[0] if retrieved_precedents else None,
             )
-            precedent_ref = (matched_prec.get("precedent_number") or matched_prec.get("title")) if matched_prec else None
+            precedent_ref = (
+                (matched_prec.get("precedent_number") or matched_prec.get("title"))
+                if matched_prec
+                else None
+            )
 
             rule_metadata = rule_metadata_for(matched_statute, matched_prec)
             disp_insight = dispute_insight_for(
@@ -431,7 +479,8 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                     statutory_article_id=art_id,
                     risk_tier=rule_metadata.risk_tier,
                     vulnerability_classification=rule_metadata.category_id,
-                    precedent_reference=precedent_ref or (disp_insight.precedent_reference if disp_insight else None),
+                    precedent_reference=precedent_ref
+                    or (disp_insight.precedent_reference if disp_insight else None),
                     audit_verdict=f"Clause exposes asymmetric liability conflicting with mandatory provisions of {statute_cit}.",
                     proposed_redline=f"Các bên thỏa thuận thực hiện đúng trình tự thông báo và bồi thường theo {statute_cit}.",
                     negotiation_rationale="Cần sửa lại câu chữ để loại trừ rủi ro bị tuyên vô hiệu theo luật định.",
@@ -447,10 +496,10 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
                     statutory_citation=af.get("statutory_citation", "Unspecified legal provision"),
                     statutory_article_id=af.get("statutory_article_id"),
                     risk_tier=af.get("severity", "CRITICAL"),
-                    vulnerability_classification=af.get(
-                        "category_id", UNCLASSIFIED_VULNERABILITY
+                    vulnerability_classification=af.get("category_id", UNCLASSIFIED_VULNERABILITY),
+                    audit_verdict=af.get(
+                        "legal_risk", "Sai lệch số học trong bảng biểu thanh toán."
                     ),
-                    audit_verdict=af.get("legal_risk", "Sai lệch số học trong bảng biểu thanh toán."),
                     proposed_redline=f"Điều chỉnh tổng số tiền thành {af.get('expected_value', 0):,.0f} VNĐ theo đúng công thức.",
                     negotiation_rationale="Khắc phục sai lệch số học để tránh tranh chấp quyết toán hợp đồng.",
                 )
@@ -474,14 +523,23 @@ def audit_vulnerabilities_node(state: AgentState) -> Dict[str, Any]:
 # ============================================================================
 
 LAW_CODE_PATTERNS = [
-    (re.compile(r'\b(?:bộ\s+luật\s+dân\s+sự|blds)(?:\s*2015)?\b', re.IGNORECASE), "VN_BLDS_2015"),
-    (re.compile(r'\b(?:bộ\s+luật\s+lao\s+động|blld)(?:\s*2019)?\b', re.IGNORECASE), "VN_BLLD_2019"),
-    (re.compile(r'\b(?:luật\s+thương\s+mại|ltm)(?:\s*2005)?\b', re.IGNORECASE), "VN_LTM_2005"),
-    (re.compile(r'\b(?:luật\s+doanh\s+nghiệp|ldn)(?:\s*2020)?\b', re.IGNORECASE), "VN_LDN_2020"),
-    (re.compile(r'\b(?:luật\s+trọng\s+tài\s+thương\s+mại|ltttm)(?:\s*2010)?\b', re.IGNORECASE), "VN_LTTTM_2010"),
-    (re.compile(r'\b(?:luật\s+đất\s+đai|ldd)(?:\s*2024|\s*2013)?\b', re.IGNORECASE), "VN_LDD"),
-    (re.compile(r'\b(?:luật\s+nhà\s+ở)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LNO"),
-    (re.compile(r'\b(?:luật\s+kinh\s+doanh\s+bất\s+động\s+sản|lkdbds)(?:\s*2023|\s*2014)?\b', re.IGNORECASE), "VN_LKDBDS"),
+    (re.compile(r"\b(?:bộ\s+luật\s+dân\s+sự|blds)(?:\s*2015)?\b", re.IGNORECASE), "VN_BLDS_2015"),
+    (re.compile(r"\b(?:bộ\s+luật\s+lao\s+động|blld)(?:\s*2019)?\b", re.IGNORECASE), "VN_BLLD_2019"),
+    (re.compile(r"\b(?:luật\s+thương\s+mại|ltm)(?:\s*2005)?\b", re.IGNORECASE), "VN_LTM_2005"),
+    (re.compile(r"\b(?:luật\s+doanh\s+nghiệp|ldn)(?:\s*2020)?\b", re.IGNORECASE), "VN_LDN_2020"),
+    (
+        re.compile(r"\b(?:luật\s+trọng\s+tài\s+thương\s+mại|ltttm)(?:\s*2010)?\b", re.IGNORECASE),
+        "VN_LTTTM_2010",
+    ),
+    (re.compile(r"\b(?:luật\s+đất\s+đai|ldd)(?:\s*2024|\s*2013)?\b", re.IGNORECASE), "VN_LDD"),
+    (re.compile(r"\b(?:luật\s+nhà\s+ở)(?:\s*2023|\s*2014)?\b", re.IGNORECASE), "VN_LNO"),
+    (
+        re.compile(
+            r"\b(?:luật\s+kinh\s+doanh\s+bất\s+động\s+sản|lkdbds)(?:\s*2023|\s*2014)?\b",
+            re.IGNORECASE,
+        ),
+        "VN_LKDBDS",
+    ),
 ]
 
 
@@ -522,7 +580,7 @@ def _extract_law_code_from_statute(statute: Dict[str, Any]) -> Optional[str]:
     """Extracts statutory code from chunk_id, law_id, canonical_citation, or title."""
     chunk_id = statute.get("chunk_id", "")
     if chunk_id:
-        m = re.match(r'^(VN_[A-Z0-9]+(?:_\d{4})?)', chunk_id)
+        m = re.match(r"^(VN_[A-Z0-9]+(?:_\d{4})?)", chunk_id)
         if m:
             return m.group(1)
 
@@ -535,7 +593,9 @@ def _extract_law_code_from_statute(statute: Dict[str, Any]) -> Optional[str]:
     if code:
         return code
 
-    code_from_title = _extract_explicit_law_code(statute.get("title", "") or statute.get("law_title", ""))
+    code_from_title = _extract_explicit_law_code(
+        statute.get("title", "") or statute.get("law_title", "")
+    )
     if code_from_title:
         return code_from_title
 
@@ -559,7 +619,7 @@ def _is_citation_grounded(
     cit_law = _extract_explicit_law_code(cit_text, dynamic_statutes=retrieved_statutes)
 
     # Extract article number from citation text
-    m_art = re.search(r'(?:điều|dieu|đ\.?)\s*(\d+)', cit_text, re.IGNORECASE)
+    m_art = re.search(r"(?:điều|dieu|đ\.?)\s*(\d+)", cit_text, re.IGNORECASE)
     cit_art_num = int(m_art.group(1)) if m_art else None
 
     # Check against each retrieved statute
@@ -577,7 +637,11 @@ def _is_citation_grounded(
         s_law = _extract_law_code_from_statute(s)
 
         # 1. Direct Neo4j node match if article_id provided
-        if article_id and s_chunk_id and (article_id == s_chunk_id or article_id in s.get("graph_context", [])):
+        if (
+            article_id
+            and s_chunk_id
+            and (article_id == s_chunk_id or article_id in s.get("graph_context", []))
+        ):
             if cit_law and s_law and cit_law != s_law:
                 continue
             return True
@@ -642,11 +706,13 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
         is_supported = _is_citation_grounded(cit, art_id, retrieved_statutes)
 
         # If LLM ran and explicitly flagged this citation as unverified, respect LLM check as well
-        if llm_unverified is not None and any(cit.lower() in u.lower() or u.lower() in cit.lower() for u in llm_unverified):
+        if llm_unverified is not None and any(
+            cit.lower() in u.lower() or u.lower() in cit.lower() for u in llm_unverified
+        ):
             is_supported = False
 
         if is_supported:
-            m_art = re.search(r'(?:điều|dieu|đ\.?)\s*(\d+)', cit, re.IGNORECASE)
+            m_art = re.search(r"(?:điều|dieu|đ\.?)\s*(\d+)", cit, re.IGNORECASE)
             art_str = m_art.group(1) if m_art else ""
             v_class = f.vulnerability_classification or UNCLASSIFIED_VULNERABILITY
             disp_insight = (
@@ -698,7 +764,9 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
         critique_feedback=(
             f"Hallucination detected: Citations {unverified} not found in retrieved statutory context. "
             f"Please restrict citations strictly to grounded provisions."
-        ) if not is_grounded else None,
+        )
+        if not is_grounded
+        else None,
     )
 
     final_report = None
@@ -713,10 +781,14 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
             tand_viac_summary=(
                 f"Đã phát hiện {len(verified_items)} điểm rủi ro pháp lý theo tiền lệ án TAND và VIAC. "
                 f"Cần áp dụng Redline để phòng ngừa nguy cơ bị cơ quan tài phán tuyên vô hiệu."
-            ) if verified_items else "Hợp đồng an toàn, không phát hiện rủi ro tranh chấp nghiêm trọng.",
+            )
+            if verified_items
+            else "Hợp đồng an toàn, không phát hiện rủi ro tranh chấp nghiêm trọng.",
         )
 
-    logger.info(f"HallucinationGrader: is_grounded={is_grounded}, score={accuracy_score}, unverified={unverified}")
+    logger.info(
+        f"HallucinationGrader: is_grounded={is_grounded}, score={accuracy_score}, unverified={unverified}"
+    )
 
     return {
         "hallucination_grade": grade,
@@ -729,6 +801,7 @@ def grade_hallucination_node(state: AgentState) -> Dict[str, Any]:
 # ============================================================================
 # 5. CONDITIONAL BRANCHING FUNCTION
 # ============================================================================
+
 
 def decide_post_grading_branch(state: AgentState) -> str:
     """
@@ -745,8 +818,12 @@ def decide_post_grading_branch(state: AgentState) -> str:
         return "export_report"
 
     if retry_count < 2:
-        logger.warning(f"Hallucination detected. Self-correction retry loop triggered (retry_count={retry_count}).")
+        logger.warning(
+            f"Hallucination detected. Self-correction retry loop triggered (retry_count={retry_count})."
+        )
         return "retry_audit"
 
-    logger.warning("Max self-correction retries reached (retry_count >= 2). Exporting with cautionary note.")
+    logger.warning(
+        "Max self-correction retries reached (retry_count >= 2). Exporting with cautionary note."
+    )
     return "export_report"

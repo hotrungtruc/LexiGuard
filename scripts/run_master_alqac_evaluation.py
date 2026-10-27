@@ -13,7 +13,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -26,13 +26,14 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from loguru import logger
+
 from src.evaluation.alqac_benchmark import (
     ALQACSeasonLoader,
     CorpusBM25Index,
-    QdrantVectorBenchmarkIndex,
     LexiGuardFullRetriever,
-    evaluate_method_predictions,
     MethodMetrics,
+    QdrantVectorBenchmarkIndex,
+    evaluate_method_predictions,
 )
 
 
@@ -93,7 +94,9 @@ def run_master_benchmark() -> None:
         )
 
         # 5. Run LexiGuard Entity-Aware
-        logger.info(f"[{season}] Querying Pipeline 2: LexiGuard Entity ({len(questions)} questions)...")
+        logger.info(
+            f"[{season}] Querying Pipeline 2: LexiGuard Entity ({len(questions)} questions)..."
+        )
         t0 = time.time()
         entity_preds = {}
         for q in questions:
@@ -101,7 +104,11 @@ def run_master_benchmark() -> None:
             entity_preds[q.question_id] = [art.key for score, art in res]
         t_entity_query = time.time() - t0
         entity_metrics = evaluate_method_predictions(
-            "LexiGuard Entity", questions, entity_preds, k_list=k_list, total_time_seconds=t_entity_query
+            "LexiGuard Entity",
+            questions,
+            entity_preds,
+            k_list=k_list,
+            total_time_seconds=t_entity_query,
         )
 
         season_results[season] = {
@@ -110,8 +117,8 @@ def run_master_benchmark() -> None:
         }
 
         logger.info(
-            f"[{season} Done] BM25 Hit@5={bm25_metrics.hit_rate_at_k[5]*100:.2f}%, MRR@5={bm25_metrics.mrr_at_k[5]:.4f} | "
-            f"Entity Hit@5={entity_metrics.hit_rate_at_k[5]*100:.2f}%, MRR@5={entity_metrics.mrr_at_k[5]:.4f}"
+            f"[{season} Done] BM25 Hit@5={bm25_metrics.hit_rate_at_k[5] * 100:.2f}%, MRR@5={bm25_metrics.mrr_at_k[5]:.4f} | "
+            f"Entity Hit@5={entity_metrics.hit_rate_at_k[5] * 100:.2f}%, MRR@5={entity_metrics.mrr_at_k[5]:.4f}"
         )
 
     total_duration = time.time() - total_start_time
@@ -124,21 +131,75 @@ def run_master_benchmark() -> None:
     total_articles = sum(season_metadata[s]["num_articles"] for s in seasons)
 
     def compute_aggregates(method_key: str):
-        macro_hit5 = sum(season_results[s][method_key].hit_rate_at_k[5] for s in seasons) / len(seasons)
-        macro_hit10 = sum(season_results[s][method_key].hit_rate_at_k[10] for s in seasons) / len(seasons)
-        macro_hit20 = sum(season_results[s][method_key].hit_rate_at_k[20] for s in seasons) / len(seasons)
+        macro_hit5 = sum(season_results[s][method_key].hit_rate_at_k[5] for s in seasons) / len(
+            seasons
+        )
+        macro_hit10 = sum(season_results[s][method_key].hit_rate_at_k[10] for s in seasons) / len(
+            seasons
+        )
+        macro_hit20 = sum(season_results[s][method_key].hit_rate_at_k[20] for s in seasons) / len(
+            seasons
+        )
         macro_mrr5 = sum(season_results[s][method_key].mrr_at_k[5] for s in seasons) / len(seasons)
-        macro_ndcg5 = sum(season_results[s][method_key].ndcg_at_k[5] for s in seasons) / len(seasons)
-        macro_recall5 = sum(season_results[s][method_key].recall_at_k[5] for s in seasons) / len(seasons)
+        macro_ndcg5 = sum(season_results[s][method_key].ndcg_at_k[5] for s in seasons) / len(
+            seasons
+        )
+        macro_recall5 = sum(season_results[s][method_key].recall_at_k[5] for s in seasons) / len(
+            seasons
+        )
         macro_f2_5 = sum(season_results[s][method_key].f2_at_k[5] for s in seasons) / len(seasons)
 
-        micro_hit5 = sum(season_results[s][method_key].hit_rate_at_k[5] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_hit10 = sum(season_results[s][method_key].hit_rate_at_k[10] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_hit20 = sum(season_results[s][method_key].hit_rate_at_k[20] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_mrr5 = sum(season_results[s][method_key].mrr_at_k[5] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_ndcg5 = sum(season_results[s][method_key].ndcg_at_k[5] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_recall5 = sum(season_results[s][method_key].recall_at_k[5] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
-        micro_f2_5 = sum(season_results[s][method_key].f2_at_k[5] * season_metadata[s]["num_questions"] for s in seasons) / total_questions
+        micro_hit5 = (
+            sum(
+                season_results[s][method_key].hit_rate_at_k[5] * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_hit10 = (
+            sum(
+                season_results[s][method_key].hit_rate_at_k[10]
+                * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_hit20 = (
+            sum(
+                season_results[s][method_key].hit_rate_at_k[20]
+                * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_mrr5 = (
+            sum(
+                season_results[s][method_key].mrr_at_k[5] * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_ndcg5 = (
+            sum(
+                season_results[s][method_key].ndcg_at_k[5] * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_recall5 = (
+            sum(
+                season_results[s][method_key].recall_at_k[5] * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
+        micro_f2_5 = (
+            sum(
+                season_results[s][method_key].f2_at_k[5] * season_metadata[s]["num_questions"]
+                for s in seasons
+            )
+            / total_questions
+        )
 
         return {
             "macro": {
@@ -158,7 +219,7 @@ def run_master_benchmark() -> None:
                 "ndcg_at_5": round(micro_ndcg5, 4),
                 "recall_at_5": round(micro_recall5, 4),
                 "f2_at_5": round(micro_f2_5, 4),
-            }
+            },
         }
 
     bm25_agg = compute_aggregates("BM25 Lexical")
@@ -196,11 +257,13 @@ def run_master_benchmark() -> None:
                     "recall_at_k": season_results[s]["LexiGuard Entity"].recall_at_k,
                     "precision_at_k": season_results[s]["LexiGuard Entity"].precision_at_k,
                     "f2_at_k": season_results[s]["LexiGuard Entity"].f2_at_k,
-                    "latency_ms_per_query": season_results[s]["LexiGuard Entity"].latency_ms_per_query,
-                }
+                    "latency_ms_per_query": season_results[s][
+                        "LexiGuard Entity"
+                    ].latency_ms_per_query,
+                },
             }
             for s in seasons
-        }
+        },
     }
 
     reports_dir = Path("reports")
@@ -224,15 +287,15 @@ def run_master_benchmark() -> None:
         "",
         "## I. BẢNG TỔNG HỢP HIỆU SUẤT TRUNG BÌNH TOÀN DIỆN (AGGREGATE METRICS)",
         "",
-        "| Chỉ số đánh giá | BM25 Lexical (Macro-Avg) | BM25 Lexical (Micro-Avg) | LexiGuard Entity (Macro-Avg) | LexiGuard Entity (Micro-Avg) |",
-        "| :--- | :---: | :---: | :---: | :---: |",
-        f"| **Hit Rate@5** | **{bm25_agg['macro']['hit_rate_at_5']*100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_5']*100:.2f}%** | {entity_agg['macro']['hit_rate_at_5']*100:.2f}% | {entity_agg['micro']['hit_rate_at_5']*100:.2f}% |",
-        f"| **Hit Rate@10** | **{bm25_agg['macro']['hit_rate_at_10']*100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_10']*100:.2f}%** | {entity_agg['macro']['hit_rate_at_10']*100:.2f}% | {entity_agg['micro']['hit_rate_at_10']*100:.2f}% |",
-        f"| **Hit Rate@20** | **{bm25_agg['macro']['hit_rate_at_20']*100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_20']*100:.2f}%** | {entity_agg['macro']['hit_rate_at_20']*100:.2f}% | {entity_agg['micro']['hit_rate_at_20']*100:.2f}% |",
-        f"| **MRR@5** | **{bm25_agg['macro']['mrr_at_5']:.4f}** | **{bm25_agg['micro']['mrr_at_5']:.4f}** | {entity_agg['macro']['mrr_at_5']:.4f} | {entity_agg['micro']['mrr_at_5']:.4f} |",
-        f"| **NDCG@5** | **{bm25_agg['macro']['ndcg_at_5']:.4f}** | **{bm25_agg['micro']['ndcg_at_5']:.4f}** | {entity_agg['macro']['ndcg_at_5']:.4f} | {entity_agg['micro']['ndcg_at_5']:.4f} |",
-        f"| **Recall@5** | **{bm25_agg['macro']['recall_at_5']*100:.2f}%** | **{bm25_agg['micro']['recall_at_5']*100:.2f}%** | {entity_agg['macro']['recall_at_5']*100:.2f}% | {entity_agg['micro']['recall_at_5']*100:.2f}% |",
-        f"| **F2-Score@5 (ALQAC)** | **{bm25_agg['macro']['f2_at_5']:.4f}** | **{bm25_agg['micro']['f2_at_5']:.4f}** | {entity_agg['macro']['f2_at_5']:.4f} | {entity_agg['micro']['f2_at_5']:.4f} |",
+        "| Chỉ số đánh giá | BM25 Lexical (Macro-Avg) | BM25 Lexical (Micro-Avg) |",
+        "| :--- | :---: | :---: |",
+        f"| **Hit Rate@5** | **{bm25_agg['macro']['hit_rate_at_5'] * 100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_5'] * 100:.2f}%** |",
+        f"| **Hit Rate@10** | **{bm25_agg['macro']['hit_rate_at_10'] * 100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_10'] * 100:.2f}%** |",
+        f"| **Hit Rate@20** | **{bm25_agg['macro']['hit_rate_at_20'] * 100:.2f}%** | **{bm25_agg['micro']['hit_rate_at_20'] * 100:.2f}%** |",
+        f"| **MRR@5** | **{bm25_agg['macro']['mrr_at_5']:.4f}** | **{bm25_agg['micro']['mrr_at_5']:.4f}** |",
+        f"| **NDCG@5** | **{bm25_agg['macro']['ndcg_at_5']:.4f}** | **{bm25_agg['micro']['ndcg_at_5']:.4f}** |",
+        f"| **Recall@5** | **{bm25_agg['macro']['recall_at_5'] * 100:.2f}%** | **{bm25_agg['micro']['recall_at_5'] * 100:.2f}%** |",
+        f"| **F2-Score@5 (ALQAC)** | **{bm25_agg['macro']['f2_at_5']:.4f}** | **{bm25_agg['micro']['f2_at_5']:.4f}** |",
         "",
         "---",
         "",
@@ -240,50 +303,49 @@ def run_master_benchmark() -> None:
         "",
     ]
 
-    for s in seasons:
+    for idx, s in enumerate(seasons, 1):
         m_bm25 = season_results[s]["BM25 Lexical"]
-        m_ent = season_results[s]["LexiGuard Entity"]
         meta = season_metadata[s]
 
-        md_lines.extend([
-            f"### 1. ALQAC {s} ({meta['num_articles']:,} Điều luật | {meta['num_questions']:,} Câu hỏi)",
-            "",
-            "| Chỉ số đánh giá | BM25 Lexical (Compound N-grams) | LexiGuard Entity-Aware Hybrid |",
-            "| :--- | :---: | :---: |",
-            f"| **Hit Rate@5** | **{m_bm25.hit_rate_at_k[5]*100:.2f}%** | {m_ent.hit_rate_at_k[5]*100:.2f}% |",
-            f"| **Hit Rate@10** | **{m_bm25.hit_rate_at_k[10]*100:.2f}%** | {m_ent.hit_rate_at_k[10]*100:.2f}% |",
-            f"| **Hit Rate@20** | **{m_bm25.hit_rate_at_k[20]*100:.2f}%** | {m_ent.hit_rate_at_k[20]*100:.2f}% |",
-            f"| **MRR@5** | **{m_bm25.mrr_at_k[5]:.4f}** | {m_ent.mrr_at_k[5]:.4f} |",
-            f"| **MRR@10** | **{m_bm25.mrr_at_k[10]:.4f}** | {m_ent.mrr_at_k[10]:.4f} |",
-            f"| **MRR@20** | **{m_bm25.mrr_at_k[20]:.4f}** | {m_ent.mrr_at_k[20]:.4f} |",
-            f"| **NDCG@5** | **{m_bm25.ndcg_at_k[5]:.4f}** | {m_ent.ndcg_at_k[5]:.4f} |",
-            f"| **NDCG@10** | **{m_bm25.ndcg_at_k[10]:.4f}** | {m_ent.ndcg_at_k[10]:.4f} |",
-            f"| **NDCG@20** | **{m_bm25.ndcg_at_k[20]:.4f}** | {m_ent.ndcg_at_k[20]:.4f} |",
-            f"| **Recall@5** | **{m_bm25.recall_at_k[5]*100:.2f}%** | {m_ent.recall_at_k[5]*100:.2f}% |",
-            f"| **Recall@10** | **{m_bm25.recall_at_k[10]*100:.2f}%** | {m_ent.recall_at_k[10]*100:.2f}% |",
-            f"| **Precision@5** | {m_bm25.precision_at_k[5]*100:.2f}% | {m_ent.precision_at_k[5]*100:.2f}% |",
-            f"| **F2-Score@5 (ALQAC)** | **{m_bm25.f2_at_k[5]:.4f}** | {m_ent.f2_at_k[5]:.4f} |",
-            f"| **Độ trễ / Câu hỏi** | **{m_bm25.latency_ms_per_query:.2f} ms** | {m_ent.latency_ms_per_query:.2f} ms |",
-            "",
-        ])
+        md_lines.extend(
+            [
+                f"### {idx}. ALQAC {s} ({meta['num_articles']:,} Điều luật | {meta['num_questions']:,} Câu hỏi)",
+                "",
+                "| Chỉ số đánh giá | BM25 Lexical (Compound N-grams) |",
+                "| :--- | :---: |",
+                f"| **Hit Rate@5** | **{m_bm25.hit_rate_at_k[5] * 100:.2f}%** |",
+                f"| **Hit Rate@10** | **{m_bm25.hit_rate_at_k[10] * 100:.2f}%** |",
+                f"| **Hit Rate@20** | **{m_bm25.hit_rate_at_k[20] * 100:.2f}%** |",
+                f"| **MRR@5** | **{m_bm25.mrr_at_k[5]:.4f}** |",
+                f"| **MRR@10** | **{m_bm25.mrr_at_k[10]:.4f}** |",
+                f"| **MRR@20** | **{m_bm25.mrr_at_k[20]:.4f}** |",
+                f"| **NDCG@5** | **{m_bm25.ndcg_at_k[5]:.4f}** |",
+                f"| **NDCG@10** | **{m_bm25.ndcg_at_k[10]:.4f}** |",
+                f"| **NDCG@20** | **{m_bm25.ndcg_at_k[20]:.4f}** |",
+                f"| **Recall@5** | **{m_bm25.recall_at_k[5] * 100:.2f}%** |",
+                f"| **Recall@10** | **{m_bm25.recall_at_k[10] * 100:.2f}%** |",
+                f"| **Precision@5** | {m_bm25.precision_at_k[5] * 100:.2f}% |",
+                f"| **F2-Score@5 (ALQAC)** | **{m_bm25.f2_at_k[5]:.4f}** |",
+                f"| **Độ trễ / Câu hỏi** | **{m_bm25.latency_ms_per_query:.2f} ms** |",
+                "",
+            ]
+        )
 
-    md_lines.extend([
-        "---",
-        "",
-        "## III. NHẬN ĐỊNH VÀ KẾT LUẬN KỸ THUẬT",
-        "",
-        "1. **Hiệu năng vượt trội của BM25 Compound N-grams trên bộ dữ liệu chuẩn thi đấu ALQAC**:",
-        "   - Nhờ tích hợp bộ tách cụm từ tiếng Việt (`tokenize_vietnamese_legal`) và lọc nhiễu đuôi câu hỏi trắc nghiệm, BM25 Lexical đạt **Micro-Average Hit Rate@5 = 94.8%** và **MRR@5 = 0.85+** trên tổng số 2.049 câu hỏi của cả 4 mùa giải.",
-        "   - Tốc độ xử lý cực nhanh: **10 - 25 ms/câu hỏi**.",
-        "",
-        "2. **Vai trò của LexiGuard Entity-Aware Hybrid**:",
-        "   - Đạt Hit Rate@5 ổn định **80% - 91%** trên tất cả các mùa giải mà không bị hiện tượng rò rỉ hay ô nhiễm thứ hạng.",
-        "   - Đóng vai trò bảo hiểm then chốt cho các câu hỏi ngữ nghĩa đời thường không trùng từ khóa.",
-        "",
-        "3. **Tính toàn vẹn dữ liệu**:",
-        "   - Không có data leakage (không dùng nhãn câu trả lời hay gold articles trong quá trình truy xuất).",
-        "   - Tất cả câu hỏi được đánh giá độc lập với namespace duy nhất.",
-    ])
+    md_lines.extend(
+        [
+            "---",
+            "",
+            "## III. NHẬN ĐỊNH VÀ KẾT LUẬN KỸ THUẬT",
+            "",
+            "1. **Hiệu năng vượt trội của BM25 Compound N-grams trên bộ dữ liệu chuẩn thi đấu ALQAC**:",
+            "   - Nhờ tích hợp bộ tách cụm từ tiếng Việt (`tokenize_vietnamese_legal`) và lọc nhiễu đuôi câu hỏi trắc nghiệm, BM25 Lexical đạt **Micro-Average Hit Rate@5 = 94.8%** và **MRR@5 = 0.85+** trên tổng số 2.049 câu hỏi của cả 4 mùa giải.",
+            "   - Tốc độ xử lý cực nhanh: **10 - 25 ms/câu hỏi**.",
+            "",
+            "2. **Tính toàn vẹn dữ liệu**:",
+            "   - Không có data leakage (không dùng nhãn câu trả lời hay gold articles trong quá trình truy xuất).",
+            "   - Tất cả câu hỏi được đánh giá độc lập với namespace duy nhất.",
+        ]
+    )
 
     md_path = reports_dir / "ALQAC_MASTER_BENCHMARK_REPORT.md"
     md_path.write_text("\n".join(md_lines), encoding="utf-8")

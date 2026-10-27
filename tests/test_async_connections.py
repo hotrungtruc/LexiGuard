@@ -17,7 +17,6 @@ from src.core.config import (
     check_async_qdrant_connection,
     get_async_neo4j_driver,
     get_async_qdrant_client,
-    settings,
 )
 
 

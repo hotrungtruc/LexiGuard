@@ -23,11 +23,10 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import re
 import time
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -39,14 +38,15 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 from src.core.legal_norm import canonical_law_slug
 from src.retrieval.entity_extractor import LegalEntityExtractor
 
-
 # ============================================================================
 # 1. DATA STRUCTURES
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class BenchmarkArticle:
     """A statutory article in the legal corpus."""
+
     corpus_idx: int
     law_id: str
     article_id: str
@@ -68,6 +68,7 @@ class BenchmarkArticle:
 @dataclass(frozen=True)
 class BenchmarkQuestion:
     """An evaluation question with ground truth relevant articles."""
+
     question_id: str
     text: str
     relevant_articles: Tuple[Tuple[str, str], ...]  # ((law_id, article_id), ...)
@@ -78,6 +79,7 @@ class BenchmarkQuestion:
 @dataclass
 class MethodMetrics:
     """Evaluated metrics for a specific retrieval method."""
+
     method_name: str
     hit_rate_at_k: Dict[int, float]
     mrr_at_k: Dict[int, float]
@@ -92,13 +94,16 @@ class MethodMetrics:
 # 2. MULTI-SEASON CORPUS & QUERY LOADER
 # ============================================================================
 
+
 class ALQACSeasonLoader:
     """Unified loader for ALQAC 2022, 2023, 2024, and 2025."""
 
     def __init__(self, base_dir: Union[str, Path] = "data/alqac"):
         self.base_dir = Path(base_dir)
 
-    def load_season(self, season: str = "2023") -> Tuple[List[BenchmarkArticle], List[BenchmarkQuestion]]:
+    def load_season(
+        self, season: str = "2023"
+    ) -> Tuple[List[BenchmarkArticle], List[BenchmarkQuestion]]:
         """
         Loads corpus and questions for the given season.
         For 2023: Loads law.json (2,249 articles) and combined train + public_test + private_test (310 questions).
@@ -165,13 +170,15 @@ class ALQACSeasonLoader:
                 title = lines[0].strip() if lines else ""
                 body = "\n".join(lines[1:]).strip() if len(lines) > 1 else art_text
 
-                articles.append(BenchmarkArticle(
-                    corpus_idx=idx,
-                    law_id=law_id,
-                    article_id=art_id,
-                    title=title,
-                    text=body,
-                ))
+                articles.append(
+                    BenchmarkArticle(
+                        corpus_idx=idx,
+                        law_id=law_id,
+                        article_id=art_id,
+                        title=title,
+                        text=body,
+                    )
+                )
                 idx += 1
         return articles
 
@@ -187,13 +194,15 @@ class ALQACSeasonLoader:
                 (r["law_id"].strip(), str(r["article_id"]).strip())
                 for r in item.get("relevant_articles", [])
             )
-            questions.append(BenchmarkQuestion(
-                question_id=qid,
-                text=text,
-                relevant_articles=rels,
-                answer=item.get("answer"),
-                question_type=item.get("question_type"),
-            ))
+            questions.append(
+                BenchmarkQuestion(
+                    question_id=qid,
+                    text=text,
+                    relevant_articles=rels,
+                    answer=item.get("answer"),
+                    question_type=item.get("question_type"),
+                )
+            )
         return questions
 
 
@@ -201,11 +210,12 @@ class ALQACSeasonLoader:
 # 3. BM25 RETRIEVAL ENGINE (VIETNAMESE COMPOUND N-GRAMS & DENOISING)
 # ============================================================================
 
+
 def denoise_query(text: str) -> str:
     """Removes common evaluation question tail noise that dilutes retrieval IDF."""
     return re.sub(
-        r'[,.]?\s*(đúng hay sai|đúng không|như vậy đúng không|theo bạn việc này đúng hay sai|theo bạn đúng hay sai)\??$',
-        '',
+        r"[,.]?\s*(đúng hay sai|đúng không|như vậy đúng không|theo bạn việc này đúng hay sai|theo bạn đúng hay sai)\??$",
+        "",
         text,
         flags=re.IGNORECASE,
     ).strip()
@@ -219,10 +229,10 @@ def tokenize_vietnamese_legal(text: str, is_query: bool = False) -> List[str]:
     """
     if is_query:
         text = denoise_query(text)
-    words = re.findall(r'\w+', text.lower())
+    words = re.findall(r"\w+", text.lower())
     if not words:
         return []
-    bigrams = [f"{words[i]}_{words[i+1]}" for i in range(len(words) - 1)]
+    bigrams = [f"{words[i]}_{words[i + 1]}" for i in range(len(words) - 1)]
     return words + bigrams
 
 
@@ -245,8 +255,7 @@ class CorpusBM25Index:
                 df[w] += 1
 
         self.idf = {
-            w: math.log((self.N - freq + 0.5) / (freq + 0.5) + 1.0)
-            for w, freq in df.items()
+            w: math.log((self.N - freq + 0.5) / (freq + 0.5) + 1.0) for w, freq in df.items()
         }
         self.doc_tfs = [Counter(t) for t in self.doc_tokens]
 
@@ -273,6 +282,7 @@ class CorpusBM25Index:
 # 4. QDRANT IN-MEMORY VECTOR STORE & DENSE RETRIEVER
 # ============================================================================
 
+
 class QdrantVectorBenchmarkIndex:
     """In-memory Qdrant collection with FastEmbed dense multilingual embeddings."""
 
@@ -289,6 +299,7 @@ class QdrantVectorBenchmarkIndex:
         self.collection_name = f"alqac_{season}_articles"
 
         from fastembed import TextEmbedding
+
         logger.info(f"Initializing FastEmbed TextEmbedding: {model_name}...")
         self.embed_model = TextEmbedding(model_name=model_name)
 
@@ -298,12 +309,14 @@ class QdrantVectorBenchmarkIndex:
             logger.info(f"Loading cached embeddings from {cache_file}...")
             embeddings = np.load(cache_file)
         else:
-            logger.info(f"Generating dense embeddings for {len(articles)} articles (batch_size=64)...")
+            logger.info(
+                f"Generating dense embeddings for {len(articles)} articles (batch_size=64)..."
+            )
             t0 = time.time()
             texts = [a.full_text for a in articles]
             embs_gen = self.embed_model.embed(texts, batch_size=64)
             embeddings = np.array(list(embs_gen), dtype=np.float32)
-            logger.info(f"Embedded {len(articles)} articles in {time.time()-t0:.2f}s.")
+            logger.info(f"Embedded {len(articles)} articles in {time.time() - t0:.2f}s.")
             if cache_file:
                 cache_file.parent.mkdir(parents=True, exist_ok=True)
                 np.save(cache_file, embeddings)
@@ -312,7 +325,9 @@ class QdrantVectorBenchmarkIndex:
         self.dim = embeddings.shape[1]
 
         # 2. Setup in-memory Qdrant client & upsert points
-        logger.info(f"Initializing in-memory Qdrant with {len(articles)} points (dim={self.dim})...")
+        logger.info(
+            f"Initializing in-memory Qdrant with {len(articles)} points (dim={self.dim})..."
+        )
         self.client = QdrantClient(":memory:")
         self.client.create_collection(
             collection_name=self.collection_name,
@@ -354,6 +369,7 @@ class QdrantVectorBenchmarkIndex:
 # ============================================================================
 # 5. HYBRID FUSION (RECIPROCAL RANK FUSION) & LEXIGUARD ENTITY-AWARE
 # ============================================================================
+
 
 def reciprocal_rank_fusion(
     ranked_lists: List[List[Tuple[float, BenchmarkArticle]]],
@@ -483,7 +499,10 @@ class LexiGuardFullRetriever:
 # 6. RIGOROUS METRICS ENGINE (Hit Rate@K, MRR@K, NDCG@K, Recall@K, F2@K)
 # ============================================================================
 
-def compute_ndcg_at_k(ranked_keys: List[Tuple[str, str]], gold_set: Set[Tuple[str, str]], k: int) -> float:
+
+def compute_ndcg_at_k(
+    ranked_keys: List[Tuple[str, str]], gold_set: Set[Tuple[str, str]], k: int
+) -> float:
     """Calculates Normalized Discounted Cumulative Gain at K for binary relevance."""
     top_k = ranked_keys[:k]
     dcg = 0.0
@@ -534,7 +553,9 @@ def evaluate_method_predictions(
             hit_rates[k].append(hit_rate)
 
             # 2. MRR@K: 1 / rank of first gold item if <= K, else 0
-            first_rank = next((idx + 1 for idx, key in enumerate(top_k_keys) if key in gold_set), None)
+            first_rank = next(
+                (idx + 1 for idx, key in enumerate(top_k_keys) if key in gold_set), None
+            )
             mrr_k = (1.0 / first_rank) if first_rank else 0.0
             mrr_scores[k].append(mrr_k)
 

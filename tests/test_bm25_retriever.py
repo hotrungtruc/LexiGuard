@@ -9,7 +9,6 @@ Validates:
 5. Grounding prompt context formatting.
 """
 
-import pytest
 from src.retrieval.bm25_retriever import (
     BM25Index,
     BM25LexicalRetriever,
@@ -50,9 +49,18 @@ def test_tokenize_vietnamese_legal():
 
 def test_bm25_index_ranking():
     docs = [
-        {"id": "d1", "content": "Thời hiệu khởi kiện yêu cầu bồi thường thiệt hại do vi phạm hợp đồng là 03 năm."},
-        {"id": "d2", "content": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước."},
-        {"id": "d3", "content": "Lãi suất vay do các bên thỏa thuận nhưng không được vượt quá 20%/năm của khoản tiền vay."},
+        {
+            "id": "d1",
+            "content": "Thời hiệu khởi kiện yêu cầu bồi thường thiệt hại do vi phạm hợp đồng là 03 năm.",
+        },
+        {
+            "id": "d2",
+            "content": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước.",
+        },
+        {
+            "id": "d3",
+            "content": "Lãi suất vay do các bên thỏa thuận nhưng không được vượt quá 20%/năm của khoản tiền vay.",
+        },
     ]
 
     index = BM25Index(
@@ -132,7 +140,9 @@ def test_bm25_lexical_retriever_filtering():
     res_repealed = retriever.search("Quy định đã hết hiệu lực", law_id="luat-cu", active_only=True)
     assert len(res_repealed) == 0
 
-    res_repealed_all = retriever.search("Quy định đã hết hiệu lực", law_id="luat-cu", active_only=False)
+    res_repealed_all = retriever.search(
+        "Quy định đã hết hiệu lực", law_id="luat-cu", active_only=False
+    )
     assert len(res_repealed_all) == 1
     assert res_repealed_all[0]["chunk_id"] == "VN_REPEALED_D001"
 

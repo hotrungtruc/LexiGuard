@@ -8,14 +8,13 @@ Validates:
 - Anti-Hallucination Grader prompt rendering
 """
 
-import pytest
 from src.agents.prompts import (
     CLAUSE_EXTRACTOR_SYSTEM_PROMPT,
     DUAL_PERSPECTIVE_AUDITOR_SYSTEM_PROMPT,
     HALLUCINATION_GRADER_SYSTEM_PROMPT,
     build_clause_extractor_prompt,
-    build_loophole_auditor_prompt,
     build_hallucination_grader_prompt,
+    build_loophole_auditor_prompt,
 )
 
 
@@ -43,14 +42,30 @@ def test_build_loophole_auditor_prompt_dynamic_grounding():
     """Test Node 3 prompt builder with clauses, dynamic statutes, precedents, arithmetic findings, and feedback."""
     parsed_clauses = [
         {"clause_reference": "Điều 5", "verbatim_text": "Phạt 20% nếu vi phạm.", "is_table": False},
-        {"clause_reference": "Điều 6", "verbatim_text": "Tranh chấp tại VIAC hoặc TAND.", "is_table": False},
+        {
+            "clause_reference": "Điều 6",
+            "verbatim_text": "Tranh chấp tại VIAC hoặc TAND.",
+            "is_table": False,
+        },
     ]
     retrieved_statutes = [
-        {"canonical_citation": "Điều 301 Luật Thương mại 2005", "content": "Mức phạt tối đa 8%", "chunk_id": "VN_LTM_D301"},
-        {"canonical_citation": "Nghị quyết 01/2014/NQ-HĐTP", "content": "Thỏa thuận trọng tài không thể thực hiện", "chunk_id": "NQ_01_2014"},
+        {
+            "canonical_citation": "Điều 301 Luật Thương mại 2005",
+            "content": "Mức phạt tối đa 8%",
+            "chunk_id": "VN_LTM_D301",
+        },
+        {
+            "canonical_citation": "Nghị quyết 01/2014/NQ-HĐTP",
+            "content": "Thỏa thuận trọng tài không thể thực hiện",
+            "chunk_id": "NQ_01_2014",
+        },
     ]
     retrieved_precedents = [
-        {"precedent_number": "Án lệ số 09/2016/AL", "court": "TANDTC", "legal_rule": "Xác định lãi suất chậm trả"},
+        {
+            "precedent_number": "Án lệ số 09/2016/AL",
+            "court": "TANDTC",
+            "legal_rule": "Xác định lãi suất chậm trả",
+        },
     ]
     arithmetic_findings = [
         {

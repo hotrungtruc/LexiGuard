@@ -9,16 +9,17 @@ ClauseExtractor -> LegalResearcher -> LoopholeAuditor -> HallucinationGrader
                                            END
 """
 
+from langgraph.graph import END, StateGraph
 from loguru import logger
-from langgraph.graph import StateGraph, END
-from src.agents.state import AgentState
+
 from src.agents.nodes import (
-    extract_clauses_node,
-    retrieve_statutes_node,
     audit_vulnerabilities_node,
-    grade_hallucination_node,
     decide_post_grading_branch,
+    extract_clauses_node,
+    grade_hallucination_node,
+    retrieve_statutes_node,
 )
+from src.agents.state import AgentState
 from src.core.observability import observe
 
 

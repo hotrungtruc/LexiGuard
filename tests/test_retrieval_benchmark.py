@@ -13,7 +13,9 @@ def test_retrieval_metrics_use_rank_and_grades():
         query_type="exact",
         relevant_chunks={"a": 3, "b": 1},
     )
-    result = evaluate_ranked_results(query, [{"chunk_id": "x"}, {"chunk_id": "a"}, {"chunk_id": "b"}], k=2)
+    result = evaluate_ranked_results(
+        query, [{"chunk_id": "x"}, {"chunk_id": "a"}, {"chunk_id": "b"}], k=2
+    )
     assert result.metrics["recall_at_k"] == 0.5
     assert result.metrics["mrr"] == 0.5
     assert 0 < result.metrics["ndcg_at_k"] < 1

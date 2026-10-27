@@ -14,34 +14,52 @@ Features:
 import os
 import sys
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, Field
+
 from loguru import logger
+from pydantic import BaseModel, Field
 
 
 class HardwareProfile(BaseModel):
     """
     Normalized hardware capability profile of the host machine.
     """
+
     # CPU Metrics
-    cpu_physical_cores: int = Field(default=4, description="Count of physical CPU cores (excluding HyperThreading/SMT)")
+    cpu_physical_cores: int = Field(
+        default=4, description="Count of physical CPU cores (excluding HyperThreading/SMT)"
+    )
     cpu_logical_cores: int = Field(default=4, description="Count of logical threads")
-    
+
     # Memory Metrics (in GB)
     total_ram_gb: float = Field(default=8.0, description="Total physical system RAM in Gigabytes")
     available_ram_gb: float = Field(default=4.0, description="Currently available RAM in Gigabytes")
-    
+
     # GPU / Accelerator Metrics
-    gpu_available: bool = Field(default=False, description="Whether a compatible hardware accelerator is present")
-    gpu_type: str = Field(default="none", description="Accelerator category: 'cuda', 'mps', or 'none'")
+    gpu_available: bool = Field(
+        default=False, description="Whether a compatible hardware accelerator is present"
+    )
+    gpu_type: str = Field(
+        default="none", description="Accelerator category: 'cuda', 'mps', or 'none'"
+    )
     gpu_name: Optional[str] = Field(default=None, description="Model identifier of the primary GPU")
-    gpu_vram_gb: Optional[float] = Field(default=None, description="Total dedicated VRAM in Gigabytes")
+    gpu_vram_gb: Optional[float] = Field(
+        default=None, description="Total dedicated VRAM in Gigabytes"
+    )
     gpu_device_count: int = Field(default=0, description="Total count of available GPUs")
 
     # Dynamic Optimization Recommendations
-    optimal_ollama_threads: int = Field(default=4, description="Optimal threads for CPU LLM inference (mapped to physical cores)")
-    optimal_ocr_threads: int = Field(default=4, description="Optimal worker threads for Docling / PDF OCR extraction")
-    optimal_device: str = Field(default="cpu", description="Primary compute device recommendation: 'cuda', 'mps', or 'cpu'")
-    optimal_ollama_max_loaded_models: int = Field(default=1, description="Number of models Ollama should keep in cache concurrently")
+    optimal_ollama_threads: int = Field(
+        default=4, description="Optimal threads for CPU LLM inference (mapped to physical cores)"
+    )
+    optimal_ocr_threads: int = Field(
+        default=4, description="Optimal worker threads for Docling / PDF OCR extraction"
+    )
+    optimal_device: str = Field(
+        default="cpu", description="Primary compute device recommendation: 'cuda', 'mps', or 'cpu'"
+    )
+    optimal_ollama_max_loaded_models: int = Field(
+        default=1, description="Number of models Ollama should keep in cache concurrently"
+    )
 
     def get_ollama_env_recommendations(self) -> Dict[str, str]:
         """
@@ -89,6 +107,7 @@ def detect_hardware_profile() -> HardwareProfile:
 
     try:
         import psutil
+
         detected_phys = psutil.cpu_count(logical=False)
         if detected_phys and detected_phys > 0:
             physical_cores = detected_phys
@@ -106,9 +125,10 @@ def detect_hardware_profile() -> HardwareProfile:
     avail_ram = 4.0
     try:
         import psutil
+
         vmem = psutil.virtual_memory()
-        total_ram = round(vmem.total / (1024 ** 3), 2)
-        avail_ram = round(vmem.available / (1024 ** 3), 2)
+        total_ram = round(vmem.total / (1024**3), 2)
+        avail_ram = round(vmem.available / (1024**3), 2)
     except Exception as e:
         logger.debug(f"psutil memory detection fallback: {e}")
 
@@ -128,7 +148,7 @@ def detect_hardware_profile() -> HardwareProfile:
             gpu_type = "cuda"
             device_count = torch.cuda.device_count()
             gpu_name = torch.cuda.get_device_name(0)
-            gpu_vram = round(torch.cuda.get_device_properties(0).total_memory / (1024 ** 3), 2)
+            gpu_vram = round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 2)
         # Check Apple Silicon MPS
         elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             gpu_available = True
