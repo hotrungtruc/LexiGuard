@@ -40,6 +40,16 @@ The multi-agent workflow coordinates state transitions through a typed state con
 | `retry_count` | Integer | Counter tracking self-correction retry cycles | State Machine |
 | `final_report` | Dict | Verified JSON contract audit report | Workflow Exit |
 
+### 2.2 Centralized Hardware Auto-Tuning (`src/core/hardware.py`)
+Hardware metrics are never hardcoded. All compute-intensive components (Ollama LLM, Docling OCR, Vector Search) consume compute parameters from a single centralized profile:
+
+| Hardware Dimension | Detection Method | Dynamic Optimization Rule | Host Machine Value |
+| :--- | :--- | :--- | :--- |
+| **CPU Physical Cores** | `psutil.cpu_count(logical=False)` | Sets `OLLAMA_NUM_THREADS = physical_cores` to avoid SMT thread contention | **10 Physical Cores** |
+| **System RAM** | `psutil.virtual_memory().total` | Recommends `OLLAMA_MAX_LOADED_MODELS = 2` if RAM $\ge$ 14GB (Dual-LLM co-residency) | **15.64 GB RAM** |
+| **GPU / Accelerator** | `torch.cuda.is_available()` | Selects `"cuda"` if VRAM $\ge$ 2GB for Docling layout parser & embeddings | **RTX 4050 (6GB VRAM)** |
+| **OCR Threads** | CPU Topology Inspection | Bounded to $\min(\text{physical\_cores}, 8)$ to reserve headroom for system services | **8 Worker Threads** |
+
 ---
 
 ## 3. Specialized Agent Nodes
