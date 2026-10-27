@@ -4,7 +4,7 @@
 ### Autonomous Multi-Agent Contract Vulnerability Auditing & Legal Cross-Referencing System
 **Powered by Multimodal Document OCR, Hybrid GraphRAG & Multi-Agent Orchestration**
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![Architecture: Multi-Agent](https://img.shields.io/badge/Architecture-Multi--Agent%20Orchestration-orange.svg)](#system-architecture)
 [![Retrieval: Hybrid GraphRAG](https://img.shields.io/badge/Retrieval-Hybrid%20GraphRAG%20(KG%20%2B%20Vector)-green.svg)](#hybrid-graphrag-engine)
 [![Engine: Google Gemini](https://img.shields.io/badge/Engine-Gemini%202.0%20%2F%20Flash-8E75B2.svg)](https://deepmind.google/technologies/gemini/)
@@ -16,6 +16,7 @@
 [**Enterprise Value**](#-enterprise-business-value--roi) •
 [**System Architecture**](#️-system-architecture) •
 [**Technical Docs**](docs/README.md) •
+[**Benchmark Results**](data/eval_dataset/benchmark_results_summary.md) •
 [**Quick Start**](#-getting-started) •
 [**Roadmap**](#-roadmap)
 
@@ -217,30 +218,33 @@ LexiGuard fuses multimodal vision models, knowledge graphs, and multi-agent syst
 ```mermaid
 graph TD
     subgraph Ingestion ["1. Multimodal Document Ingestion"]
-        Doc[Scanned PDF / Image / Docx] --> OCR[Vision-Language Layout OCR]
-        OCR --> Struct[Clause Segmentation & Hierarchy Tree]
+        Doc[Scanned PDF / Image / Docx] --> OCR[Docling Layout Parser + Optional OCR]
+        OCR --> Struct[Clause Segmentation & Table Extraction]
     end
 
     subgraph RAG ["2. Hybrid GraphRAG Retrieval"]
-        Struct --> QueryGen[Legal Query Generator]
-        QueryGen --> VDB[(Dense Vector Store)]
-        QueryGen --> KG[(Legal Knowledge Graph)]
-        VDB --> RRF[Reciprocal Rank Fusion]
-        KG --> RRF
-        RRF --> Context[Ranked Statutory Articles & Decrees]
+        Struct --> QueryGen[Grounded Query Builder]
+        QueryGen --> VDB[(Qdrant Dense + Sparse)]
+        QueryGen --> KG[(Neo4j Knowledge Graph)]
+        VDB --> RRF[Hybrid / RRF Fusion]
+        KG --> Expand[Graph Expansion]
+        RRF --> Filter[Active-Law Filter]
+        Expand --> Filter
+        Filter --> Context[Optional Cross-Encoder Reranking]
     end
 
-    subgraph Agents ["3. Multi-Agent Audit Council"]
-        Context & Struct --> Coordinator[Master Coordinator Agent]
-        Coordinator --> CompAgent[Compliance & Nullity Agent]
-        Coordinator --> AmbigAgent[Ambiguity & Semantics Agent]
-        Coordinator --> RiskAgent[Asymmetric Exposure Agent]
-        CompAgent & AmbigAgent & RiskAgent --> RedlineAgent[Synthesis & Redline Agent]
+    subgraph Agents ["3. LangGraph Audit Workflow"]
+        Struct --> Extract[ClauseExtractor]
+        Extract --> Research[LegalResearcher]
+        Context --> Research
+        Research --> Audit[LoopholeAuditor]
+        Audit --> Grade[HallucinationGrader]
+        Grade -- "fail; bounded retry" --> Audit
     end
 
     subgraph Outputs ["4. Delivery & Interactive Interface"]
-        RedlineAgent --> Report[Executive Audit Report & Markdown Redlines]
-        RedlineAgent --> Chat[Interactive Legal Grounded Q&A Assistant]
+        Grade -- "pass" --> Report[Verified JSON Audit Report]
+        Grade --> Chat[Grounded Legal Q&A / API Output]
     end
 ```
 
@@ -257,13 +261,14 @@ Standard vector RAG fails on legal texts because legal statutes are hierarchical
 - **Dense Vector Embeddings**: Encodes semantic nuances of contractual clauses.
 - **Dual-Path Fusion**: Simultaneously traverses the Knowledge Graph for strict statutory dependencies while vector search retrieves semantically similar legal precedents.
 
-#### 3. Autonomous Multi-Agent Audit Council
-Rather than relying on a single monolithic prompt, LexiGuard deploys specialized, role-isolated LLM agents:
-- **Compliance & Nullity Agent**: Cross-references clauses against mandatory prohibitions; calculates statutory cap breaches.
-- **Ambiguity & Semantics Agent**: Stress-tests wording for loopholes, missing temporal milestones, and vague obligations.
-- **Asymmetric Exposure Agent**: Assesses the balance of power between contracting parties and highlights unilateral exposures.
-- **Synthesis & Redline Agent**: Reconciles findings, scores contract health (0–100), and produces track-changes redline amendments with legal rationale.
-- **Interactive Legal Q&A Agent**: A grounded conversational copilot that cites specific statutory articles and document clauses with zero hallucination.
+#### 3. Autonomous LangGraph Audit Workflow
+The current implementation uses four typed nodes rather than a fixed multi-agent council:
+- **ClauseExtractor**: Extracts clauses and financial tables from parsed contract content.
+- **LegalResearcher**: Runs hybrid legal retrieval, graph expansion, and deterministic table arithmetic checks.
+- **LoopholeAuditor**: Produces grounded classifications, findings, redlines, and negotiation rationale.
+- **HallucinationGrader**: Verifies citations against retrieved context and routes failed findings through a bounded retry loop.
+
+Legal categories, statutes, precedents, forums, and metadata are expected to come from the database and retrieval context. They should not require adding a Python enum member or a fixed doctrine prompt.
 
 ---
 
@@ -282,19 +287,26 @@ LexiGuard/
 ├── README.md                      # Architecture, benchmarks, and project documentation
 │
 ├── docs/                          # Detailed subsystem technical specifications & architecture docs
-│   ├── README.md                  # Documentation index across all 5 development phases
-│   ├── 01_ocr_and_vision_pipeline.md # Two-Branch OCR (Docling + Two-Stage CPU VietOCR + Decree 30 R-XYCut)
-│   └── 01_data_schema_and_hierarchical_graph_ingestion.md # Pydantic v2 Schema, Chunker & Neo4j Triples
+│   ├── README.md                  # System architecture and documentation index
+│   ├── 01_ocr_and_vision_pipeline.md # Docling layout parsing, optional OCR, and provenance
+│   ├── 02_data_schema_and_hierarchical_graph_ingestion.md # Pydantic schemas, chunker, and Neo4j triples
+│   ├── 03_hybrid_graphrag_qdrant_neo4j.md # Hybrid retrieval and lifecycle filtering
+│   └── 04_fastmcp_multiagent_langgraph.md # Four-node workflow and grounding loop
 │
 ├── data/
 │   ├── raw_laws/                  # Statutory legal corpus (Labor Code 2019, Civil Code 2015)
-│   ├── sample_contracts/          # Benchmark contracts with deliberate legal traps
-│   └── eval_dataset/
-│       └── golden_qa_contracts.json # 25 Ground-truth legal QA test cases for RAGAS evaluation
+│   ├── extracted_laws/            # Ingested ASTs, chunks, graph triples & Qdrant/Neo4j payloads
+│   ├── court_judgments/           # Real Court Judgments & VIAC Precedents (Lao động, KDTM, Trọng tài)
+│   ├── sample_contracts/          # Benchmark contracts & OCR scans (raw_scans, extracted_pdfs, extracted_texts)
+│   └── eval_dataset/              # Benchmarks & Golden QA datasets (golden_qa_contracts, manifests)
 │
 ├── scripts/
 │   ├── ingest_laws.py             # Docling parser -> Hierarchical chunking -> Qdrant & Neo4j
-│   └── run_evaluation.py          # RAGAS evaluation runner with Markdown/CSV metrics export
+│   ├── run_evaluation.py          # Evaluation runner with Markdown/CSV metrics export
+│   ├── run_ingestion_benchmark.py # Deterministic ingestion/table-math benchmark
+│   ├── run_retrieval_benchmark.py # Retrieval ablation evaluator
+│   ├── run_agent_benchmark.py     # Classification and citation guardrail evaluator
+│   └── run_observability_benchmark.py # Latency and usage aggregation
 │
 ├── src/
 │   ├── core/
@@ -345,7 +357,7 @@ LexiGuard/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.10 or higher
+- Python 3.11 or higher
 - Docker & Docker Compose (for Neo4j and Vector Database)
 - An active API key for Google Gemini (`GEMINI_API_KEY`) or preferred LLM provider
 
@@ -405,6 +417,24 @@ Navigate to `http://localhost:8000/docs` to explore interactive Swagger API endp
 - `/api/v1/audit`: Run full multi-agent vulnerability assessment
 - `/api/v1/redline`: Generate track-changes counter-proposals
 - `/api/v1/chat`: Converse with the grounded Legal Q&A Agent
+
+### 7. Run the Focused Benchmark Suite
+
+The deterministic benchmark suite validates ingestion/table arithmetic,
+retrieval metrics, agent guardrails, and observability aggregation:
+
+```powershell
+python -m pytest tests/test_ingestion_benchmark.py `
+  tests/test_retrieval_benchmark.py `
+  tests/test_agent_benchmark.py `
+  tests/test_observability.py -q
+```
+
+The latest verified result is **11 passed, 0 failed**. Detailed methods,
+metrics, limitations, and reproducibility commands are documented in
+[Benchmark Results Summary](data/eval_dataset/benchmark_results_summary.md).
+End-to-end retrieval and live-agent quality require real prediction files;
+the deterministic suite validates the evaluator and guardrail logic.
 
 ---
 
