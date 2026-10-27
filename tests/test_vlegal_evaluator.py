@@ -11,6 +11,10 @@ Tests:
 Tasks 1.4, 3.1, 1.5, 3.3, 3.5 dropped per user requirements.
 """
 
+from pathlib import Path
+
+import pytest
+
 from src.evaluation.vlegal_evaluator import (
     LegalConflictAuditor,
     VLegalCitation,
@@ -18,6 +22,8 @@ from src.evaluation.vlegal_evaluator import (
     VLegalMasterBenchmarkSuite,
     VLegalTaskLoader,
 )
+
+VLEGAL_DATA_PRESENT = Path("data/vlegal_bench/2.3/2_3.jsonl").exists()
 
 
 def test_vlegal_citation_parsing():
@@ -32,6 +38,7 @@ def test_vlegal_citation_parsing():
     assert "Luật Thuế giá trị gia tăng" in cit2.law
 
 
+@pytest.mark.skipif(not VLEGAL_DATA_PRESENT, reason="VLegal-Bench dataset not present locally")
 def test_vlegal_task_loader_core_tasks():
     loader = VLegalTaskLoader("data/vlegal_bench")
 
@@ -56,6 +63,7 @@ Quy phạm là căn cứ rà soát: Số ký hiệu: 49/2024/QH15; Vị trí: Kh
     assert auditor.predict_conflict(sample_consistent) == "Không"
 
 
+@pytest.mark.skipif(not VLEGAL_DATA_PRESENT, reason="VLegal-Bench dataset not present locally")
 def test_vlegal_graph_evaluator_2_3():
     evaluator = VLegalGraphStructuringEvaluator()
     loader = VLegalTaskLoader("data/vlegal_bench")

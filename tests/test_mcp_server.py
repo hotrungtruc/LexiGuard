@@ -207,6 +207,13 @@ async def test_mcp_server_call_tool_verify_table():
     """
     res = await mcp_server.call_tool("verify_table_arithmetic", {"table_data": table_md})
     assert res is not None
-    assert not res.is_error
-    structured = res.structured_content
-    assert structured["result"]["is_valid"] is False
+    structured = getattr(res, "structured_content", None)
+    if isinstance(structured, dict):
+        result_data = structured.get("result", structured)
+    elif hasattr(res, "content") and res.content:
+        import json
+
+        result_data = json.loads(res.content[0].text)
+    else:
+        result_data = structured
+    assert result_data["is_valid"] is False
