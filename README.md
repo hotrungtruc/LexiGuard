@@ -284,13 +284,14 @@ Run unit tests:
 pytest tests/test_vlegal_evaluator.py -v
 ```
 
-### 5. Start the Web API Server
+### 5. Start the Web AI Interface & API Server
 
 ```bash
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
+- **Web AI Interface (ChatGPT / Gemini style)**: Open `http://localhost:8000/` (or `http://localhost:8000/app/`) in your browser to access the interactive legal assistant, OCR vault, session history, and contract auditing UI.
+- **Interactive OpenAPI Documentation**: Available at `http://localhost:8000/docs`.
 
 ---
 
@@ -298,9 +299,11 @@ Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
 
 | Endpoint | Method | Payload | Description |
 | :--- | :---: | :--- | :--- |
-| `/health` | `GET` | None | Returns operational health status of API, Neo4j, and Qdrant. |
+| `/` | `GET` | None | Directs browsers to Web AI UI (`/app/`) or returns JSON health for API clients. |
+| `/api/v1/health` | `GET` | None | Returns operational health status of API, Neo4j, and Qdrant. |
+| `/api/v1/chat` | `POST` | `multipart/form-data` (`message`, `file`, `session_id`) | Streaming conversational legal Q&A and contract audits via Server-Sent Events (SSE). |
+| `/api/v1/ocr` | `POST` | `multipart/form-data` (image/PDF) | Multimodal layout analysis, optical character recognition, and table extraction. |
 | `/api/v1/audit` | `POST` | `multipart/form-data` (file) | Audits an uploaded contract; returns SSE streaming progress and final JSON. |
-| `/api/v1/ingest` | `POST` | `multipart/form-data` (file) | Parses and extracts layout elements and tabular matrices from a document. |
 | `/api/v1/redline` | `POST` | JSON `{ clause_text, violation }` | Generates compliant replacement wording with statutory justification. |
 
 ---

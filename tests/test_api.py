@@ -61,3 +61,45 @@ async def test_audit_endpoint_sse_streaming():
         assert "data: " in body
         assert "upload" in body
         assert "completed" in body
+
+
+@pytest.mark.asyncio
+async def test_root_browser_redirect():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/", headers={"accept": "text/html,application/xhtml+xml"})
+        assert response.status_code == 307
+        assert response.headers["location"] == "/app/"
+
+
+@pytest.mark.asyncio
+async def test_web_ui_served():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/app/")
+        assert response.status_code == 200
+        assert "LexiGuard AI" in response.text
+        assert "Multi-Agent GraphRAG" in response.text
+
+
+@pytest.mark.asyncio
+async def test_chat_endpoint_empty_payload_validation():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.post("/api/v1/chat")
+        assert response.status_code == 400
+        assert "Vui lòng cung cấp câu hỏi hoặc tệp tài liệu" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_ocr_endpoint_invalid_format():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        files = {"file": ("malicious.exe", b"binary content", "application/octet-stream")}
+        response = await client.post("/api/v1/ocr", files=files)
+        assert response.status_code == 400
+        assert "Unsupported format" in response.json()["detail"]

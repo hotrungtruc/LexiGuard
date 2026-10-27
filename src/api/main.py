@@ -3,12 +3,15 @@ FastAPI Application Entrypoint: CORS, Lifespan (DB Pool Management), and Route R
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from src.api.routes import audit, health
+from src.api.routes import audit, chat, health, ocr
 from src.core.config import async_connection_manager
 from src.core.logging import setup_logging
 
@@ -53,8 +56,18 @@ app.add_middleware(
 # Include Routers
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(audit.router, prefix="/api/v1", tags=["Audit"])
+app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
+app.include_router(ocr.router, prefix="/api/v1", tags=["OCR"])
+
+# Mount Web AI Interface
+web_dir = Path(__file__).resolve().parent.parent / "ui" / "web"
+web_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/app", StaticFiles(directory=str(web_dir), html=True), name="web_app")
 
 
 @app.get("/")
-async def root():
-    return {"service": "LexiGuard API", "status": "online", "docs": "/docs"}
+async def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return RedirectResponse(url="/app/")
+    return {"service": "LexiGuard API", "version": "0.1.0", "status": "online"}

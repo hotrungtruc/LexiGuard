@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LexiGuard AI — Nền Tảng Trợ Lý Pháp Lý & Thẩm Định Hợp Đồng</title>
+  <meta name="description" content="LexiGuard: Hệ thống Web AI đa tác tử thẩm định lỗ hổng hợp đồng, tra cứu luật định và OCR tài liệu thông minh theo chuẩn mực hiện đại.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">LexiGuard</span>
+            <span class="brand-badge">AI 2.0</span>
+          </div>
+        </div>
+        <button class="btn-icon sidebar-toggle-btn" id="sidebar-close-btn" title="Thu gọn sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-actions">
+        <button class="btn btn-new-chat" id="new-chat-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Cuộc trò chuyện mới</span>
+          <kbd class="kbd-shortcut">Ctrl+K</kbd>
+        </button>
+
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="session-search-input" placeholder="Tìm kiếm lịch sử..." autocomplete="off">
+          <button class="clear-search-btn" id="clear-search-btn" style="display: none;">✕</button>
+        </div>
+      </div>
+
+      <!-- Session History Group List -->
+      <div class="sidebar-scroll" id="sidebar-scroll">
+        <div class="session-group">
+          <div class="session-group-title">Hôm nay</div>
+          <div class="session-list" id="sessions-today"></div>
+        </div>
+
+        <div class="session-group">
+          <div class="session-group-title">7 ngày trước</div>
+          <div class="session-list" id="sessions-recent"></div>
+        </div>
+
+        <div class="session-group">
+          <div class="session-group-title">Thư viện tài liệu & OCR</div>
+          <div class="document-vault-list" id="document-vault-list">
+            <div class="vault-empty-hint">Chưa có tài liệu nào được bóc tách.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="system-status" id="system-status">
+          <span class="status-dot"></span>
+          <span class="status-label">Hệ thống Trực tuyến</span>
+        </div>
+        <div class="sidebar-footer-actions">
+          <button class="btn-icon" id="theme-toggle-btn" title="Chuyển giao diện Sáng / Tối">
+            <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+            </svg>
+          </button>
+          <button class="btn-icon" id="clear-all-sessions-btn" title="Xóa toàn bộ lịch sử">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CHAT CANVAS ==================== -->
+    <main class="chat-canvas">
+      
+      <!-- Top Navigation Bar -->
+      <header class="chat-header">
+        <div class="header-left">
+          <button class="btn-icon" id="sidebar-open-btn" title="Mở sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+            </svg>
+          </button>
+          <div class="chat-title-wrapper">
+            <h1 class="chat-title" id="current-chat-title" contenteditable="false">Cuộc trò chuyện mới</h1>
+            <span class="chat-model-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Multi-Agent GraphRAG
+            </span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button class="btn btn-secondary btn-sm" id="open-drawer-btn" title="Mở ngăn tài liệu OCR">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Tài liệu OCR</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="export-chat-btn" title="Xuất báo cáo Markdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Xuất</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Viewport -->
+      <div class="chat-viewport" id="chat-viewport">
+        
+        <!-- Empty / Hero State (Shown when no messages in session) -->
+        <div class="hero-container" id="hero-container">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Hệ thống Đa tác tử Thẩm định Lỗ hổng Hợp đồng & Pháp lý
+          </div>
+          <h2 class="hero-title">Tôi có thể hỗ trợ gì cho bạn hôm nay?</h2>
+          <p class="hero-subtitle">
+            Tải lên hợp đồng PDF/DOCX, ảnh chụp điều khoản hoặc đặt bất kỳ câu hỏi pháp lý nào để nhận phân tích chuyên sâu có đối soát luật định.
+          </p>
+
+          <div class="prompt-chips-grid">
+            <div class="prompt-card" data-prompt="Thẩm định giúp tôi các rủi ro pháp lý phổ biến trong hợp đồng dịch vụ tư vấn và đề xuất điều khoản bảo vệ bên thuê dịch vụ.">
+              <div class="prompt-card-icon">📑</div>
+              <div class="prompt-card-content">
+                <div class="prompt-card-title">Thẩm định Hợp đồng</div>
+                <div class="prompt-card-desc">Rà soát bẫy đơn phương chấm dứt, rủi ro phạt vi phạm vượt trần luật định.</div>
+              </div>
+            </div>
+
+            <div class="prompt-card" data-prompt="Theo Bộ luật Dân sự 2015, mức lãi suất vay tối đa mà các bên được thỏa thuận là bao nhiêu? Hậu quả pháp lý nếu vượt quá trần?">
+              <div class="prompt-card-icon">⚖️</div>
+              <div class="prompt-card-content">
+                <div class="prompt-card-title">Tra cứu Điều luật & Án lệ</div>
+                <div class="prompt-card-desc">Viện dẫn Điều 468, Điều 357 BLDS 2015 và Án lệ số 01/2016/AL của TANDTC.</div>
+              </div>
+            </div>
+
+            <div class="prompt-card" data-prompt="Kiểm tra đối soát bảng tính phụ lục: | STT | Dịch vụ | SL | Đơn giá | Thành tiền |\n| 1 | Thẩm định | 2 | 10.000.000 | 25.000.000 |\n| Tổng | | | | 25.000.000 |">
+              <div class="prompt-card-icon">📊</div>
+              <div class="prompt-card-content">
+                <div class="prompt-card-title">Kiểm toán Bảng biểu Số học</div>
+                <div class="prompt-card-desc">Phát hiện sai lệch nhân dòng, cộng cột và thuế suất GTGT tự động.</div>
+              </div>
+            </div>
+
+            <div class="prompt-card" id="trigger-ocr-card">
+              <div class="prompt-card-icon">📷</div>
+              <div class="prompt-card-content">
+                <div class="prompt-card-title">Bóc tách OCR Tài liệu</div>
+                <div class="prompt-card-desc">Tải ảnh scan hoặc văn bản chụp để trích xuất văn bản & bảng biểu Markdown.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Message Feed -->
+        <div class="messages-container" id="messages-container" style="display: none;"></div>
+      </div>
+
+      <!-- ==================== FLOATING PROMPT BAR ==================== -->
+      <footer class="prompt-footer">
+        
+        <!-- Attached Files Preview Pill Box -->
+        <div class="attachments-preview-bar" id="attachments-preview-bar" style="display: none;"></div>
+
+        <!-- Input Container -->
+        <div class="prompt-box-container">
+          
+          <!-- Hidden inputs for file and OCR uploads -->
+          <input type="file" id="file-upload-input" accept=".pdf,.docx,.doc,.md,.txt" style="display: none;">
+          <input type="file" id="ocr-upload-input" accept="image/*,.pdf" style="display: none;">
+
+          <div class="prompt-actions-left">
+            <button class="btn-icon btn-attach" id="attach-file-btn" title="Đính kèm hợp đồng (.pdf, .docx, .md)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
+            <button class="btn-icon btn-ocr" id="ocr-btn" title="Bóc tách OCR từ ảnh hoặc scan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
+          </div>
+
+          <textarea 
+            id="prompt-input" 
+            rows="1" 
+            placeholder="Hỏi đáp pháp lý, tra cứu điều luật hoặc dán điều khoản hợp đồng cần thẩm định..." 
+            autocomplete="off"
+            spellcheck="false"
+          ></textarea>
+
+          <div class="prompt-actions-right">
+            <button class="btn-send" id="send-btn" title="Gửi (Enter)">
+              <svg id="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              <svg id="stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                <rect x="6" y="6" width="12" height="12" rx="2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="prompt-disclaimer">
+          LexiGuard AI tra cứu cơ sở dữ liệu luật chuẩn mực ALQAC & VLegal-Bench. Vui lòng tham khảo chuyên gia pháp lý với các hợp đồng trọng yếu.
+        </div>
+      </footer>
+    </main>
+
+    <!-- ==================== SIDE-BY-SIDE OCR / DOCUMENT DRAWER ==================== -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <aside class="document-drawer" id="document-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span id="drawer-doc-name">Tài liệu OCR & Bảng biểu</span>
+        </div>
+        <button class="btn-icon" id="drawer-close-btn" title="Đóng ngăn tài liệu">✕</button>
+      </div>
+
+      <div class="drawer-content">
+        <div class="drawer-stats" id="drawer-stats">
+          <div class="stat-item"><span class="stat-num" id="drawer-page-count">0</span> Trang</div>
+          <div class="stat-item"><span class="stat-num" id="drawer-table-count">0</span> Bảng biểu</div>
+          <div class="stat-item"><span class="stat-num" id="drawer-char-count">0</span> Ký tự</div>
+        </div>
+
+        <div class="drawer-section-title">Nội dung văn bản bóc tách:</div>
+        <div class="drawer-markdown-preview" id="drawer-markdown-preview">
+          <div class="vault-empty-hint">Chưa có văn bản OCR nào. Bạn có thể bấm nút máy ảnh (📷) để tải ảnh hoặc PDF scan.</div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn btn-secondary btn-sm" id="copy-ocr-text-btn">Sao chép văn bản</button>
+        <button class="btn btn-primary btn-sm" id="send-ocr-to-chat-btn">Đưa vào kiểm toán</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
