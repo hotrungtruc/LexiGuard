@@ -12,6 +12,15 @@ from src.core.config import settings
 def setup_logging():
     logger.remove()
 
+    if sys.platform == "win32":
+        try:
+            if hasattr(sys.stdout, "reconfigure"):
+                sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+            if hasattr(sys.stderr, "reconfigure"):
+                sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except Exception:
+            pass
+
     # Standard format or structured JSON format based on environment
     log_format = (
         "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
