@@ -50,7 +50,7 @@ async def chat_endpoint(
     temp_dir: Optional[str] = None
     file_name = file.filename if file and file.filename else None
 
-    # Handle attached file
+    # Handle attached file or text snippet for contract auditing
     if file and file.filename:
         temp_dir = tempfile.mkdtemp(prefix="lexiguard_chat_upload_")
         temp_path = os.path.join(temp_dir, Path(file.filename).name)
@@ -58,16 +58,26 @@ async def chat_endpoint(
             shutil.copyfileobj(file.file, buffer)
         logger.info(f"Chat received attached file: {file.filename} -> {temp_path}")
     elif (
-        message
-        and len(message.strip().splitlines()) >= 5
-        and ("Điều " in message or "Khoản " in message or "|" in message)
-    ):
-        # Text appears to be a pasted contract snippet
+        mode == "audit"
+        or (
+            message
+            and (
+                "hợp đồng" in message.lower()
+                or "thẩm định" in message.lower()
+                or "contract" in message.lower()
+                or "audit" in message.lower()
+                or "điều " in message.lower()
+                or "dieu " in message.lower()
+                or "|" in message
+            )
+        )
+    ) and message:
+        # Text appears to be or requests a contract snippet audit
         temp_dir = tempfile.mkdtemp(prefix="lexiguard_chat_snippet_")
-        temp_path = os.path.join(temp_dir, "pasted_contract_snippet.md")
+        temp_path = os.path.join(temp_dir, "contract_snippet.md")
         with open(temp_path, "w", encoding="utf-8") as f:
             f.write(message)
-        logger.info(f"Chat received pasted contract snippet -> {temp_path}")
+        logger.info(f"Chat created contract audit snippet -> {temp_path}")
 
     # Determine execution workflow: Contract Audit vs. Legal Q&A
     is_audit_mode = (
@@ -344,9 +354,46 @@ async def chat_endpoint(
                         f"4. Trình bày bằng Markdown rõ ràng, dễ đọc.\n"
                     )
 
-                llm = get_fast_cpu_llm()
-                response = llm.invoke(prompt)
-                answer_text = response.content if hasattr(response, "content") else str(response)
+                try:
+                    llm = get_fast_cpu_llm()
+                    response = llm.invoke(prompt)
+                    answer_text = (
+                        response.content if hasattr(response, "content") else str(response)
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        f"Ollama LLM unavailable ({exc}). Using structured statutory synthesis."
+                    )
+                    if lang == "en":
+                        answer_text = (
+                            f"### Legal Consultation & Statutory Grounding\n\n"
+                            f"**Inquiry:** {query}\n\n"
+                            f"**Statutory Provisions Identified:**\n\n"
+                        )
+                        for p in provisions:
+                            cit = p.get("citation", p.get("canonical_citation", "Provision"))
+                            cnt = p.get("content", "").strip()
+                            answer_text += f"- **[{cit}]**:\n  {cnt}\n\n"
+                        answer_text += (
+                            "**Practical Legal Advice:**\n"
+                            "- All contract clauses must strictly adhere to the mandatory statutory requirements cited above.\n"
+                            "- In adjudication practice at TAND (People's Courts) and VIAC, provisions violating mandatory legal caps will be declared null and void."
+                        )
+                    else:
+                        answer_text = (
+                            f"### Kết Quả Tra Cứu & Tư Vấn Pháp Lý\n\n"
+                            f"**Câu hỏi:** {query}\n\n"
+                            f"**Căn cứ pháp luật được tra cứu từ cơ sở tri thức:**\n\n"
+                        )
+                        for p in provisions:
+                            cit = p.get("citation", p.get("canonical_citation", "Quy định"))
+                            cnt = p.get("content", "").strip()
+                            answer_text += f"- **[{cit}]**:\n  {cnt}\n\n"
+                        answer_text += (
+                            "**Khuyến nghị thực tiễn:**\n"
+                            "- Các bên cần đối soát kỹ lưỡng các điều khoản hợp đồng liên quan để bảo đảm không vượt quá trần quy định của luật định.\n"
+                            "- Thực tiễn xét xử tại Tòa án nhân dân (TAND) và Trọng tài (VIAC) sẽ ưu tiên áp dụng các quy phạm pháp luật bắt buộc chung."
+                        )
 
                 yield format_sse(
                     {
