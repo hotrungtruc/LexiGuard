@@ -1082,6 +1082,9 @@
 
   function setGeneratingState(isGen) {
     state.isGenerating = isGen;
+    if (isGen) {
+      state.generationStartTime = Date.now();
+    }
     if (dom.sendIcon && dom.stopIcon) {
       if (isGen) {
         dom.sendIcon.style.display = 'none';
@@ -1286,6 +1289,9 @@
     if (dom.sendBtn) {
       dom.sendBtn.addEventListener('click', () => {
         if (state.isGenerating) {
+          if (Date.now() - (state.generationStartTime || 0) < 1000) {
+            return;
+          }
           stopGenerating();
         } else {
           sendMessage();
