@@ -214,17 +214,31 @@ class AsyncConnectionManager:
     def __init__(self):
         self._qdrant_client: Optional[AsyncQdrantClient] = None
         self._neo4j_driver: Optional[AsyncDriver] = None
+        self._qdrant_loop: Optional[Any] = None
+        self._neo4j_loop: Optional[Any] = None
 
     def get_qdrant_client(self, **kwargs: Any) -> AsyncQdrantClient:
         """Get or initialize singleton AsyncQdrantClient."""
-        if self._qdrant_client is None:
+        try:
+            curr_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            curr_loop = None
+
+        if self._qdrant_client is None or (curr_loop is not None and self._qdrant_loop != curr_loop):
             self._qdrant_client = get_async_qdrant_client(**kwargs)
+            self._qdrant_loop = curr_loop
         return self._qdrant_client
 
     def get_neo4j_driver(self, **kwargs: Any) -> AsyncDriver:
         """Get or initialize singleton AsyncGraphDatabase driver."""
-        if self._neo4j_driver is None:
+        try:
+            curr_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            curr_loop = None
+
+        if self._neo4j_driver is None or (curr_loop is not None and self._neo4j_loop != curr_loop):
             self._neo4j_driver = get_async_neo4j_driver(**kwargs)
+            self._neo4j_loop = curr_loop
         return self._neo4j_driver
 
     async def check_health(self) -> Dict[str, bool]:

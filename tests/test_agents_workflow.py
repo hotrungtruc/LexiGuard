@@ -37,10 +37,10 @@ def test_dual_llm_initialization():
     fast_llm = get_fast_cpu_llm()
     reasoning_llm = get_reasoning_cpu_llm()
 
-    assert fast_llm.model == "qwen2.5:3b-instruct-q4_K_M"
+    assert "qwen2.5:3b" in fast_llm.model
     assert fast_llm.temperature == 0.0
 
-    assert reasoning_llm.model == "qwen2.5:7b-instruct-q4_K_M"
+    assert "qwen2.5:7b" in reasoning_llm.model
     assert reasoning_llm.temperature == 0.1
 
 

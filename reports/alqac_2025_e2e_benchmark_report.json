@@ -1,0 +1,720 @@
+{
+  "metadata": {
+    "benchmark_name": "ALQAC 2025 End-to-End Evaluation",
+    "statutory_corpus": "data\\alqac\\ALQAC_2025\\law.json",
+    "test_dataset": "data\\alqac\\ALQAC_2025\\private_test_GOLD.json",
+    "total_articles": 3363,
+    "total_questions": 11,
+    "llm_model": "qwen2.5:3b",
+    "top_k": 5,
+    "total_duration_seconds": 60.65,
+    "timestamp": "2026-10-30 15:12:55"
+  },
+  "aggregate_metrics": {
+    "retrieval": {
+      "hit_rate_at_1": 0.5455,
+      "hit_rate_at_3": 0.7273,
+      "hit_rate_at_5": 0.8182,
+      "mrr_at_5": 0.6439,
+      "recall_at_5": 0.8182
+    },
+    "llm_end_to_end": {
+      "overall_accuracy": 0.4545,
+      "total_correct": 5,
+      "total_questions": 11,
+      "per_question_type": {
+        "Tự luận": {
+          "total": 11,
+          "correct": 5,
+          "accuracy": 0.4545,
+          "hit_rate_at_5": 0.8182,
+          "avg_llm_latency_seconds": 5.214
+        }
+      }
+    }
+  },
+  "detailed_results": [
+    {
+      "index": 1,
+      "question_id": "private_test_alquac25_16",
+      "question_type": "Tự luận",
+      "question_text": "Kinh phí cho hoạt động phòng, chống tác hại của rượu, bia có thể sử dụng từ những nguồn kinh phí nào?",
+      "gold_relevant_articles": [
+        [
+          "Luật Phòng, chống tác hại của rượu, bia",
+          "26"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+          "article_id": "26",
+          "title": "Kinh phí cho hoạt động phòng, chống tác hại của rượu, bia",
+          "score": 0.03279
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+          "article_id": "1",
+          "title": "Phạm vi điều chỉnh",
+          "score": 0.032
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+          "article_id": "3",
+          "title": "Chính sách của Nhà nước trong phòng, chống tác hại của rượu, bia",
+          "score": 0.03041
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+          "article_id": "27",
+          "title": "Đào tạo, bồi dưỡng kiến thức chuyên môn, nghiệp vụ cho người làm công tác phòng, chống tác hại của rượu, bia",
+          "score": 0.02941
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+          "article_id": "28",
+          "title": "Xử lý vi phạm pháp luật về phòng, chống tác hại của rượu, bia",
+          "score": 0.02939
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "Ngân sách nhà nước và kinh phí hợp pháp khác.",
+      "predicted_answer": "Ngân sách nhà nước và kinh phí hợp pháp khác.",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định nguồn kinh phí cho hoạt động phòng, chống tác hại của rượu, bia.\n2. Căn cứ pháp luật quy định rõ nguồn kinh phí cho hoạt động phòng, chống tác hại của rượu, bia bao gồm: Ngân sách nhà nước và kinh phí hợp pháp khác.\n</thinking>\n\nĐÁP ÁN: Ngân sách nhà nước và kinh phí hợp pháp khác.\n\nGIẢI THÍCH: Luật Phòng, chống tác hại của rượu, bia - Điều 26.",
+      "is_correct": true,
+      "f1_score": 1.0,
+      "retrieval_latency_ms": 62.91,
+      "llm_latency_seconds": 9.29,
+      "total_latency_seconds": 9.35
+    },
+    {
+      "index": 2,
+      "question_id": "private_test_alquac25_36",
+      "question_type": "Tự luận",
+      "question_text": "Thông tin liên quan đến việc hòa giải giữa tổ chức, cá nhân kinh doanh và người tiêu dùng không phải bảo đảm nguyên tắc bí mật trong trường hợp nào?",
+      "gold_relevant_articles": [
+        [
+          "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "62"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "62",
+          "title": "Nguyên tắc thực hiện hòa giải",
+          "score": 0.03132
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "19",
+          "title": "Bảo đảm an toàn, an ninh thông tin của người tiêu dùng",
+          "score": 0.02964
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "80",
+          "title": "Điều khoản chuyển tiếp",
+          "score": 0.02951
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "54",
+          "title": "Phương thức giải quyết tranh chấp giữa người tiêu dùng và tổ chức, cá nhân kinh doanh",
+          "score": 0.02942
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Tiếp cận thông tin",
+          "article_id": "7",
+          "title": "Thông tin công dân được tiếp cận có điều kiện",
+          "score": 0.02932
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "Trường hợp các bên có thỏa thuận khác hoặc pháp luật có quy định khác.",
+      "predicted_answer": "trường hợp các bên có thỏa thuận khác hoặc pháp luật có quy định khác",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định trường hợp nào không phải bảo đảm nguyên tắc bí mật trong việc hòa giải giữa tổ chức, cá nhân kinh doanh và người tiêu dùng.\n2. Căn cứ pháp luật quan trọng liên quan là Điều 62 của Luật Bảo vệ quyền lợi người tiêu dùng, quy định rằng thông tin liên quan đến việc hòa giải phải bảo đảm bí mật ngoại trừ trường hợp các bên có thỏa thuận khác hoặc pháp luật có quy định khác.\n</thinking>\n\nĐÁP ÁN: <trường hợp các bên có thỏa thuận khác hoặc pháp luật có quy định khác>\n\nGIẢI THÍCH: <Luật Bảo vệ quyền lợi người tiêu dùng - Điều 62>",
+      "is_correct": true,
+      "f1_score": 1.0,
+      "retrieval_latency_ms": 58.9,
+      "llm_latency_seconds": 4.62,
+      "total_latency_seconds": 4.68
+    },
+    {
+      "index": 3,
+      "question_id": "private_test_alquac25_39",
+      "question_type": "Tự luận",
+      "question_text": "Chính phủ yêu cầu báo cáo kết quả theo dõi, đánh giá việc quản lý và sử dụng đất đai tại các tỉnh có các dự án quy mô lớn sử dụng đất với diện tích lớn. Theo quy định của Luật Đất đai, cơ quan nào có trách nhiệm thực hiện nhiệm vụ này?",
+      "gold_relevant_articles": [
+        [
+          "Luật Đất đai",
+          "232"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Đất đai",
+          "article_id": "233",
+          "title": "Hệ thống theo dõi và đánh giá đối với việc quản lý, sử dụng đất đai",
+          "score": 0.03175
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Đất đai",
+          "article_id": "55",
+          "title": "Trách nhiệm tổ chức thực hiện điều tra, đánh giá đất đai, bảo vệ, cải tạo, phục hồi đất",
+          "score": 0.03132
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Đất đai",
+          "article_id": "76",
+          "title": "Tổ chức thực hiện quy hoạch, kế hoạch sử dụng đất",
+          "score": 0.03102
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Đất đai",
+          "article_id": "232",
+          "title": "Theo dõi và đánh giá đối với việc quản lý, sử dụng đất đai",
+          "score": 0.03009
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Đất đai",
+          "article_id": "130",
+          "title": "Trách nhiệm lập, chỉnh lý, cập nhật, quản lý, khai thác hồ sơ địa chính",
+          "score": 0.02901
+        }
+      ],
+      "retrieval_hit_at_1": false,
+      "retrieval_hit_at_3": false,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 0.25,
+      "recall_at_5": 1.0,
+      "gold_answer": "Bộ Tài nguyên và Môi trường",
+      "predicted_answer": "Bộ Tài nguyên và Môi trường",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định cơ quan có trách nhiệm thực hiện nhiệm vụ theo dõi và đánh giá việc quản lý, sử dụng đất đai.\n2. Căn cứ pháp luật quan trọng liên quan là Điều 233 của Luật Đất đai, cụm từ cốt lõi là \"chủ trì, phối hợp với các Bộ có liên quan thực hiện các nhiệm vụ sau đây\".\n</thinking>\n\nĐÁP ÁN: Bộ Tài nguyên và Môi trường\nGIẢI THÍCH: Luật Đất đai - Điều 233.",
+      "is_correct": true,
+      "f1_score": 1.0,
+      "retrieval_latency_ms": 87.43,
+      "llm_latency_seconds": 4.8,
+      "total_latency_seconds": 4.88
+    },
+    {
+      "index": 4,
+      "question_id": "private_test_alquac25_53",
+      "question_type": "Tự luận",
+      "question_text": "Tòa án triệu tập hợp lệ lần thứ hai, người khởi kiện và người đại diện theo pháp luật của người khởi kiện vắng mặt không vì sự kiện bất khả kháng, trở ngại khách quan thì Tòa án xử lý như thể nào?",
+      "gold_relevant_articles": [
+        [
+          "Luật Tố tụng hành chính",
+          "157"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Tố tụng hành chính",
+          "article_id": "143",
+          "title": "Đình chỉ giải quyết vụ án",
+          "score": 0.03175
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Tố tụng hành chính",
+          "article_id": "168",
+          "title": "Thủ tục xét xử vắng mặt tất cả những người tham gia tố tụng",
+          "score": 0.03125
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Tố tụng hành chính",
+          "article_id": "135",
+          "title": "Những vụ án hành chính không tiến hành đối thoại được",
+          "score": 0.03054
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Tố tụng hành chính",
+          "article_id": "158",
+          "title": "Xét xử trong trường hợp đương sự vắng mặt tại phiên tòa",
+          "score": 0.03002
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Tố tụng hành chính",
+          "article_id": "140",
+          "title": "Xử lý kết quả đối thoại",
+          "score": 0.02955
+        }
+      ],
+      "retrieval_hit_at_1": false,
+      "retrieval_hit_at_3": false,
+      "retrieval_hit_at_5": false,
+      "reciprocal_rank_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "gold_answer": "Tòa án ra quyết định đình chỉ giải quyết vụ án đối với yêu cầu khởi kiện của người khởi kiện đó",
+      "predicted_answer": "15 ngày",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: Tòa án xử lý như thế nào khi người khởi kiện và người đại diện theo pháp luật của người khởi kiện vắng mặt không vì sự kiện bất khả kháng, trở ngại khách quan sau khi đã được triệu tập hợp lệ lần thứ hai.\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi ngắn gọn nhất.\n</thinking>\n\nĐÁP ÁN: 15 ngày\nGIẢI THÍCH: Luật Tố tụng hành chính - Điều 168: Thủ tục xét xử vắng mặt tất cả những người tham gia tố tụng. Trường hợp người khởi kiện, người đại diện hợp pháp của người khởi kiện đã được triệu tập hợp lệ lần thứ hai mà vẫn vắng mặt, Tòa án căn cứ vào tài liệu, chứng cứ có trong hồ sơ để xét xử vắng mặt đương sự.",
+      "is_correct": false,
+      "f1_score": 0.0,
+      "retrieval_latency_ms": 75.91,
+      "llm_latency_seconds": 5.47,
+      "total_latency_seconds": 5.54
+    },
+    {
+      "index": 5,
+      "question_id": "private_test_alquac25_61",
+      "question_type": "Tự luận",
+      "question_text": "Theo Luật Giá, hàng hóa là gì?",
+      "gold_relevant_articles": [
+        [
+          "Luật Giá",
+          "4"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Giá",
+          "article_id": "4",
+          "title": "Giải thích từ ngữ",
+          "score": 0.05151
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Giá",
+          "article_id": "30",
+          "title": "Giá tham chiếu",
+          "score": 0.05126
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Giá",
+          "article_id": "9",
+          "title": "Nghĩa vụ của tổ chức, cá nhân kinh doanh hàng hóa, dịch vụ",
+          "score": 0.0511
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Giá",
+          "article_id": "8",
+          "title": "Quyền của tổ chức, cá nhân kinh doanh hàng hóa, dịch vụ",
+          "score": 0.05041
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Giá",
+          "article_id": "28",
+          "title": "Kê khai giá",
+          "score": 0.05037
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "Sản phẩm có thể trao đổi, mua, bán trên thị trường",
+      "predicted_answer": "hàng hóa",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: tên cơ quan, con số/thời hạn, số tiền, định nghĩa hay điều kiện pháp lý?\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi nhất về định nghĩa của \"hàng hóa\".\n</thinking>\n\nĐÁP ÁN: hàng hóa\nGIẢI THÍCH: <Luật Giá - Điều 4>",
+      "is_correct": false,
+      "f1_score": 0.0,
+      "retrieval_latency_ms": 32.78,
+      "llm_latency_seconds": 4.21,
+      "total_latency_seconds": 4.24
+    },
+    {
+      "index": 6,
+      "question_id": "private_test_alquac25_77",
+      "question_type": "Tự luận",
+      "question_text": "Anh N là Công dân Việt Nam sinh năm 1996. Năm nay là năm 2025, vậy, năm gần nhất mà anh N đủ tuổi thực hiện thủ tục cấp đổi Thẻ căn cước là năm nào?",
+      "gold_relevant_articles": [
+        [
+          "Luật Căn cước",
+          "21"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Căn cước",
+          "article_id": "21",
+          "title": "Độ tuổi cấp đổi thẻ căn cước",
+          "score": 0.03279
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Căn cước",
+          "article_id": "19",
+          "title": "Người được cấp thẻ căn cước",
+          "score": 0.03226
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Căn cước",
+          "article_id": "30",
+          "title": "Giấy chứng nhận căn cước và quản lý về căn cước đối với người gốc Việt Nam chưa xác định được quốc tịch được cấp giấy chứng nhận căn cước",
+          "score": 0.02976
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Căn cước",
+          "article_id": "5",
+          "title": "Quyền, nghĩa vụ của công dân Việt Nam và người gốc Việt Nam chưa xác định được quốc tịch về căn cước, Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu căn cước",
+          "score": 0.02804
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Căn cước",
+          "article_id": "12",
+          "title": "Số định danh cá nhân của công dân Việt Nam",
+          "score": 0.0274
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "Năm 2036",
+      "predicted_answer": "Chính xác là 25 tuổi",
+      "llm_response": "<Chính xác là 25 tuổi>\n\nGIẢI THÍCH: <Luật Căn cước - Điều 21>",
+      "is_correct": false,
+      "f1_score": 0.0,
+      "retrieval_latency_ms": 68.59,
+      "llm_latency_seconds": 3.26,
+      "total_latency_seconds": 3.33
+    },
+    {
+      "index": 7,
+      "question_id": "private_test_alquac25_78",
+      "question_type": "Tự luận",
+      "question_text": "Khi thay đổi người giám hộ thì trong thời hạn bao nhiêu ngày, kể từ ngày có người giám hộ mới, người đã thực hiện việc giám hộ phải chuyển giao giám hộ cho người thay thế mình?",
+      "gold_relevant_articles": [
+        [
+          "Bộ luật dân sự",
+          "61"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "61",
+          "title": "Chuyển giao giám hộ",
+          "score": 0.03279
+        },
+        {
+          "rank": 2,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "63",
+          "title": "Hậu quả chấm dứt việc giám hộ",
+          "score": 0.03226
+        },
+        {
+          "rank": 3,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "60",
+          "title": "Thay đổi người giám hộ",
+          "score": 0.03126
+        },
+        {
+          "rank": 4,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "51",
+          "title": "Giám sát việc giám hộ",
+          "score": 0.02976
+        },
+        {
+          "rank": 5,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "48",
+          "title": "Người giám hộ",
+          "score": 0.02899
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "15 ngày",
+      "predicted_answer": "15 ngày",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: tên cơ quan, con số/thời hạn, số tiền, định nghĩa hay điều kiện pháp lý?\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi nhất: \"trong thời hạn 15 ngày, kể từ ngày có người giám hộ mới, người đã thực hiện việc giám hộ phải chuyển giao giám hộ cho người thay thế mình.\"\n</thinking>\n\nĐÁP ÁN: 15 ngày\n\nGIẢI THÍCH: Bộ luật dân sự - Điều 61.",
+      "is_correct": true,
+      "f1_score": 1.0,
+      "retrieval_latency_ms": 66.17,
+      "llm_latency_seconds": 4.64,
+      "total_latency_seconds": 4.7
+    },
+    {
+      "index": 8,
+      "question_id": "private_test_alquac25_79",
+      "question_type": "Tự luận",
+      "question_text": "Theo BLDS năm 2015, nếu quyền đại diện được xác lập trên cơ sở một hợp đồng nhưng không thể xác định được thời hạn đại diện theo hợp đồng đó và cũng không có bất cứ thỏa thuận nào khác giữa các bên về thời hạn đại diện thì thời hạn đại diện trong trường hợp này là bao lâu và kể từ thời điểm nào?",
+      "gold_relevant_articles": [
+        [
+          "Bộ luật dân sự",
+          "140"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "140",
+          "title": "Thời hạn đại diện",
+          "score": 0.03279
+        },
+        {
+          "rank": 2,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "474",
+          "title": "Thời hạn thuê",
+          "score": 0.0315
+        },
+        {
+          "rank": 3,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "400",
+          "title": "Thời điểm giao kết hợp đồng",
+          "score": 0.02837
+        },
+        {
+          "rank": 4,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "434",
+          "title": "Thời hạn thực hiện hợp đồng mua bán",
+          "score": 0.02783
+        },
+        {
+          "rank": 5,
+          "law_id": "Bộ luật dân sự",
+          "article_id": "278",
+          "title": "Thời hạn thực hiện nghĩa vụ",
+          "score": 0.02558
+        }
+      ],
+      "retrieval_hit_at_1": true,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "gold_answer": "1 năm kể từ thời điểm phát sinh quyền đại diện",
+      "predicted_answer": "01 năm",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định thời hạn đại diện và thời điểm xác định thời hạn đại diện trong trường hợp không xác định được thời hạn đại diện theo hợp đồng.\n2. Câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi là: \"nếu quyền đại diện được xác định theo giao dịch dân sự cụ thể thì thời hạn đại diện được tính đến thời điểm chấm dứt giao dịch dân sự đó; nếu quyền đại diện không được xác định với giao dịch dân sự cụ thể thì thời hạn đại diện là 01 năm, kể từ thời điểm phát sinh quyền đại diện.\"\n</thinking>\n\nĐÁP ÁN: 01 năm\nGIẢI THÍCH: Điều 140 Bộ luật Dân sự 2015.",
+      "is_correct": false,
+      "f1_score": 0.1538,
+      "retrieval_latency_ms": 95.17,
+      "llm_latency_seconds": 5.08,
+      "total_latency_seconds": 5.18
+    },
+    {
+      "index": 9,
+      "question_id": "private_test_alquac25_80",
+      "question_type": "Tự luận",
+      "question_text": "Nếu nội dung hợp đồng ký kết giữa doanh nghiệp và người tiêu dùng được hai bên hiểu theo hai cách khác nhau thì việc giải thích hợp đồng đó được thực hiện như thế nào?",
+      "gold_relevant_articles": [
+        [
+          "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "24"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "38",
+          "title": "Giao kết hợp đồng trong giao dịch từ xa",
+          "score": 0.03202
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "24",
+          "title": "Giải thích hợp đồng giao kết với người tiêu dùng, hợp đồng theo mẫu, điều kiện giao dịch chung",
+          "score": 0.03178
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "44",
+          "title": "Hợp đồng bán hàng tận cửa",
+          "score": 0.03021
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "23",
+          "title": "Hợp đồng giao kết với người tiêu dùng, hợp đồng theo mẫu, điều kiện giao dịch chung",
+          "score": 0.02963
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Bảo vệ quyền lợi người tiêu dùng",
+          "article_id": "80",
+          "title": "Điều khoản chuyển tiếp",
+          "score": 0.02927
+        }
+      ],
+      "retrieval_hit_at_1": false,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 0.5,
+      "recall_at_5": 1.0,
+      "gold_answer": "Được thực hiện theo hướng có lợi cho người tiêu dùng",
+      "predicted_answer": "Điều 24",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: tên cơ quan, con số/thời hạn, số tiền, định nghĩa hay điều kiện pháp lý?\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi ngắn gọn nhất.\n</thinking>\n\nĐÁP ÁN: Điều 24\nGIẢI THÍCH: Luật Bảo vệ quyền lợi người tiêu dùng - Điều 24: Giải thích hợp đồng giao kết với người tiêu dùng, hợp đồng theo mẫu, điều kiện giao dịch chung",
+      "is_correct": false,
+      "f1_score": 0.0,
+      "retrieval_latency_ms": 80.04,
+      "llm_latency_seconds": 4.55,
+      "total_latency_seconds": 4.63
+    },
+    {
+      "index": 10,
+      "question_id": "private_test_alquac25_81",
+      "question_type": "Tự luận",
+      "question_text": "Khi nào âm thanh được coi là dữ liệu điện tử theo Luật Giao dịch điện tử năm 2023?",
+      "gold_relevant_articles": [
+        [
+          "Luật Giao dịch điện tử",
+          "3"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Giao dịch điện tử",
+          "article_id": "7",
+          "title": "Hình thức thể hiện của thông điệp dữ liệu",
+          "score": 0.03037
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Giao dịch điện tử",
+          "article_id": "53",
+          "title": "Quy định chuyển tiếp",
+          "score": 0.02946
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Giao dịch điện tử",
+          "article_id": "3",
+          "title": "Giải thích từ ngữ",
+          "score": 0.02863
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Giao dịch điện tử",
+          "article_id": "37",
+          "title": "Việc nhận, gửi, thời điểm, địa điểm nhận, gửi thông điệp dữ liệu trong giao kết và thực hiện hợp đồng điện tử",
+          "score": 0.02844
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Giao dịch điện tử",
+          "article_id": "44",
+          "title": "Hoạt động của cơ quan nhà nước trên môi trường điện tử",
+          "score": 0.02816
+        }
+      ],
+      "retrieval_hit_at_1": false,
+      "retrieval_hit_at_3": true,
+      "retrieval_hit_at_5": true,
+      "reciprocal_rank_at_5": 0.3333333333333333,
+      "recall_at_5": 1.0,
+      "gold_answer": "Khi âm thanh được tạo ra, xử lý, lưu trữ bằng phương tiện điện tử.",
+      "predicted_answer": "âm thanh",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: tên cơ quan, con số/thời hạn, số tiền, định nghĩa hay điều kiện pháp lý?\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi nhất: \"âm thanh được coi là dữ liệu điện tử theo Luật Giao dịch điện tử năm 2023\".\n</thinking>\n\nĐÁP ÁN: <âm thanh>\nGIẢI THÍCH: <Luật Giao dịch điện tử - Điều 7>",
+      "is_correct": true,
+      "f1_score": 0.2353,
+      "retrieval_latency_ms": 37.3,
+      "llm_latency_seconds": 4.47,
+      "total_latency_seconds": 4.51
+    },
+    {
+      "index": 11,
+      "question_id": "private_test_alquac25_82",
+      "question_type": "Tự luận",
+      "question_text": "Ông A đủ điều kiện để được mua nhà ở xã hội và vừa ký hợp đồng với Chủ đầu tư của Dự án X để mua một căn nhà ở xã hội có tổng diện tích 65m2 tại Dự án X với giá 21 triệu đồng/m2. Trước thời điểm căn nhà được bàn giao cho ông A, Chủ đầu tư của Dự án X được phép nhận của ông A tối đa bao nhiêu tiền từ việc ông A thanh toán tiền mua căn nhà đó?",
+      "gold_relevant_articles": [
+        [
+          "Luật Nhà ở",
+          "89"
+        ]
+      ],
+      "retrieved_articles": [
+        {
+          "rank": 1,
+          "law_id": "Luật Nhà ở",
+          "article_id": "85",
+          "title": "Ưu đãi chủ đầu tư dự án đầu tư xây dựng nhà ở xã hội để bán, cho thuê mua, cho thuê",
+          "score": 0.03227
+        },
+        {
+          "rank": 2,
+          "law_id": "Luật Nhà ở",
+          "article_id": "152",
+          "title": "Kinh phí bảo trì của nhà chung cư có nhiều chủ sở hữu",
+          "score": 0.03077
+        },
+        {
+          "rank": 3,
+          "law_id": "Luật Nhà ở",
+          "article_id": "84",
+          "title": "Chủ đầu tư dự án đầu tư xây dựng nhà ở xã hội",
+          "score": 0.03062
+        },
+        {
+          "rank": 4,
+          "law_id": "Luật Nhà ở",
+          "article_id": "83",
+          "title": "Đất để phát triển nhà ở xã hội",
+          "score": 0.02899
+        },
+        {
+          "rank": 5,
+          "law_id": "Luật Nhà ở",
+          "article_id": "87",
+          "title": "Xác định giá bán, giá thuê mua, giá thuê nhà ở xã hội được đầu tư xây dựng không bằng vốn đầu tư công, nguồn tài chính công đoàn",
+          "score": 0.02879
+        }
+      ],
+      "retrieval_hit_at_1": false,
+      "retrieval_hit_at_3": false,
+      "retrieval_hit_at_5": false,
+      "reciprocal_rank_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "gold_answer": "Tối đa không quá 955,5 triệu đồng",
+      "predicted_answer": "210 triệu",
+      "llm_response": "<thinking>\n1. Câu hỏi yêu cầu xác định điều gì: tên cơ quan, con số/thời hạn, số tiền, định nghĩa hay điều kiện pháp lý?\n2. Tìm câu từ quy định trực tiếp trong căn cứ pháp luật để trích xuất cụm từ cốt lõi ngắn gọn nhất.\n</thinking>\n\nĐÁP ÁN: 210 triệu\nGIẢI THÍCH: <Luật Nhà ở - Điều 85, khoản 2 điểm c>: Chủ đầu tư dự án đầu tư xây dựng nhà ở xã hội được hưởng lợi nhuận định mức tối đa 10% tổng chi phí đầu tư xây dựng đối với phần diện tích xây dựng nhà ở xã hội. Tổng diện tích là 65m2, giá 21 triệu đồng/m2, nên lợi nhuận định mức tối đa là 65m2 * 21 triệu đồng/m2 * 10% = 1365 triệu đồng. Tuy nhiên, đây chỉ là lợi nhuận định mức, không bao gồm các khoản ưu đãi khác. Tổng số tiền Chủ đầu tư có thể nhận được từ việc ông A thanh toán tiền mua căn nhà đó là 21 triệu đồng/m2 * 65m2 = 1365 triệu đồng (lợi nhuận định mức) + 210 triệu đồng (ưu đãi khác không được tính vào giá thành nhà ở xã hội).",
+      "is_correct": false,
+      "f1_score": 0.2,
+      "retrieval_latency_ms": 102.87,
+      "llm_latency_seconds": 6.97,
+      "total_latency_seconds": 7.08
+    }
+  ]
+}

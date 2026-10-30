@@ -1,0 +1,3160 @@
+{
+  "2022": {
+    "season": "2022",
+    "total_questions": 12,
+    "hit_at_1": 0.75,
+    "hit_at_3": 0.9167,
+    "hit_at_5": 0.9167,
+    "mrr_at_5": 0.8333,
+    "recall_at_5": 0.9167,
+    "accuracy": 0.4167,
+    "correct_count": 5,
+    "type_breakdown": {
+      "Tự luận": {
+        "total": 12,
+        "correct": 5,
+        "accuracy": 0.4167,
+        "hit_at_5": 0.9167,
+        "avg_llm_latency": 3.89
+      }
+    },
+    "results": [
+      {
+        "index": 1,
+        "season": "2022",
+        "question_id": "q-1",
+        "question_type": "Tự luận",
+        "question_text": "Chiếm đoạt di vật của tử sĩ có thể bị phạt tù lên đến bao nhiêu năm?",
+        "gold_relevant_articles": [
+          [
+            "01/VBHN-VPQH",
+            "418"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "418",
+            "title": "Tội chiếm đoạt hoặc hủy hoại di vật của tử sỹ",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "319",
+            "title": "Tội xâm phạm thi thể, mồ mả, hài cốt",
+            "score": 0.04816
+          },
+          {
+            "rank": 3,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "154",
+            "title": "Tội mua bán, chiếm đoạt mô hoặc bộ phận cơ thể người",
+            "score": 0.0424
+          },
+          {
+            "rank": 4,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "342",
+            "title": "Tội chiếm đoạt, mua bán, tiêu hủy con dấu, tài liệu của cơ quan, tổ chức",
+            "score": 0.04202
+          },
+          {
+            "rank": 5,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "171",
+            "title": "Tội cướp giật tài sản",
+            "score": 0.03762
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "07 năm",
+        "predicted_answer": "07 năm",
+        "llm_response": "ĐÁP ÁN: 07 năm\nGIẢI THÍCH: Điều 418, Khoản 2, điểm b) của Bộ luật Hình sự 2015 quy định mức phạt từ 02 năm đến 07 năm tù cho hành vi chiếm đoạt hoặc hủy hoại di vật của tử sĩ trong trường hợp phạm tội thuộc một trong các trường hợp sau đây, trong đó bao gồm việc chiếm đoạt hoặc hủy hoại di vật của 02 tử sĩ trở lên.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 590.23,
+        "llm_latency_seconds": 7.96,
+        "total_latency_seconds": 8.55
+      },
+      {
+        "index": 2,
+        "season": "2022",
+        "question_id": "q-44",
+        "question_type": "Tự luận",
+        "question_text": "Tội phạm là hành vi nguy hiểm cho xã hội được quy định trong Bộ luật nào?",
+        "gold_relevant_articles": [
+          [
+            "01/VBHN-VPQH",
+            "8"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "8",
+            "title": "Khái niệm tội phạm",
+            "score": 0.05056
+          },
+          {
+            "rank": 2,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "9",
+            "title": "Phân loại tội phạm",
+            "score": 0.05026
+          },
+          {
+            "rank": 3,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "57",
+            "title": "Quyết định hình phạt trong trường hợp chuẩn bị phạm tội, phạm tội chưa đạt",
+            "score": 0.04921
+          },
+          {
+            "rank": 4,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "29",
+            "title": "Căn cứ miễn trách nhiệm hình sự",
+            "score": 0.04455
+          },
+          {
+            "rank": 5,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "50",
+            "title": "Căn cứ quyết định hình phạt",
+            "score": 0.04385
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Bộ luật Hình sự",
+        "predicted_answer": "Bộ luật hình sự",
+        "llm_response": "Đáp án: <Bộ luật hình sự>\nGIẢI THÍCH: <01/VBHN-VPQH - Điều 8>",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 652.88,
+        "llm_latency_seconds": 3.29,
+        "total_latency_seconds": 3.95
+      },
+      {
+        "index": 3,
+        "season": "2022",
+        "question_id": "q-87",
+        "question_type": "Tự luận",
+        "question_text": "Bên mua cần thanh toán tiền lúc nào trong trường hợp các bên không có thoả thuận về thời gian giao tài sản và thời hạn thanh toán?",
+        "gold_relevant_articles": [
+          [
+            "91/2015/QH13",
+            "440"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "91/2015/QH13",
+            "article_id": "440",
+            "title": "Nghĩa vụ trả tiền",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "91/2015/QH13",
+            "article_id": "434",
+            "title": "Thời hạn thực hiện hợp đồng mua bán",
+            "score": 0.04977
+          },
+          {
+            "rank": 3,
+            "law_id": "91/2015/QH13",
+            "article_id": "561",
+            "title": "Trả tiền công",
+            "score": 0.04847
+          },
+          {
+            "rank": 4,
+            "law_id": "91/2015/QH13",
+            "article_id": "437",
+            "title": "Trách nhiệm do giao tài sản không đúng số lượng",
+            "score": 0.0469
+          },
+          {
+            "rank": 5,
+            "law_id": "91/2015/QH13",
+            "article_id": "450",
+            "title": "Mua bán quyền tài sản",
+            "score": 0.04524
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "tại thời điểm nhận tài sản",
+        "predicted_answer": "15 ngày",
+        "llm_response": "Đáp án: <15 ngày>\n\nGiải thích: <91/2015/QH13 - Điều 440>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 644.69,
+        "llm_latency_seconds": 3.4,
+        "total_latency_seconds": 4.05
+      },
+      {
+        "index": 4,
+        "season": "2022",
+        "question_id": "q-130",
+        "question_type": "Tự luận",
+        "question_text": "Mức khấu trừ tối đa là bao nhiêu?",
+        "gold_relevant_articles": [
+          [
+            "45/2019/QH14",
+            "102"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "91/2015/QH13",
+            "article_id": "533",
+            "title": "Cước phí vận chuyển",
+            "score": 0.03379
+          },
+          {
+            "rank": 2,
+            "law_id": "45/2019/QH14",
+            "article_id": "102",
+            "title": "Khấu trừ tiền lương",
+            "score": 0.02957
+          },
+          {
+            "rank": 3,
+            "law_id": "91/2015/QH13",
+            "article_id": "561",
+            "title": "Trả tiền công",
+            "score": 0.02845
+          },
+          {
+            "rank": 4,
+            "law_id": "91/2015/QH13",
+            "article_id": "552",
+            "title": "Trả tiền công",
+            "score": 0.02731
+          },
+          {
+            "rank": 5,
+            "law_id": "91/2015/QH13",
+            "article_id": "433",
+            "title": "Giá và phương thức thanh toán",
+            "score": 0.02628
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "không được quá 30% tiền lương thực trả hằng tháng của người lao động",
+        "predicted_answer": "18 tuổi",
+        "llm_response": "Đáp án: <18 tuổi>\nGIẢI THÍCH: <91/2015/QH13 - Điều 561 - Khoản 3>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 469.88,
+        "llm_latency_seconds": 3.4,
+        "total_latency_seconds": 3.87
+      },
+      {
+        "index": 5,
+        "season": "2022",
+        "question_id": "q-173",
+        "question_type": "Tự luận",
+        "question_text": "Đại diện theo pháp luật của người con đã thành niên có khó khăn trong nhận thức, làm chủ hành vi là ai?",
+        "gold_relevant_articles": [
+          [
+            "91/2015/QH13",
+            "136"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "91/2015/QH13",
+            "article_id": "23",
+            "title": "Người có khó khăn trong nhận thức, làm chủ hành vi",
+            "score": 0.0502
+          },
+          {
+            "rank": 2,
+            "law_id": "91/2015/QH13",
+            "article_id": "136",
+            "title": "Đại diện theo pháp luật của cá nhân",
+            "score": 0.04981
+          },
+          {
+            "rank": 3,
+            "law_id": "91/2015/QH13",
+            "article_id": "47",
+            "title": "Người được giám hộ",
+            "score": 0.04714
+          },
+          {
+            "rank": 4,
+            "law_id": "91/2015/QH13",
+            "article_id": "54",
+            "title": "Cử, chỉ định người giám hộ",
+            "score": 0.04373
+          },
+          {
+            "rank": 5,
+            "law_id": "91/2015/QH13",
+            "article_id": "20",
+            "title": "Người thành niên",
+            "score": 0.04216
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "Người do Tòa án chỉ định",
+        "predicted_answer": "người giám hộ",
+        "llm_response": "ĐÁP ÁN: <người giám hộ>\nGIẢI THÍCH: <91/2015/QH13 - Điều 23>",
+        "is_correct": false,
+        "f1_score": 0.2222,
+        "retrieval_latency_ms": 561.6,
+        "llm_latency_seconds": 3.46,
+        "total_latency_seconds": 4.02
+      },
+      {
+        "index": 6,
+        "season": "2022",
+        "question_id": "q-216",
+        "question_type": "Tự luận",
+        "question_text": "Chủ sở hữu tài sản có quyền sở hữu đối với hoa lợi, lợi tức theo quy định của pháp luật, kể từ thời điểm \nnào?",
+        "gold_relevant_articles": [
+          [
+            "91/2015/QH13",
+            "224"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "91/2015/QH13",
+            "article_id": "224",
+            "title": "Xác lập quyền sở hữu đối với hoa lợi, lợi tức",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "91/2015/QH13",
+            "article_id": "221",
+            "title": "Căn cứ xác lập quyền sở hữu",
+            "score": 0.04732
+          },
+          {
+            "rank": 3,
+            "law_id": "91/2015/QH13",
+            "article_id": "333",
+            "title": "Quyền và nghĩa vụ của bên mua tài sản",
+            "score": 0.04505
+          },
+          {
+            "rank": 4,
+            "law_id": "91/2015/QH13",
+            "article_id": "236",
+            "title": "Xác lập quyền sở hữu theo thời hiệu do chiếm hữu, được lợi về tài sản không có căn cứ pháp luật",
+            "score": 0.04452
+          },
+          {
+            "rank": 5,
+            "law_id": "91/2015/QH13",
+            "article_id": "243",
+            "title": "Tài sản bị trưng mua",
+            "score": 0.04273
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "thời điểm thu được hoa lợi, lợi tức đó",
+        "predicted_answer": "Kể từ thời điểm thu được hoa lợi, lợi tức",
+        "llm_response": "Đáp án: <Kể từ thời điểm thu được hoa lợi, lợi tức>\n\nGiải thích: <91/2015/QH13 - Điều 224>",
+        "is_correct": true,
+        "f1_score": 0.8235,
+        "retrieval_latency_ms": 606.77,
+        "llm_latency_seconds": 3.35,
+        "total_latency_seconds": 3.96
+      },
+      {
+        "index": 7,
+        "season": "2022",
+        "question_id": "q-259",
+        "question_type": "Tự luận",
+        "question_text": "Người lao động phải cung cấp thông tin gì cho người sử dụng lao động?",
+        "gold_relevant_articles": [
+          [
+            "45/2019/QH14",
+            "16"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "45/2019/QH14",
+            "article_id": "16",
+            "title": "Nghĩa vụ cung cấp thông tin khi giao kết hợp đồng lao động",
+            "score": 0.05035
+          },
+          {
+            "rank": 2,
+            "law_id": "45/2019/QH14",
+            "article_id": "178",
+            "title": "Quyền và nghĩa vụ của tổ chức đại diện người lao động tại cơ sở trong quan hệ lao động",
+            "score": 0.04895
+          },
+          {
+            "rank": 3,
+            "law_id": "45/2019/QH14",
+            "article_id": "17",
+            "title": "Hành vi người sử dụng lao động không được làm khi giao kết, thực hiện hợp đồng lao động",
+            "score": 0.04432
+          },
+          {
+            "rank": 4,
+            "law_id": "45/2019/QH14",
+            "article_id": "212",
+            "title": "Nội dung quản lý nhà nước về lao động",
+            "score": 0.04332
+          },
+          {
+            "rank": 5,
+            "law_id": "45/2019/QH14",
+            "article_id": "44",
+            "title": "Phương án sử dụng lao động",
+            "score": 0.04212
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Người lao động phải cung cấp thông tin trung thực cho người sử dụng lao động về họ tên, ngày tháng năm sinh, giới tính, nơi cư trú, trình độ học vấn, trình độ kỹ năng nghề, xác nhận tình trạng sức khỏe và vấn đề khác liên quan trực tiếp đến việc giao kết hợp đồng lao động mà người sử dụng lao động yêu cầu.",
+        "predicted_answer": "18 tuổi",
+        "llm_response": "Đáp án: <18 tuổi>\n\nGIẢI THÍCH: <45/2019/QH14 - Điều 16, Khoản 1>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 590.08,
+        "llm_latency_seconds": 3.61,
+        "total_latency_seconds": 4.2
+      },
+      {
+        "index": 8,
+        "season": "2022",
+        "question_id": "q-302",
+        "question_type": "Tự luận",
+        "question_text": "Đánh tráo người dưới 01 tuổi mà mình có trách nhiệm chăm sóc, nuôi dưỡng thì bị phạt tù tối thiểu bao nhiêu năm?",
+        "gold_relevant_articles": [
+          [
+            "01/VBHN-VPQH",
+            "152"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "152",
+            "title": "Tội đánh tráo người dưới 01 tuổi",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "153",
+            "title": "Tội chiếm đoạt người dưới 16 tuổi",
+            "score": 0.04841
+          },
+          {
+            "rank": 3,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "185",
+            "title": "Tội ngược đãi hoặc hành hạ ông bà, cha mẹ, vợ chồng, con, cháu hoặc người có công nuôi dưỡng mình",
+            "score": 0.04758
+          },
+          {
+            "rank": 4,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "140",
+            "title": "Tội hành hạ người khác",
+            "score": 0.04262
+          },
+          {
+            "rank": 5,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "325",
+            "title": "Tội dụ dỗ, ép buộc hoặc chứa chấp người dưới 18 tuổi phạm pháp",
+            "score": 0.04144
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "03 năm",
+        "predicted_answer": "03 năm",
+        "llm_response": "Đáp án: <03 năm>\n\nGiải thích: <01/VBHN-VPQH - Điều 152, Khoản 2>",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 780.22,
+        "llm_latency_seconds": 3.53,
+        "total_latency_seconds": 4.31
+      },
+      {
+        "index": 9,
+        "season": "2022",
+        "question_id": "q-345",
+        "question_type": "Tự luận",
+        "question_text": "Sử dụng trái phép tần số vô tuyến điện dành riêng cho mục đích cấp cứu, an toàn, tìm kiếm, cứu hộ, cứu nạn, quốc phòng, an ninh vào mục đích khác, đã bị xử phạt vi phạm hành chính về hành vi này hoặc đã bị kết án về tội này, chưa được xóa án tích mà còn vi phạm thì bị phạt tiền như thế nào?",
+        "gold_relevant_articles": [
+          [
+            "01/VBHN-VPQH",
+            "293"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "293",
+            "title": "Tội sử dụng trái phép tần số vô tuyến điện dành riêng cho mục đích cấp cứu, an toàn, tìm kiếm, cứu hộ, cứu nạn, quốc phòng, an ninh",
+            "score": 0.05056
+          },
+          {
+            "rank": 2,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "294",
+            "title": "Tội cố ý gây nhiễu có hại",
+            "score": 0.05026
+          },
+          {
+            "rank": 3,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "346",
+            "title": "Tội vi phạm quy chế về khu vực biên giới",
+            "score": 0.03787
+          },
+          {
+            "rank": 4,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "340",
+            "title": "Tội sửa chữa và sử dụng giấy chứng nhận, các tài liệu của cơ quan, tổ chức",
+            "score": 0.03679
+          },
+          {
+            "rank": 5,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "159",
+            "title": "Tội xâm phạm bí mật hoặc an toàn thư tín, điện thoại, điện tín hoặc hình thức trao đổi thông tin riêng tư khác của người khác",
+            "score": 0.036
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "từ 50.000.000 đồng đến 100.000.000 đồng",
+        "predicted_answer": "100.000.000 đồng",
+        "llm_response": "Đáp án: <100.000.000 đồng>\n\nGiải thích: <01/VBHN-VPQH - Điều 293>",
+        "is_correct": true,
+        "f1_score": 0.6667,
+        "retrieval_latency_ms": 876.84,
+        "llm_latency_seconds": 3.65,
+        "total_latency_seconds": 4.53
+      },
+      {
+        "index": 10,
+        "season": "2022",
+        "question_id": "q-388",
+        "question_type": "Tự luận",
+        "question_text": "Để đảm bảo an ninh mạng, cần phải có vấn đề gì đối với hệ thống thông tin ?",
+        "gold_relevant_articles": [
+          [
+            "24/2018/QH14",
+            "23"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "24/2018/QH14",
+            "article_id": "11",
+            "title": "Thẩm định an ninh mạng đối với hệ thống thông tin quan trọng về an ninh quốc gia",
+            "score": 0.05006
+          },
+          {
+            "rank": 2,
+            "law_id": "24/2018/QH14",
+            "article_id": "14",
+            "title": "Giám sát an ninh mạng đối với hệ thống thông tin quan trọng về an ninh quốc gia",
+            "score": 0.04822
+          },
+          {
+            "rank": 3,
+            "law_id": "24/2018/QH14",
+            "article_id": "13",
+            "title": "Kiểm tra an ninh mạng đối với hệ thống thông tin quan trọng về an ninh quốc gia",
+            "score": 0.04797
+          },
+          {
+            "rank": 4,
+            "law_id": "24/2018/QH14",
+            "article_id": "24",
+            "title": "Kiểm tra an ninh mạng đối với hệ thống thông tin của cơ quan, tổ chức không thuộc Danh mục hệ thống thông tin quan trọng về an ninh quốc gia",
+            "score": 0.04767
+          },
+          {
+            "rank": 5,
+            "law_id": "24/2018/QH14",
+            "article_id": "12",
+            "title": "Đánh giá điều kiện an ninh mạng đối với hệ thống thông tin quan trọng về an ninh quốc gia",
+            "score": 0.0455
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "phương án bảo đảm an ninh mạng",
+        "predicted_answer": "Thủ tướng Chính phủ",
+        "llm_response": "Đáp án: <Thủ tướng Chính phủ>\n\nGiải thích: <24/2018/QH14 - Điều 12, Khoản 1>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 678.22,
+        "llm_latency_seconds": 4.0,
+        "total_latency_seconds": 4.68
+      },
+      {
+        "index": 11,
+        "season": "2022",
+        "question_id": "q-431",
+        "question_type": "Tự luận",
+        "question_text": "Các công dân Việt Nam với các tiêu chuẩn gì thì có thể được tuyển chọn vào lực lượng bảo vệ an ninh mạng?",
+        "gold_relevant_articles": [
+          [
+            "24/2018/QH14",
+            "32"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "24/2018/QH14",
+            "article_id": "32",
+            "title": "Tuyển chọn, đào tạo, phát triển lực lượng bảo vệ an ninh mạng",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "24/2018/QH14",
+            "article_id": "31",
+            "title": "Bảo đảm nguồn nhân lực bảo vệ an ninh mạng",
+            "score": 0.04969
+          },
+          {
+            "rank": 3,
+            "law_id": "24/2018/QH14",
+            "article_id": "4",
+            "title": "Nguyên tắc bảo vệ an ninh mạng",
+            "score": 0.0479
+          },
+          {
+            "rank": 4,
+            "law_id": "01/VBHN-VPQH",
+            "article_id": "44",
+            "title": "Tước một số quyền công dân",
+            "score": 0.04403
+          },
+          {
+            "rank": 5,
+            "law_id": "24/2018/QH14",
+            "article_id": "38",
+            "title": "Trách nhiệm của Bộ Thông tin và Truyền thông",
+            "score": 0.04306
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Công dân Việt Nam có đủ tiêu chuẩn về phẩm chất đạo đức, sức khỏe, trình độ, kiến thức về an ninh mạng, an toàn thông tin mạng, công nghệ thông tin, có nguyện vọng thì có thể được tuyển chọn vào lực lượng bảo vệ an ninh mạng.",
+        "predicted_answer": "18 tuổi",
+        "llm_response": "Đáp án: <18 tuổi>\n\nGiải thích: <24/2018/QH14 - Điều 32, Khoản 1>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 537.93,
+        "llm_latency_seconds": 3.55,
+        "total_latency_seconds": 4.09
+      },
+      {
+        "index": 12,
+        "season": "2022",
+        "question_id": "q-474",
+        "question_type": "Tự luận",
+        "question_text": "Theo Bộ luật dân sự 2015, người có khó khăn trong nhận thức và làm chủ hành vi là người như thế nào?",
+        "gold_relevant_articles": [
+          [
+            "91/2015/QH13",
+            "23"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "91/2015/QH13",
+            "article_id": "23",
+            "title": "Người có khó khăn trong nhận thức, làm chủ hành vi",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "91/2015/QH13",
+            "article_id": "136",
+            "title": "Đại diện theo pháp luật của cá nhân",
+            "score": 0.04608
+          },
+          {
+            "rank": 3,
+            "law_id": "91/2015/QH13",
+            "article_id": "674",
+            "title": "Năng lực hành vi dân sự của cá nhân",
+            "score": 0.04544
+          },
+          {
+            "rank": 4,
+            "law_id": "91/2015/QH13",
+            "article_id": "22",
+            "title": "Mất năng lực hành vi dân sự",
+            "score": 0.0451
+          },
+          {
+            "rank": 5,
+            "law_id": "91/2015/QH13",
+            "article_id": "125",
+            "title": "Giao dịch dân sự vô hiệu do người chưa thành niên, người mất năng lực hành vi dân sự, người có khó khăn trong nhận thức, làm chủ hành vi, người bị hạn chế năng lực hành vi dân sự xác lập, thực hiện",
+            "score": 0.0442
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "1. Người thành niên do tình trạng thể chất hoặc tinh thần mà không đủ khả năng nhận thức, làm chủ hành vi nhưng chưa đến mức mất năng lực hành vi dân sự thì theo yêu cầu của người này, người có quyền, lợi ích liên quan hoặc của cơ quan, tổ chức hữu quan, trên cơ sở kết luận giám định pháp y tâm thần, Tòa án ra quyết định tuyên bố người này là người có khó khăn trong nhận thức, làm chủ hành vi và chỉ định người giám hộ, xác định quyền, nghĩa vụ của người giám hộ.",
+        "predicted_answer": "18 tuổi",
+        "llm_response": "ĐÁP ÁN: 18 tuổi\n\nGIẢI THÍCH: <91/2015/QH13 - Điều 23>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 640.04,
+        "llm_latency_seconds": 3.45,
+        "total_latency_seconds": 4.09
+      }
+    ]
+  },
+  "2023": {
+    "season": "2023",
+    "total_questions": 12,
+    "hit_at_1": 0.5,
+    "hit_at_3": 0.75,
+    "hit_at_5": 0.8333,
+    "mrr_at_5": 0.6458,
+    "recall_at_5": 0.8333,
+    "accuracy": 0.5833,
+    "correct_count": 7,
+    "type_breakdown": {
+      "Trắc nghiệm": {
+        "total": 6,
+        "correct": 3,
+        "accuracy": 0.5,
+        "hit_at_5": 0.8333,
+        "avg_llm_latency": 6.3
+      },
+      "Tự luận": {
+        "total": 2,
+        "correct": 1,
+        "accuracy": 0.5,
+        "hit_at_5": 1.0,
+        "avg_llm_latency": 3.46
+      },
+      "Đúng/Sai": {
+        "total": 4,
+        "correct": 3,
+        "accuracy": 0.75,
+        "hit_at_5": 0.75,
+        "avg_llm_latency": 5.85
+      }
+    },
+    "results": [
+      {
+        "index": 1,
+        "season": "2023",
+        "question_id": "TN-1",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Các khu vực nào sau đây cần phải có trong cơ sở cai nghiện ma túy công lập?",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống ma túy",
+            "35"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "35",
+            "title": "Cơ sở cai nghiện ma túy công lập",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "36",
+            "title": "Cơ sở cai nghiện ma túy tự nguyện",
+            "score": 0.04838
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "27",
+            "title": "Xác định tình trạng nghiện ma túy",
+            "score": 0.04444
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "28",
+            "title": "Các biện pháp cai nghiện ma túy",
+            "score": 0.04429
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "43",
+            "title": "Lập danh sách người nghiện ma túy, người bị quản lý sau cai nghiện ma túy",
+            "score": 0.04338
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "A",
+        "llm_response": "<thinking>\n1. Theo Căn cứ pháp luật, cơ sở cai nghiện ma túy công lập cần phải có các khu sau đây: khu lưu trú tạm thời, khu cai nghiện ma túy bắt buộc, và khu cai nghiện ma túy tự nguyện.\n2. Phương án A (Khu lưu trú tạm thời) và phương án B (Khu cai nghiện ma túy bắt buộc) đều được quy định trong Căn cứ pháp luật.\n3. Phương án C (Khu cai nghiện ma túy tự nguyện) cũng được quy định trong Căn cứ pháp luật, nhưng chỉ được quy định trong trường hợp cơ sở cai nghiện ma túy tự nguyện, không áp dụng cho cơ sở cai nghiện ma túy công lập.\n4. Phương án D (Cả A, B, C đều đúng) không chính xác vì không phải tất cả các khu vực đều được quy định cho cơ sở cai nghiện ma túy công lập.\n</thinking>\n\nĐÁP ÁN: A\nGIẢI THÍCH: Luật Phòng, chống ma túy - Điều 35: Cơ sở cai nghiện ma túy công lập phải bố trí các khu sau đây: khu lưu trú tạm thời, khu cai nghiện ma túy bắt buộc.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 52.55,
+        "llm_latency_seconds": 7.01,
+        "total_latency_seconds": 7.06
+      },
+      {
+        "index": 2,
+        "season": "2023",
+        "question_id": "TN-7",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Loại hợp đồng nào sau đây không được BLDS 2015 quy định?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "402"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "410",
+            "title": "Thực hiện hợp đồng song vụ",
+            "score": 0.04641
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "403",
+            "title": "Phụ lục hợp đồng",
+            "score": 0.04387
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "423",
+            "title": "Huỷ bỏ hợp đồng",
+            "score": 0.04213
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "417",
+            "title": "Không được sửa đổi hoặc huỷ bỏ hợp đồng vì lợi ích của người thứ ba",
+            "score": 0.04092
+          },
+          {
+            "rank": 5,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "386",
+            "title": "Đề nghị giao kết hợp đồng",
+            "score": 0.03909
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "C",
+        "predicted_answer": "D",
+        "llm_response": "ĐÁP ÁN: D\nGIẢI THÍCH: \nCăn cứ vào các điều khoản trong Bộ luật Dân sự 2015, không có quy định nào liên quan đến \"Hợp đồng có điều kiện\". Các điều khoản được liệt kê trong các điều 403, 410, 417, 423 và 386 đều liên quan đến các loại hợp đồng khác nhau như hợp đồng song vụ, huỷ bỏ hợp đồng, không được sửa đổi hoặc huỷ bỏ hợp đồng vì lợi ích của người thứ ba, và đề nghị giao kết hợp đồng. Không có quy định nào liên quan đến \"Hợp đồng có điều kiện\".",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 433.46,
+        "llm_latency_seconds": 4.84,
+        "total_latency_seconds": 5.27
+      },
+      {
+        "index": 3,
+        "season": "2023",
+        "question_id": "TN-13",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Hồ sơ đề nghị cấp thẻ hướng dẫn viên du lịch quốc tế không bao gồm thứ gì sau đây?",
+        "gold_relevant_articles": [
+          [
+            "Luật Du lịch",
+            "60"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Du lịch",
+            "article_id": "60",
+            "title": "Hồ sơ, trình tự, thủ tục, thẩm quyền cấp thẻ hướng dẫn viên du lịch quốc tế, thẻ hướng dẫn viên du lịch nội địa",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Du lịch",
+            "article_id": "62",
+            "title": "Cấp đổi thẻ hướng dẫn viên du lịch",
+            "score": 0.04977
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Du lịch",
+            "article_id": "61",
+            "title": "Hồ sơ, trình tự, thủ tục, thẩm quyền cấp thẻ hướng dẫn viên du lịch tại điểm",
+            "score": 0.04872
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Du lịch",
+            "article_id": "63",
+            "title": "Cấp lại thẻ hướng dẫn viên du lịch",
+            "score": 0.0473
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Du lịch",
+            "article_id": "64",
+            "title": "Thu hồi thẻ hướng dẫn viên du lịch",
+            "score": 0.04695
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "C",
+        "predicted_answer": "C",
+        "llm_response": "ĐÁP ÁN: C\nGIẢI THÍCH: Theo Điều 60 của Luật Du lịch, Hồ sơ đề nghị cấp thẻ hướng dẫn viên du lịch quốc tế bao gồm: đơn đề nghị cấp thẻ hướng dẫn viên du lịch theo mẫu do Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch quy định; sơ yếu lý lịch có xác nhận của Ủy ban nhân dân cấp xã nơi cư trú; bản sao có chứng thực các văn bằng, chứng chỉ tương ứng với điều kiện quy định tại điểm d khoản 1 hoặc điểm b và điểm c khoản 2 Điều 59 của Luật này; giấy chứng nhận sức khỏe do cơ sở khám bệnh, chữa bệnh có thẩm quyền cấp trong thời hạn không quá 06 tháng tính đến thời điểm nộp hồ sơ; và 02 ảnh chân dung màu cỡ 3 cm x 4 cm. Phương án C không được quy định trong Hồ sơ đề nghị cấp thẻ hướng dẫn viên du lịch quốc tế.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 521.74,
+        "llm_latency_seconds": 5.89,
+        "total_latency_seconds": 6.41
+      },
+      {
+        "index": 4,
+        "season": "2023",
+        "question_id": "TN-19",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Cơ quan nào có thẩm quyền cấp Giấy phép phân loại phim?",
+        "gold_relevant_articles": [
+          [
+            "Luật Điện ảnh",
+            "27"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Điện ảnh",
+            "article_id": "29",
+            "title": "Thu hồi Giấy phép phân loại phim",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Điện ảnh",
+            "article_id": "27",
+            "title": "Cấp Giấy phép phân loại phim",
+            "score": 0.05
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Điện ảnh",
+            "article_id": "28",
+            "title": "Thay đổi nội dung phim và tên phim trong Giấy phép phân loại phim",
+            "score": 0.04898
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Điện ảnh",
+            "article_id": "33",
+            "title": "Lưu chiểu phim",
+            "score": 0.0467
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Điện ảnh",
+            "article_id": "18",
+            "title": "Quyền và nghĩa vụ của cơ sở điện ảnh phổ biến phim",
+            "score": 0.04622
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "<thinking>\n1. Theo Điều 27 của Luật Điện ảnh, thẩm quyền cấp Giấy phép phân loại phim được quy định cho Bộ Văn hóa, Thể thao và Du lịch và Ủy ban nhân dân cấp tỉnh khi đáp ứng các điều kiện theo quy định của Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch.\n2. Phương án D tổng hợp cả hai thẩm quyền trên, cho phép Bộ Văn hóa, Thể thao và Du lịch và Ủy ban nhân dân cấp tỉnh đáp ứng các điều kiện theo quy định của Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch cấp Giấy phép phân loại phim.\n3. Phương án A chỉ đề cập đến thẩm quyền của Bộ Văn hóa, Thể thao và Du lịch.\n4. Phương án B chỉ đề cập đến thẩm quyền của Ủy ban nhân dân cấp tỉnh.\n5. Phương án C chỉ đề cập đến thẩm quyền của Ủy ban nhân dân cấp tỉnh đáp ứng các điều kiện theo quy định của Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch, nhưng không đề cập đến thẩm quyền của Bộ Văn hóa, Thể thao và Du lịch.\n\nGiải thích: Phương án D là phương án tổng hợp cả hai thẩm quyền, cho phép cả Bộ Văn hóa, Thể thao và Du lịch và Ủy ban nhân dân cấp tỉnh đáp ứng các điều kiện theo quy định của Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch cấp Giấy phép phân loại phim.\n</thinking>\n\nĐÁP ÁN: D\nGIẢI THÍCH: Luật Điện ảnh - Điều 27, Khoản 1 điểm a và b.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 508.8,
+        "llm_latency_seconds": 7.64,
+        "total_latency_seconds": 8.15
+      },
+      {
+        "index": 5,
+        "season": "2023",
+        "question_id": "TL-1",
+        "question_type": "Tự luận",
+        "question_text": "Khi thay đổi người giám hộ thì trong thời hạn bao nhiêu ngày, kể từ ngày có người giám hộ mới, người đã thực hiện việc giám hộ phải chuyển giao giám hộ cho người thay thế mình?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "61"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "61",
+            "title": "Chuyển giao giám hộ",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "63",
+            "title": "Hậu quả chấm dứt việc giám hộ",
+            "score": 0.04955
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "60",
+            "title": "Thay đổi người giám hộ",
+            "score": 0.04885
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "51",
+            "title": "Giám sát việc giám hộ",
+            "score": 0.04527
+          },
+          {
+            "rank": 5,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "62",
+            "title": "Chấm dứt việc giám hộ",
+            "score": 0.04462
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "15 ngày",
+        "predicted_answer": "15 ngày",
+        "llm_response": "Đáp án: 15 ngày\n\nGiải thích: <Bộ luật dân sự - Điều 61>",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 652.52,
+        "llm_latency_seconds": 3.42,
+        "total_latency_seconds": 4.07
+      },
+      {
+        "index": 6,
+        "season": "2023",
+        "question_id": "TL-2",
+        "question_type": "Tự luận",
+        "question_text": "Theo BLDS năm 2015, nếu quyền đại diện được xác lập trên cơ sở một hợp đồng nhưng không thể xác định được thời hạn đại diện theo hợp đồng đó và cũng không có bất cứ thỏa thuận nào khác giữa các bên về thời hạn đại diện thì thời hạn đại diện trong trường hợp này là bao lâu và kể từ thời điểm nào?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "140"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "140",
+            "title": "Thời hạn đại diện",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "474",
+            "title": "Thời hạn thuê",
+            "score": 0.04927
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "400",
+            "title": "Thời điểm giao kết hợp đồng",
+            "score": 0.04532
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "434",
+            "title": "Thời hạn thực hiện hợp đồng mua bán",
+            "score": 0.04379
+          },
+          {
+            "rank": 5,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "161",
+            "title": "Thời điểm xác lập quyền sở hữu, quyền khác đối với tài sản",
+            "score": 0.04222
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "1 năm kể từ thời điểm phát sinh quyền đại diện",
+        "predicted_answer": "01 năm",
+        "llm_response": "ĐÁP ÁN: 01 năm\nGIẢI THÍCH: <Bộ luật dân sự - Điều 140, Khoản 2>",
+        "is_correct": false,
+        "f1_score": 0.1538,
+        "retrieval_latency_ms": 772.75,
+        "llm_latency_seconds": 3.5,
+        "total_latency_seconds": 4.27
+      },
+      {
+        "index": 7,
+        "season": "2023",
+        "question_id": "DS-1",
+        "question_type": "Đúng/Sai",
+        "question_text": "Việc bán ngôi nhà duy nhất vợ chồng đang ở có thể được thực hiện chỉ cần có sự đồng ý của chồng mà không cần sự đồng ý của vợ, đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Hôn nhân và gia đình",
+            "31"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "31",
+            "title": "Giao dịch liên quan đến nhà là nơi ở duy nhất của vợ chồng",
+            "score": 0.05056
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "44",
+            "title": "Chiếm hữu, sử dụng, định đoạt tài sản riêng",
+            "score": 0.04929
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "64",
+            "title": "Chia tài sản chung của vợ chồng đưa vào kinh doanh",
+            "score": 0.04587
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "32",
+            "title": "Giao dịch với người thứ ba ngay tình liên quan đến tài khoản ngân hàng, tài khoản chứng khoán và động sản khác mà theo quy định của pháp luật không phải đăng ký quyền sở hữu, quyền sử dụng",
+            "score": 0.04549
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "46",
+            "title": "Nhập tài sản riêng của vợ, chồng vào tài sản chung",
+            "score": 0.04517
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Sai",
+        "predicted_answer": "Sai",
+        "llm_response": "ĐÁP ÁN: Sai\nGIẢI THÍCH: Điều 31 của Luật Hôn nhân và gia đình quy định rằng việc xác lập, thực hiện, chấm dứt các giao dịch liên quan đến nhà là nơi ở duy nhất của vợ chồng phải có sự thỏa thuận của vợ chồng. Điều này cho thấy việc bán ngôi nhà duy nhất mà không cần sự đồng ý của vợ là không đúng theo quy định pháp luật.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 747.24,
+        "llm_latency_seconds": 4.09,
+        "total_latency_seconds": 4.84
+      },
+      {
+        "index": 8,
+        "season": "2023",
+        "question_id": "DS-21",
+        "question_type": "Đúng/Sai",
+        "question_text": "Trong mọi trường hợp, phí trọng tài là khoản thu từ việc cung cấp dịch vụ giải quyết tranh chấp bằng Trọng tài và do Hội đồng trọng tài ấn định. Đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Trọng tài thương mại",
+            "34"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "34",
+            "title": "Phí trọng tài",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "72",
+            "title": "Lệ phí toà án liên quan đến Trọng tài",
+            "score": 0.03721
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "46",
+            "title": "Thẩm quyền của Hội đồng trọng tài về thu thập chứng cứ",
+            "score": 0.03417
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "43",
+            "title": "Xem xét thỏa thuận trọng tài vô hiệu, thỏa thuận trọng tài không thể thực hiện được, thẩm quyền của Hội đồng trọng tài",
+            "score": 0.03269
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "361",
+            "title": "Nghĩa vụ nộp tiền tạm ứng chi phí giám định",
+            "score": 0.02991
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Sai",
+        "predicted_answer": "Sai",
+        "llm_response": "ĐÁP ÁN: Sai\nGIẢI THÍCH: Điều 34 của Luật Trọng tài thương mại quy định rằng phí trọng tài là khoản thu từ việc cung cấp dịch vụ giải quyết tranh chấp bằng Trọng tài, và do Hội đồng trọng tài ấn định, trừ trường hợp các bên có thỏa thuận khác hoặc quy tắc tố tụng trọng tài quy định khác. Điều này cho thấy không phải trong mọi trường hợp phí trọng tài đều do Hội đồng trọng tài ấn định, mà chỉ khi không có thỏa thuận khác hoặc quy tắc tố tụng trọng tài quy định khác.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 618.39,
+        "llm_latency_seconds": 4.7,
+        "total_latency_seconds": 5.32
+      },
+      {
+        "index": 9,
+        "season": "2023",
+        "question_id": "DS-41",
+        "question_type": "Đúng/Sai",
+        "question_text": "Trong phân cấp quản lý nhà nước về trọng tài, Bộ Tư pháp chịu trách nhiệm trước Chính phủ thực hiện quản lý nhà nước về trọng tài. Đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Trọng tài thương mại",
+            "15"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "313",
+            "title": "Quản lý nhà nước về thi hành án hành chính",
+            "score": 0.05
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Viên chức",
+            "article_id": "47",
+            "title": "Quản lý nhà nước về viên chức",
+            "score": 0.0499
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "45",
+            "title": "Trách nhiệm quản lý nhà nước về phòng, chống ma túy",
+            "score": 0.04807
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật An ninh mạng",
+            "article_id": "37",
+            "title": "Trách nhiệm của Bộ Quốc phòng",
+            "score": 0.04664
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Trồng trọt",
+            "article_id": "82",
+            "title": "Trách nhiệm của Chính phủ, Bộ, cơ quan ngang Bộ",
+            "score": 0.04526
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định Bộ Tư pháp chịu trách nhiệm trước Chính phủ thực hiện quản lý nhà nước về thi hành án hành chính.\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ): \n   - Nhận định không chứa từ mang tính tuyệt đối.\n   - Căn cứ pháp luật không có điều kiện loại trừ nào.\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - Nhận định nói 'không cần sự đồng ý của cả hai' nhưng không phù hợp với quy định của Luật Tố tụng hành chính, vì quy định yêu cầu 'thực hiện quản lý nhà nước về thi hành án hành chính' phải 'thực hiện quản lý nhà nước về thi hành án hành chính' và không có điều kiện ngoại lệ.\n   - Nhận định hoàn toàn phù hợp với quy định của Điều 313 của Luật Tố tụng hành chính.\n\nKết luận: Sai.\n</thinking>\n\nĐÁP ÁN: Sai\nGIẢI THÍCH: Nhận định không phù hợp với quy định của Điều 313 của Luật Tố tụng hành chính, vì quy định yêu cầu Bộ Tư pháp phải 'thực hiện quản lý nhà nước về thi hành án hành chính' và không có điều kiện ngoại lệ như nhận định đề cập.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 632.48,
+        "llm_latency_seconds": 7.2,
+        "total_latency_seconds": 7.84
+      },
+      {
+        "index": 10,
+        "season": "2023",
+        "question_id": "DS-61",
+        "question_type": "Đúng/Sai",
+        "question_text": "Trường hợp người kháng cáo rút toàn bộ kháng cáo hoặc Viện kiểm sát rút toàn bộ kháng nghị, tùy từng trường hợp, tòa án có thẩm quyền ra quyết định đình chỉ xét xử phúc thẩm vụ án hành chính, đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Tố tụng hành chính",
+            "229"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "218",
+            "title": "Thay đổi, bổ sung, rút kháng cáo, kháng nghị",
+            "score": 0.04926
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "229",
+            "title": "Đình chỉ xét xử phúc thẩm vụ án",
+            "score": 0.04866
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "243",
+            "title": "Thủ tục phúc thẩm đối với quyết định của Tòa án cấp sơ thẩm bị kháng cáo, kháng nghị",
+            "score": 0.04584
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "234",
+            "title": "Người khởi kiện rút đơn khởi kiện trước khi mở phiên tòa hoặc tại phiên tòa phúc thẩm",
+            "score": 0.04572
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Tố tụng hành chính",
+            "article_id": "265",
+            "title": "Thay đổi, bổ sung, rút kháng nghị",
+            "score": 0.04448
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Đúng",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định người kháng cáo hoặc Viện kiểm sát rút toàn bộ kháng cáo hoặc kháng nghị sẽ dẫn đến việc Tòa án cấp phúc thẩm đình chỉ xét xử phúc thẩm vụ án hành chính.\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ):\n   - Nhận định không chứa từ mang tính tuyệt đối.\n   - Căn cứ pháp luật không có điều kiện loại trừ ngoại lệ nào.\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - Nhận định hoàn toàn phù hợp với Điều 229 của Luật Tố tụng hành chính.\n   - Điều 229 không có bất kỳ ngoại lệ nào ngăn cản việc đình chỉ xét xử phúc thẩm khi người kháng cáo hoặc Viện kiểm sát rút toàn bộ kháng cáo hoặc kháng nghị.\n</thinking>\n\nĐÁP ÁN: Đúng\n\nGIẢI THÍCH: Nhận định này phù hợp với Điều 229 của Luật Tố tụng hành chính, theo đó Tòa án cấp phúc thẩm có quyền đình chỉ xét xử phúc thẩm vụ án hành chính khi người kháng cáo hoặc Viện kiểm sát rút toàn bộ kháng cáo hoặc kháng nghị, trừ trường hợp quy định tại điểm a khoản 1 Điều 143 của Luật này.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 776.02,
+        "llm_latency_seconds": 7.38,
+        "total_latency_seconds": 8.16
+      },
+      {
+        "index": 11,
+        "season": "2023",
+        "question_id": "TN-2",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Hợp đồng là một trong những căn cứ làm phát sinh nghĩa vụ, đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "275"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "402",
+            "title": "Các loại hợp đồng chủ yếu",
+            "score": 0.04527
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "275",
+            "title": "Căn cứ phát sinh nghĩa vụ",
+            "score": 0.04228
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "407",
+            "title": "Hợp đồng vô hiệu",
+            "score": 0.03833
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "385",
+            "title": "Khái niệm hợp đồng",
+            "score": 0.0377
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "16",
+            "title": "Hình thức thoả thuận trọng tài",
+            "score": 0.03038
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "B",
+        "llm_response": "ĐÁP ÁN: B\nGIẢI THÍCH: Bộ luật dân sự - Điều 275: Căn cứ phát sinh nghĩa vụ (Score: 0.042) quy định rằng nghĩa vụ phát sinh từ căn cứ sau đây: 1. Hợp đồng; 2. Hành vi pháp lý đơn phương; 3. Thực hiện công việc không có uỷ quyền; 4. Chiếm hữu, sử dụng tài sản hoặc được lợi về tài sản không có căn cứ pháp luật; 5. Gây thiệt hại do hành vi trái pháp luật; 6. Căn cứ khác do pháp luật quy định. Điều này cho thấy hợp đồng là một trong những căn cứ làm phát sinh nghĩa vụ.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 514.92,
+        "llm_latency_seconds": 4.89,
+        "total_latency_seconds": 5.41
+      },
+      {
+        "index": 12,
+        "season": "2023",
+        "question_id": "TN-3",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Trường hợp nào sau đây có thể hạn chế quyền tiếp cận thông tin?",
+        "gold_relevant_articles": [
+          [
+            "Luật Tiếp cận thông tin",
+            "3"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "4",
+            "title": "Chủ thể thực hiện quyền tiếp cận thông tin",
+            "score": 0.04966
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "23",
+            "title": "Thông tin được cung cấp theo yêu cầu",
+            "score": 0.04803
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "33",
+            "title": "Biện pháp bảo đảm thực hiện quyền tiếp cận thông tin của công dân",
+            "score": 0.0476
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "3",
+            "title": "Nguyên tắc bảo đảm quyền tiếp cận thông tin",
+            "score": 0.04609
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "35",
+            "title": "Trách nhiệm của Chính phủ, bộ, cơ quan ngang bộ, cơ quan thuộc Chính phủ và Ủy ban nhân dân các cấp trong việc bảo đảm thực hiện quyền tiếp cận thông tin",
+            "score": 0.04451
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.25,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "<thinking>\n1. Xác định chính xác quan hệ pháp luật và điều kiện mà câu hỏi đòi hỏi. Trong câu hỏi này, chúng ta cần tìm hiểu về các trường hợp nào có thể hạn chế quyền tiếp cận thông tin theo Luật Tiếp cận thông tin.\n2. Đối chiếu từng phương án A, B, C, D với từng Khoản/Điều cụ thể trong căn cứ pháp luật. Theo Điều 35 của Luật Tiếp cận thông tin, có ghi rõ việc hạn chế quyền tiếp cận thông tin chỉ được thực hiện trong trường hợp cần thiết vì lý do quốc phòng, an ninh quốc gia, trật tự, an toàn xã hội, đạo đức xã hội, sức khỏe của cộng đồng.\n3. ĐẶC BIỆT LƯU Ý: Nếu có phương án tổng hợp như 'Cả A, B, C đều đúng' hoặc 'Cả A và B đều đúng', hãy kiểm tra xem từng phương án thành phần có được luật quy định hay không để chọn phương án toàn diện nhất. Trong trường hợp này, chỉ có phương án D (vì lý do quốc phòng, an ninh quốc gia) được luật quy định.\n</thinking>\n\nĐÁP ÁN: D\nGIẢI THÍCH: Luật Tiếp cận thông tin - Điều 35: Việc hạn chế quyền tiếp cận thông tin chỉ được thực hiện trong trường hợp cần thiết vì lý do quốc phòng, an ninh quốc gia, trật tự, an toàn xã hội, đạo đức xã hội, sức khỏe của cộng đồng.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 520.55,
+        "llm_latency_seconds": 7.54,
+        "total_latency_seconds": 8.06
+      }
+    ]
+  },
+  "2024": {
+    "season": "2024",
+    "total_questions": 12,
+    "hit_at_1": 0.8333,
+    "hit_at_3": 0.8333,
+    "hit_at_5": 0.9167,
+    "mrr_at_5": 0.85,
+    "recall_at_5": 0.9167,
+    "accuracy": 0.5833,
+    "correct_count": 7,
+    "type_breakdown": {
+      "Trắc nghiệm": {
+        "total": 4,
+        "correct": 3,
+        "accuracy": 0.75,
+        "hit_at_5": 1.0,
+        "avg_llm_latency": 8.02
+      },
+      "Tự luận": {
+        "total": 4,
+        "correct": 3,
+        "accuracy": 0.75,
+        "hit_at_5": 0.75,
+        "avg_llm_latency": 3.57
+      },
+      "Đúng/Sai": {
+        "total": 4,
+        "correct": 1,
+        "accuracy": 0.25,
+        "hit_at_5": 1.0,
+        "avg_llm_latency": 7.17
+      }
+    },
+    "results": [
+      {
+        "index": 1,
+        "season": "2024",
+        "question_id": "04-TN-1",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Hợp đồng làm việc có những nội dung chủ yếu nào sau đây:",
+        "gold_relevant_articles": [
+          [
+            "Luật Viên chức",
+            "26"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Viên chức",
+            "article_id": "26",
+            "title": "Nội dung và hình thức của hợp đồng làm việc",
+            "score": 0.04742
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "505",
+            "title": "Nội dung của hợp đồng hợp tác",
+            "score": 0.04535
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "402",
+            "title": "Các loại hợp đồng chủ yếu",
+            "score": 0.04365
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "398",
+            "title": "Nội dung của hợp đồng",
+            "score": 0.04159
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Viên chức",
+            "article_id": "30",
+            "title": "Giải quyết tranh chấp về hợp đồng làm việc",
+            "score": 0.03874
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "ĐÁP ÁN: D\nGIẢI THÍCH: Luật Viên chức - Điều 26: Nội dung và hình thức của hợp đồng làm việc (điều kiện 1) quy định rõ rằng hợp đồng làm việc có những nội dung chủ yếu sau: a) Tên, địa chỉ của đơn vị sự nghiệp công lập và người đứng đầu đơn vị sự nghiệp công lập; b) Họ tên, địa chỉ, ngày, tháng, năm sinh của người được tuyển dụng. Phương án D tổng hợp cả hai nội dung này, cho nên là đáp án chính xác.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 320.54,
+        "llm_latency_seconds": 4.47,
+        "total_latency_seconds": 4.79
+      },
+      {
+        "index": 2,
+        "season": "2024",
+        "question_id": "04-TN-11",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Nam nữ kết hôn với nhau phải tuân theo các điều kiện nào sau đây",
+        "gold_relevant_articles": [
+          [
+            "Luật Hôn nhân và gia đình",
+            "8"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "8",
+            "title": "Điều kiện kết hôn",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "14",
+            "title": "Giải quyết hậu quả của việc nam, nữ chung sống với nhau như vợ chồng mà không đăng ký kết hôn",
+            "score": 0.04898
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "16",
+            "title": "Giải quyết quan hệ tài sản, nghĩa vụ và hợp đồng của nam, nữ chung sống với nhau như vợ chồng mà không đăng ký kết hôn",
+            "score": 0.04809
+          },
+          {
+            "rank": 4,
+            "law_id": "Hiến pháp",
+            "article_id": "36",
+            "title": "1. Nam, nữ có quyền kết hôn, ly hôn. Hôn nhân theo nguyên tắc tự nguyện, tiến bộ, một vợ một chồng, vợ chồng bình đẳng, tôn trọng lẫn nhau.",
+            "score": 0.04731
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "130",
+            "title": "Áp dụng chế độ tài sản của vợ chồng theo thỏa thuận; giải quyết hậu quả của việc nam, nữ chung sống với nhau như vợ chồng mà không đăng ký kết hôn có yếu tố nước ngoài",
+            "score": 0.04649
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "<thinking>\n1. Xác định chính xác quan hệ pháp luật và điều kiện mà câu hỏi đòi hỏi. Theo Điều 8 của Luật Hôn nhân và gia đình, nam và nữ phải tuân theo các điều kiện sau: \n   - Nam từ đủ 20 tuổi trở lên, nữ từ đủ 18 tuổi trở lên.\n   - Việc kết hôn do nam và nữ tự nguyện quyết định.\n   - Không bị mất năng lực hành vi dân sự.\n   - Việc kết hôn không thuộc một trong các trường hợp cấm kết hôn theo quy định tại các điểm a, b, c và d khoản 2 Điều 5 của Luật này.\n\n2. Đối chiếu từng phương án A, B, C, D với từng Khoản/Điều cụ thể trong căn cứ pháp luật:\n   - Phương án A chỉ đề cập đến điều kiện về năng lực hành vi dân sự, không đề cập đến các điều kiện khác.\n   - Phương án B đề cập đến các điều kiện về tuổi và tự nguyện, nhưng không đề cập đến điều kiện về năng lực hành vi dân sự và các trường hợp cấm kết hôn.\n   - Phương án C đề cập đến việc nam và nữ tự nguyện quyết định, nhưng không đề cập đến các điều kiện về tuổi và năng lực hành vi dân sự.\n   - Phương án D tổng hợp các điều kiện từ các phương án A, B và C, đồng thời đề cập đến các trường hợp cấm kết hôn.\n\n3. ĐẶC BIỆT LƯU Ý: Nếu có phương án tổng hợp như 'Cả A, B, C đều đúng' hoặc 'Cả A và B đều đúng', hãy kiểm tra xem từng phương án thành phần có được luật quy định hay không để chọn phương án toàn diện nhất.\n   \nTừ phân tích trên, phương án D là phương án tổng hợp các điều kiện từ các phương án A, B và C, đồng thời đề cập đến các trường hợp cấm kết hôn. Phương án D là phương án toàn diện nhất và phù hợp với các điều kiện được quy định trong Luật Hôn nhân và gia đình.\n</thinking>\n\nĐÁP ÁN: D\nGIẢI THÍCH: D là phương án tổng hợp các điều kiện từ các phương án A, B và C, đồng thời đề cập đến các trường hợp cấm kết hôn, phù hợp với Điều 8 của Luật Hôn nhân và gia đình.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 572.33,
+        "llm_latency_seconds": 9.61,
+        "total_latency_seconds": 10.18
+      },
+      {
+        "index": 3,
+        "season": "2024",
+        "question_id": "04-TN-21",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Trách nhiệm của Bộ Y tế trong việc phòng, chống ma túy là gì?",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống ma túy",
+            "49"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "49",
+            "title": "Trách nhiệm của Bộ Y tế",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "1",
+            "title": "Phạm vi điều chỉnh",
+            "score": 0.04866
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "46",
+            "title": "Trách nhiệm của Bộ Công an",
+            "score": 0.04735
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "7",
+            "title": "Trách nhiệm của cơ quan nhà nước",
+            "score": 0.04714
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "47",
+            "title": "Trách nhiệm của Bộ Lao động - Thương binh và Xã hội",
+            "score": 0.04683
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "<thinking>\n1. Xác định chính xác quan hệ pháp luật và điều kiện mà câu hỏi đòi hỏi. Trách nhiệm của Bộ Y tế trong việc phòng, chống ma túy bao gồm việc nghiên cứu thuốc và phương pháp cai nghiện ma túy, cấp, thu hồi giấy phép lưu hành thuốc, phương pháp cai nghiện ma túy, hỗ trợ về người, chuyên môn kỹ thuật y tế để cai nghiện ma túy, và thống kê người đang tham gia điều trị nghiện các chất dạng thuốc phiện bằng thuốc thay thế.\n2. Đối chiếu từng phương án A, B, C, D với từng Khoản/Điều cụ thể trong căn cứ pháp luật. \n   - Phương án A: Đúng với Khoản 2 Điều 49 Luật Phòng, chống ma túy.\n   - Phương án B: Đúng với Khoản 1 Điều 49 Luật Phòng, chống ma túy.\n   - Phương án C: Đúng với Khoản 3 Điều 49 Luật Phòng, chống ma túy.\n   - Phương án D: Đúng với Khoản 2, 3, 3, 3, 3, 3 và 3 Điều 49 Luật Phòng, chống ma túy.\n3. Kiểm tra xem từng phương án thành phần có được luật quy định hay không để chọn phương án toàn diện nhất. Phương án D là phương án tổng hợp các điều kiện được luật quy định.\n</thinking>\n\nĐÁP ÁN: D\nGIẢI THÍCH: D được quy định tại Khoản 2, 3, 3, 3, 3, 3 và 3 Điều 49 Luật Phòng, chống ma túy.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 464.58,
+        "llm_latency_seconds": 8.04,
+        "total_latency_seconds": 8.51
+      },
+      {
+        "index": 4,
+        "season": "2024",
+        "question_id": "04-TN-31",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Trường hợp nào sau đây KHÔNG được coi là thực hiện quyền tiếp cận thông tin theo quy định của Luật Tiếp cận thông tin?",
+        "gold_relevant_articles": [
+          [
+            "Luật Tiếp cận thông tin",
+            "4"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "4",
+            "title": "Chủ thể thực hiện quyền tiếp cận thông tin",
+            "score": 0.05058
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "16",
+            "title": "Áp dụng pháp luật về tiếp cận thông tin",
+            "score": 0.04879
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "3",
+            "title": "Nguyên tắc bảo đảm quyền tiếp cận thông tin",
+            "score": 0.04748
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "33",
+            "title": "Biện pháp bảo đảm thực hiện quyền tiếp cận thông tin của công dân",
+            "score": 0.04706
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Tiếp cận thông tin",
+            "article_id": "34",
+            "title": "Trách nhiệm của cơ quan cung cấp thông tin trong việc bảo đảm thực hiện quyền tiếp cận thông tin",
+            "score": 0.04638
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "C",
+        "predicted_answer": "A",
+        "llm_response": "<thinking>\n1. Xác định chính xác quan hệ pháp luật và điều kiện mà câu hỏi đòi hỏi. Theo Điều 4 của Luật Tiếp cận thông tin, công dân thực hiện quyền tiếp cận thông tin thông qua người đại diện theo pháp luật. Điều 16 quy định áp dụng các quy định về tiếp cận thông tin của các luật khác nếu không trái với quy định tại Điều 3 của Luật này. Điều 33 và 34 quy định trách nhiệm của cơ quan cung cấp thông tin trong việc bảo đảm thực hiện quyền tiếp cận thông tin.\n2. Đối chiếu từng phương án A, B, C, D với từng Khoản/Điều cụ thể trong căn cứ pháp luật:\n   - Phương án A: Ông A, người mất năng lực hành vi dân sự, được con trai là ông B đại diện yêu cầu cung cấp thông tin về thủ tục xin cấp phép kinh doanh. Theo Điều 4, đây là trường hợp được coi là thực hiện quyền tiếp cận thông tin.\n   - Phương án B: Bà C, người có khó khăn trong nhận thức, làm chủ hành vi, được chồng là ông D giúp đỡ trong việc yêu cầu cung cấp thông tin về chính sách hỗ trợ người cao tuổi. Theo Điều 4, đây cũng là trường hợp được coi là thực hiện quyền tiếp cận thông tin.\n   - Phương án C: Cháu H, 17 tuổi, tự mình đến cơ quan nhà nước để yêu cầu cung cấp thông tin về chương trình học bổng dành cho học sinh. Theo Điều 4, đây là trường hợp được coi là thực hiện quyền tiếp cận thông tin.\n   - Phương án D: Ông I, bị hạn chế năng lực hành vi dân sự, được người giám hộ là anh trai là ông J yêu cầu cung cấp thông tin về quyền lợi của người bị hạn chế năng lực hành vi dân sự. Theo Điều 4, đây cũng là trường hợp được coi là thực hiện quyền tiếp cận thông tin.\n3. ĐẶC BIỆT LƯU Ý: Nếu có phương án tổng hợp như 'Cả A, B, C đều đúng' hoặc 'Cả A và B đều đúng', hãy kiểm tra xem từng phương án thành phần có được luật quy định hay không để chọn phương án toàn diện nhất. Trong trường hợp này, tất cả các phương án A, B, C đều",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 590.42,
+        "llm_latency_seconds": 9.96,
+        "total_latency_seconds": 10.55
+      },
+      {
+        "index": 5,
+        "season": "2024",
+        "question_id": "04-TL-1",
+        "question_type": "Tự luận",
+        "question_text": "Trong quá trình thực hiện hợp đồng làm việc, nếu một bên có yêu cầu thay đổi nội dung hợp đồng làm việc thì phải báo cho bên kia biết trước ít nhất bao nhiêu ngày?",
+        "gold_relevant_articles": [
+          [
+            "Luật Viên chức",
+            "28"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Viên chức",
+            "article_id": "28",
+            "title": "Thay đổi nội dung, ký kết tiếp, tạm hoãn và chấm dứt hợp đồng làm việc",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Viên chức",
+            "article_id": "25",
+            "title": "Các loại hợp đồng làm việc",
+            "score": 0.0445
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "551",
+            "title": "Đơn phương chấm dứt thực hiện hợp đồng gia công",
+            "score": 0.04397
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "420",
+            "title": "Thực hiện hợp đồng khi hoàn cảnh thay đổi cơ bản",
+            "score": 0.0417
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Trọng tài thương mại",
+            "article_id": "63",
+            "title": "Sửa chữa và giải thích phán quyết; phán quyết bổ sung",
+            "score": 0.04092
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "03 ngày làm việc",
+        "predicted_answer": "03 ngày làm việc",
+        "llm_response": "ĐÁP ÁN: 03 ngày làm việc\nGIẢI THÍCH: Luật Viên chức - Điều 28, Khoản 1.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 780.72,
+        "llm_latency_seconds": 3.58,
+        "total_latency_seconds": 4.37
+      },
+      {
+        "index": 6,
+        "season": "2024",
+        "question_id": "04-TL-3",
+        "question_type": "Tự luận",
+        "question_text": "Ông A là viên chức quản lý thuộc đơn vị sự nghiệp công lập H. Theo quy định, đến ngày 30/5/2024 thì ông A đã đủ tuổi nghỉ hưu. Như vậy, cơ quan quản lý ông A phải thông báo cho ông A bằng văn bản thời điểm ông A nghỉ hưu trước ngày bao nhiêu?",
+        "gold_relevant_articles": [
+          [
+            "Luật Viên chức",
+            "2"
+          ],
+          [
+            "Luật Viên chức",
+            "15"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Viên chức",
+            "article_id": "46",
+            "title": "Chế độ hưu trí",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Viên chức",
+            "article_id": "48",
+            "title": "Quản lý viên chức",
+            "score": 0.04782
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Viên chức",
+            "article_id": "37",
+            "title": "Bổ nhiệm viên chức quản lý",
+            "score": 0.04731
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Viên chức",
+            "article_id": "56",
+            "title": "Các quy định khác liên quan đến việc kỷ Luật Viên chức",
+            "score": 0.04632
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Viên chức",
+            "article_id": "29",
+            "title": "Đơn phương chấm dứt hợp đồng làm việc",
+            "score": 0.04574
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "trước ngày 30/11/2023",
+        "predicted_answer": "03 tháng",
+        "llm_response": "Đáp án: 03 tháng\n\nGiải thích: <Luật Viên chức - Điều 46>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 740.4,
+        "llm_latency_seconds": 3.44,
+        "total_latency_seconds": 4.18
+      },
+      {
+        "index": 7,
+        "season": "2024",
+        "question_id": "04-TL-5",
+        "question_type": "Tự luận",
+        "question_text": "Con được sinh ra trong thời hạn bao nhiêu ngày ngày kể từ thời điểm chấm dứt hôn nhân được coi là con do người vợ có thai trong thời kỳ hôn nhân?",
+        "gold_relevant_articles": [
+          [
+            "Luật Hôn nhân và gia đình",
+            "88"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "88",
+            "title": "Xác định cha, mẹ",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "94",
+            "title": "Xác định cha, mẹ trong trường hợp mang thai hộ vì mục đích nhân đạo",
+            "score": 0.05
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "65",
+            "title": "Thời điểm chấm dứt hôn nhân",
+            "score": 0.04705
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "39",
+            "title": "Thời điểm có hiệu lực của việc chia tài sản chung trong thời kỳ hôn nhân",
+            "score": 0.04634
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "93",
+            "title": "Xác định cha, mẹ trong trường hợp sinh con bằng kỹ thuật hỗ trợ sinh sản",
+            "score": 0.04222
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "300 ngày",
+        "predicted_answer": "300",
+        "llm_response": "Đáp án: 300\n\nGIẢI THÍCH: < Luật Hôn nhân và gia đình - Điều 88 >",
+        "is_correct": true,
+        "f1_score": 0.6667,
+        "retrieval_latency_ms": 637.57,
+        "llm_latency_seconds": 3.41,
+        "total_latency_seconds": 4.04
+      },
+      {
+        "index": 8,
+        "season": "2024",
+        "question_id": "04-TL-7",
+        "question_type": "Tự luận",
+        "question_text": "Danh sách thành viên Hội đồng quốc phòng và an ninh do Chủ tịch nước trình Quốc hội phê chuẩn bao gồm những chức vụ nào?",
+        "gold_relevant_articles": [
+          [
+            "Hiến pháp",
+            "89"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Hiến pháp",
+            "article_id": "89",
+            "title": "1. Hội đồng quốc phòng và an ninh gồm Chủ tịch, Phó Chủ tịch và các Ủy viên. Danh sách thành viên Hội đồng quốc phòng và an ninh do Chủ tịch nước trình Quốc hội phê chuẩn.",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Hiến pháp",
+            "article_id": "74",
+            "title": "Uỷ ban thường vụ Quốc hội có những nhiệm vụ và quyền hạn sau đây:",
+            "score": 0.04804
+          },
+          {
+            "rank": 3,
+            "law_id": "Hiến pháp",
+            "article_id": "70",
+            "title": "Quốc hội có những nhiệm vụ và quyền hạn sau đây:",
+            "score": 0.0468
+          },
+          {
+            "rank": 4,
+            "law_id": "Hiến pháp",
+            "article_id": "88",
+            "title": "Chủ tịch nước có những nhiệm vụ và quyền hạn sau đây:",
+            "score": 0.04677
+          },
+          {
+            "rank": 5,
+            "law_id": "Hiến pháp",
+            "article_id": "96",
+            "title": "Chính phủ có những nhiệm vụ và quyền hạn sau đây:",
+            "score": 0.04649
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Chủ tịch, Phó Chủ tịch và các Ủy viên",
+        "predicted_answer": "Chủ tịch nước, Phó Chủ tịch nước, Ủy viên Hội đồng quốc phòng và an ninh",
+        "llm_response": "ĐÁP ÁN: Chủ tịch nước, Phó Chủ tịch nước, Ủy viên Hội đồng quốc phòng và an ninh\n\nGIẢI THÍCH: <Hiến pháp - Điều 89>",
+        "is_correct": true,
+        "f1_score": 0.6,
+        "retrieval_latency_ms": 620.77,
+        "llm_latency_seconds": 3.83,
+        "total_latency_seconds": 4.45
+      },
+      {
+        "index": 9,
+        "season": "2024",
+        "question_id": "04-DS-1",
+        "question_type": "Đúng/Sai",
+        "question_text": "Trong nguyên tắc về quản lý viên chức, việc tuyển dụng, sử dụng, quản lý, đánh giá viên chức được thực hiện trên cơ sở tiêu chuẩn chức danh nghề nghiệp, vị trí việc làm và căn cứ vào hợp đồng làm việc là đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Viên chức",
+            "6"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Viên chức",
+            "article_id": "48",
+            "title": "Quản lý viên chức",
+            "score": 0.0477
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Viên chức",
+            "article_id": "37",
+            "title": "Bổ nhiệm viên chức quản lý",
+            "score": 0.04738
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Viên chức",
+            "article_id": "31",
+            "title": "Bổ nhiệm, thay đổi chức danh nghề nghiệp",
+            "score": 0.04639
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Viên chức",
+            "article_id": "7",
+            "title": "Vị trí việc làm",
+            "score": 0.04637
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Viên chức",
+            "article_id": "6",
+            "title": "Các nguyên tắc quản lý viên chức",
+            "score": 0.0463
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.2,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định việc tuyển dụng, sử dụng, quản lý, đánh giá viên chức được thực hiện trên cơ sở tiêu chuẩn chức danh nghề nghiệp, vị trí việc làm và căn cứ vào hợp đồng làm việc.\n   - Điều luật nào trong căn cứ quy định về việc này? Luật Viên chức - Điều 48, Điều 31, Điều 37, Điều 7, Điều 6.\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ):\n   - Nhận định có chứa từ mang tính tuyệt đối không? Không.\n   - Căn cứ pháp luật có điều kiện loại trừ không? Có, như \"trừ trường hợp các bên có thỏa thuận khác\", \"hoặc pháp luật có quy định khác\", \"phải có sự đồng ý của cả hai\".\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - NẾU NHẬN ĐỊNH KHẲNG ĐỊNH 'TRONG MỌI TRƯỜNG HỢP' MÀ LUẬT MỞ RA 'TRỪ TRƯỜNG HỢP...' -> KẾT LUẬN LÀ 'Sai'.\n   - NẾU NHẬN ĐỊNH NÓI 'KHÔNG CẦN' MÀ LUẬT BẮT BUỘC 'PHẢI CÓ THỎA THUẬN/ĐỒNG Ý' -> KẾT LUẬN LÀ 'Sai'.\n   - NẾU NHẬN ĐỊNH HOÀN TOÀN PHÙ HỢP 100% VỚI ĐIỀU LUẬT KHÔNG BỊ PHỦ ĐỊNH BỞI NGOẠI LỆ -> KẾT LUẬN LÀ 'Đúng'.\n</thinking>\n\nĐÁP ÁN: Sai\n\nGIẢI THÍCH: Nhận định khẳng định việc tuyển dụng, sử dụng, quản lý, đánh giá viên chức được thực hiện trên cơ sở tiêu chuẩn chức danh nghề nghiệp, vị trí việc làm và căn cứ vào hợp đồng làm việc. Tuy nhiên, căn cứ pháp luật quy định việc này chỉ được thực hiện \"trừ trường hợp các bên có",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 837.77,
+        "llm_latency_seconds": 9.89,
+        "total_latency_seconds": 10.73
+      },
+      {
+        "index": 10,
+        "season": "2024",
+        "question_id": "04-DS-13",
+        "question_type": "Đúng/Sai",
+        "question_text": "Việc phân chia tài sản chung của \nvợ chồng phải được lập thành văn bản \nvà kèm công chứng theo quy định của pháp luật, đúng hay sai ?",
+        "gold_relevant_articles": [
+          [
+            "Luật Hôn nhân và gia đình",
+            "38"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "38",
+            "title": "Chia tài sản chung trong thời kỳ hôn nhân",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "213",
+            "title": "Sở hữu chung của vợ chồng",
+            "score": 0.04804
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "41",
+            "title": "Chấm dứt hiệu lực của việc chia tài sản chung trong thời kỳ hôn nhân",
+            "score": 0.04717
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "40",
+            "title": "Hậu quả của việc chia tài sản chung trong thời kỳ hôn nhân",
+            "score": 0.04599
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Hôn nhân và gia đình",
+            "article_id": "35",
+            "title": "Chiếm hữu, sử dụng, định đoạt tài sản chung",
+            "score": 0.04569
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định việc vợ chồng phải lập thành văn bản và kèm công chứng tài sản chung trong thời kỳ hôn nhân theo quy định của pháp luật.\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ): \n   - Nhận định không chứa từ mang tính tuyệt đối.\n   - Căn cứ pháp luật quy định vợ chồng phải lập thành văn bản và kèm công chứng tài sản chung trừ trường hợp vợ chồng có thỏa thuận khác hoặc pháp luật có quy định khác.\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - Nhận định không khẳng định 'trong mọi trường hợp' mà chỉ nói 'nếu không thỏa thuận được thì có quyền yêu cầu Tòa án giải quyết'.\n   - Căn cứ pháp luật bắt buộc vợ chồng phải thỏa thuận bằng văn bản trong những trường hợp cụ thể.\n</thinking>\n\nĐÁP ÁN: Sai\n\nGIẢI THÍCH: Điều 38 của Luật Hôn nhân và gia đình quy định vợ chồng phải lập thành văn bản và kèm công chứng tài sản chung trừ trường hợp vợ chồng có thỏa thuận khác hoặc pháp luật có quy định khác. Nhận định không hoàn toàn phù hợp với điều luật này vì nó không khẳng định 'trong mọi trường hợp' mà chỉ nói 'nếu không thỏa thuận được thì có quyền yêu cầu Tòa án giải quyết'.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 644.16,
+        "llm_latency_seconds": 7.42,
+        "total_latency_seconds": 8.06
+      },
+      {
+        "index": 11,
+        "season": "2024",
+        "question_id": "04-DS-25",
+        "question_type": "Đúng/Sai",
+        "question_text": "Nhà nước có trách nhiệm xây dựng và tổ chức thực hiện chiến lược, chủ trương, chính sách, kế hoạch về phòng, chống ma túy, đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống ma túy",
+            "44"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "44",
+            "title": "Nội dung quản lý nhà nước về phòng, chống ma túy",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "7",
+            "title": "Trách nhiệm của cơ quan nhà nước",
+            "score": 0.04886
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "45",
+            "title": "Trách nhiệm quản lý nhà nước về phòng, chống ma túy",
+            "score": 0.04708
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "48",
+            "title": "Trách nhiệm của Bộ Quốc phòng",
+            "score": 0.04636
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Phòng, chống ma túy",
+            "article_id": "46",
+            "title": "Trách nhiệm của Bộ Công an",
+            "score": 0.04634
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Đúng",
+        "llm_response": "ĐÁP ÁN: Đúng\n\nGIẢI THÍCH: \nNhận định khẳng định rằng \"Nhà nước có trách nhiệm xây dựng và tổ chức thực hiện chiến lược, chủ trương, chính sách, kế hoạch về phòng, chống ma túy\". Điều 44 của Luật Phòng, chống ma túy quy định: \"Xây dựng và tổ chức thực hiện chiến lược, chủ trương, chính sách, kế hoạch về phòng, chống ma túy\". Điều này cho thấy nhà nước có trách nhiệm xây dựng và thực hiện các chiến lược, chính sách về phòng, chống ma túy, không có bất kỳ ngoại lệ hoặc điều kiện nào được quy định trong các điều luật khác. Do đó, nhận định này phù hợp hoàn toàn với Căn cứ pháp luật được cung cấp.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 715.9,
+        "llm_latency_seconds": 5.26,
+        "total_latency_seconds": 5.97
+      },
+      {
+        "index": 12,
+        "season": "2024",
+        "question_id": "04-DS-37",
+        "question_type": "Đúng/Sai",
+        "question_text": "Một người vì muốn tránh một nguy cơ đang thực tế đe dọa trực tiếp lợi ích công cộng, quyền, lợi ích hợp pháp của mình hoặc của người khác mà không còn cách nào khác là phải có hành động gây một thiệt hại nhỏ hơn thiệt hại cần ngăn chặn thì việc gây thiệt hại đó không phải là hành vi xâm phạm quyền sở hữu, quyền khác đối với tài sản, đúng hay sai?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "171"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "171",
+            "title": "Quyền và nghĩa vụ của chủ sở hữu, chủ thể có quyền khác đối với tài sản trong trường hợp xảy ra tình thế cấp thiết",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "584",
+            "title": "Căn cứ phát sinh trách nhiệm bồi thường thiệt hại",
+            "score": 0.04888
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "170",
+            "title": "Quyền yêu cầu bồi thường thiệt hại",
+            "score": 0.04623
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "164",
+            "title": "Biện pháp bảo vệ quyền sở hữu, quyền khác đối với tài sản",
+            "score": 0.04561
+          },
+          {
+            "rank": 5,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "185",
+            "title": "Bảo vệ việc chiếm hữu",
+            "score": 0.04451
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "Đáp án: Sai\n\nGiải thích: Nhận định khẳng định rằng trong trường hợp người phải gây ra một thiệt hại nhỏ hơn để tránh một nguy cơ đe dọa trực tiếp lợi ích công cộng, quyền, lợi ích hợp pháp của mình hoặc của người khác, việc gây thiệt hại đó không phải là hành vi xâm phạm quyền sở hữu, quyền khác đối với tài sản. Tuy nhiên, trong Căn cứ pháp luật Bộ luật dân sự - Điều 171, quy định về tình thế cấp thiết, việc gây thiệt hại trong trường hợp này không phải là hành vi xâm phạm quyền sở hữu, quyền khác đối với tài sản. Điều này cho thấy nhận định đã không phù hợp với quy định pháp luật, vì nó khẳng định rằng việc gây thiệt hại không phải là hành vi xâm phạm quyền sở hữu, quyền khác đối với tài sản, trong khi Điều 171 chỉ cho rằng việc gây thiệt hại không phải là hành vi xâm phạm quyền sở hữu, quyền khác đối với tài sản trong trường hợp xảy ra tình thế cấp thiết.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 803.61,
+        "llm_latency_seconds": 6.12,
+        "total_latency_seconds": 6.92
+      }
+    ]
+  },
+  "2025": {
+    "season": "2025",
+    "total_questions": 12,
+    "hit_at_1": 0.5833,
+    "hit_at_3": 0.75,
+    "hit_at_5": 0.8333,
+    "mrr_at_5": 0.6833,
+    "recall_at_5": 0.8333,
+    "accuracy": 0.75,
+    "correct_count": 9,
+    "type_breakdown": {
+      "Trắc nghiệm": {
+        "total": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "hit_at_5": 1.0,
+        "avg_llm_latency": 5.6
+      },
+      "Tự luận": {
+        "total": 4,
+        "correct": 3,
+        "accuracy": 0.75,
+        "hit_at_5": 0.75,
+        "avg_llm_latency": 3.71
+      },
+      "Đúng/Sai": {
+        "total": 4,
+        "correct": 2,
+        "accuracy": 0.5,
+        "hit_at_5": 0.75,
+        "avg_llm_latency": 6.41
+      }
+    },
+    "results": [
+      {
+        "index": 1,
+        "season": "2025",
+        "question_id": "private_test_alquac25_2",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Khi nào áp dụng Luật Giao dịch điện tử 2023?",
+        "gold_relevant_articles": [
+          [
+            "Luật Giao dịch điện tử",
+            "52"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "53",
+            "title": "Quy định chuyển tiếp",
+            "score": 0.04977
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "4",
+            "title": "Chính sách phát triển giao dịch điện tử",
+            "score": 0.04967
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "2",
+            "title": "Đối tượng áp dụng",
+            "score": 0.04869
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "1",
+            "title": "Phạm vi điều chỉnh",
+            "score": 0.04797
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "52",
+            "title": "Hiệu lực thi hành",
+            "score": 0.04667
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.2,
+        "recall_at_5": 1.0,
+        "gold_answer": "D",
+        "predicted_answer": "D",
+        "llm_response": "ĐÁP ÁN: D\nGIẢI THÍCH: <Luật Giao dịch điện tử - Điều 52: Hiệu lực thi hành, quy định \"Luật này có hiệu lực thi hành từ ngày 01 tháng 7 năm 2024\">",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 545.35,
+        "llm_latency_seconds": 3.69,
+        "total_latency_seconds": 4.23
+      },
+      {
+        "index": 2,
+        "season": "2025",
+        "question_id": "private_test_alquac25_24",
+        "question_type": "Trắc nghiệm",
+        "question_text": "“Chăn nuôi nông hộ” là hình thức chăn nuôi:",
+        "gold_relevant_articles": [
+          [
+            "Luật Chăn nuôi",
+            "2"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Chăn nuôi",
+            "article_id": "2",
+            "title": "Giải thích từ ngữ",
+            "score": 0.04937
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Chăn nuôi",
+            "article_id": "52",
+            "title": "Quy mô chăn nuôi",
+            "score": 0.04718
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Chăn nuôi",
+            "article_id": "48",
+            "title": "Quyền và nghĩa vụ của cơ sở sản xuất thức ăn chăn nuôi",
+            "score": 0.04527
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Chăn nuôi",
+            "article_id": "56",
+            "title": "Chăn nuôi nông hộ",
+            "score": 0.04507
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Chăn nuôi",
+            "article_id": "54",
+            "title": "Kê khai hoạt động chăn nuôi",
+            "score": 0.04431
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "C",
+        "predicted_answer": "C",
+        "llm_response": "ĐÁP ÁN: C\nGIẢI THÍCH: Luật Chăn nuôi - Điều 2, khoản 3: \"Chăn nuôi nông hộ là hình thức tổ chức hoạt động chăn nuôi tại hộ gia đình.\"",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 499.25,
+        "llm_latency_seconds": 3.64,
+        "total_latency_seconds": 4.14
+      },
+      {
+        "index": 3,
+        "season": "2025",
+        "question_id": "private_test_alquac25_41",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Trong các tiêu chí sau, tiêu chí nào thuộc nhóm ưu tiên khi xét cấp giấy phép viễn thông?",
+        "gold_relevant_articles": [
+          [
+            "Luật Viễn thông",
+            "34"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Viễn thông",
+            "article_id": "34",
+            "title": "Nguyên tắc cấp giấy phép viễn thông",
+            "score": 0.0502
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Viễn thông",
+            "article_id": "35",
+            "title": "Hình thức cấp giấy phép viễn thông",
+            "score": 0.04866
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Viễn thông",
+            "article_id": "40",
+            "title": "Thu hồi giấy phép viễn thông, buộc chấm dứt hoạt động cung cấp dịch vụ viễn thông",
+            "score": 0.0478
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Viễn thông",
+            "article_id": "39",
+            "title": "Gia hạn, cấp lại, sửa đổi, bổ sung giấy phép viễn thông",
+            "score": 0.04756
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Viễn thông",
+            "article_id": "36",
+            "title": "Điều kiện cấp giấy phép kinh doanh dịch vụ viễn thông",
+            "score": 0.04712
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "B",
+        "predicted_answer": "B",
+        "llm_response": "<thinking>\n1. Xác định chính xác quan hệ pháp luật và điều kiện mà câu hỏi đòi hỏi. Theo Điều 34 của Luật Viễn thông, ưu tiên được cấp giấy phép viễn thông cho dự án có khả năng triển khai nhanh, có cam kết cung cấp dịch vụ lâu dài cho đông đảo người sử dụng dịch vụ viễn thông; dự án cung cấp dịch vụ viễn thông đến khu vực biên giới, miền núi, vùng cao, vùng bãi ngang, ven biển và hải đảo, vùng đồng bào dân tộc thiểu số, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn.\n2. Đối chiếu từng phương án A, B, C, D với từng Khoản/Điều cụ thể trong căn cứ pháp luật.\n   - Phương án A: Dự án chỉ triển khai dịch vụ tại đô thị và không có cam kết lâu dài. Không phù hợp với Điều 34.\n   - Phương án B: Dự án có khả năng triển khai nhanh, có cam kết cung cấp dịch vụ lâu dài cho đông đảo người sử dụng dịch vụ viễn thông. Phù hợp với Điều 34.\n   - Phương án C: Dự án sử dụng tài nguyên viễn thông không theo quy hoạch đã được phê duyệt. Không phù hợp với Điều 34.\n   - Phương án D: Dự án chỉ tập trung vào nâng cấp hạ tầng mà không quan tâm tới vùng sâu, vùng xa. Không phù hợp với Điều 34.\n3. ĐẶC BIỆT LƯU Ý: Nếu có phương án tổng hợp như 'Cả A, B, C đều đúng' hoặc 'Cả A và B đều đúng', hãy kiểm tra xem từng phương án thành phần có được luật quy định hay không để chọn phương án toàn diện nhất.\n</thinking>\n\nĐÁP ÁN: B\nGIẢI THÍCH: Điều 34 của Luật Viễn thông.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 628.53,
+        "llm_latency_seconds": 8.95,
+        "total_latency_seconds": 9.58
+      },
+      {
+        "index": 4,
+        "season": "2025",
+        "question_id": "private_test_alquac25_58",
+        "question_type": "Trắc nghiệm",
+        "question_text": "Theo Luật Giá, hàng hóa là gì?",
+        "gold_relevant_articles": [
+          [
+            "Luật Giá",
+            "4"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Giá",
+            "article_id": "4",
+            "title": "Giải thích từ ngữ",
+            "score": 0.06944
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Giá",
+            "article_id": "21",
+            "title": "Hàng hóa, dịch vụ do Nhà nước định giá",
+            "score": 0.06735
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Giá",
+            "article_id": "8",
+            "title": "Quyền của tổ chức, cá nhân kinh doanh hàng hóa, dịch vụ",
+            "score": 0.06527
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Giá",
+            "article_id": "29",
+            "title": "Niêm yết giá",
+            "score": 0.06407
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Giá",
+            "article_id": "28",
+            "title": "Kê khai giá",
+            "score": 0.06353
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "C",
+        "predicted_answer": "C",
+        "llm_response": "<thinking>\n1. Theo Căn cứ pháp luật được cung cấp, đặc biệt là Luật Giá, hàng hóa được định nghĩa là sản phẩm có thể trao đổi, mua, bán trên thị trường.\n2. Phương án C \"Sản phẩm có thể trao đổi, mua, bán trên thị trường\" hoàn toàn phù hợp với định nghĩa của hàng hóa trong Luật Giá.\n3. Phương án A \"Dịch vụ mang tính vô hình\" và D \"Các văn bản pháp luật về định giá\" không được quy định trong Luật Giá.\n4. Phương án B \"Tài sản không thể trao đổi\" không phù hợp với định nghĩa của hàng hóa trong Luật Giá.\n</thinking>\n\nĐÁP ÁN: C\nGIẢI THÍCH: Luật Giá Điều 4, Khoản 1: \"Hàng hóa là sản phẩm có thể trao đổi, mua, bán trên thị trường.\"",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 548.57,
+        "llm_latency_seconds": 6.14,
+        "total_latency_seconds": 6.69
+      },
+      {
+        "index": 5,
+        "season": "2025",
+        "question_id": "private_test_alquac25_16",
+        "question_type": "Tự luận",
+        "question_text": "Kinh phí cho hoạt động phòng, chống tác hại của rượu, bia có thể sử dụng từ những nguồn kinh phí nào?",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống tác hại của rượu, bia",
+            "26"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "26",
+            "title": "Kinh phí cho hoạt động phòng, chống tác hại của rượu, bia",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "1",
+            "title": "Phạm vi điều chỉnh",
+            "score": 0.04924
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "28",
+            "title": "Xử lý vi phạm pháp luật về phòng, chống tác hại của rượu, bia",
+            "score": 0.04661
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "3",
+            "title": "Chính sách của Nhà nước trong phòng, chống tác hại của rượu, bia",
+            "score": 0.04614
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "4",
+            "title": "Quyền và nghĩa vụ của cá nhân, tổ chức trong phòng, chống tác hại của rượu, bia",
+            "score": 0.04592
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Ngân sách nhà nước và kinh phí hợp pháp khác.",
+        "predicted_answer": "Ngân sách nhà nước, kinh phí hợp pháp khác",
+        "llm_response": "ĐÁP ÁN: Ngân sách nhà nước, kinh phí hợp pháp khác\n\nGIẢI THÍCH: <Luật Phòng, chống tác hại của rượu, bia - Điều 26>",
+        "is_correct": true,
+        "f1_score": 0.9474,
+        "retrieval_latency_ms": 782.06,
+        "llm_latency_seconds": 3.57,
+        "total_latency_seconds": 4.35
+      },
+      {
+        "index": 6,
+        "season": "2025",
+        "question_id": "private_test_alquac25_39",
+        "question_type": "Tự luận",
+        "question_text": "Chính phủ yêu cầu báo cáo kết quả theo dõi, đánh giá việc quản lý và sử dụng đất đai tại các tỉnh có các dự án quy mô lớn sử dụng đất với diện tích lớn. Theo quy định của Luật Đất đai, cơ quan nào có trách nhiệm thực hiện nhiệm vụ này?",
+        "gold_relevant_articles": [
+          [
+            "Luật Đất đai",
+            "232"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Đất đai",
+            "article_id": "55",
+            "title": "Trách nhiệm tổ chức thực hiện điều tra, đánh giá đất đai, bảo vệ, cải tạo, phục hồi đất",
+            "score": 0.04933
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Đất đai",
+            "article_id": "233",
+            "title": "Hệ thống theo dõi và đánh giá đối với việc quản lý, sử dụng đất đai",
+            "score": 0.04822
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Đất đai",
+            "article_id": "181",
+            "title": "Đất do các công ty nông, lâm nghiệp quản lý, sử dụng",
+            "score": 0.04544
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Đất đai",
+            "article_id": "76",
+            "title": "Tổ chức thực hiện quy hoạch, kế hoạch sử dụng đất",
+            "score": 0.0453
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Đất đai",
+            "article_id": "20",
+            "title": "Nội dung quản lý nhà nước về đất đai",
+            "score": 0.04506
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "Bộ Tài nguyên và Môi trường",
+        "predicted_answer": "Bộ Tài nguyên và Môi trường",
+        "llm_response": "Đáp án: Bộ Tài nguyên và Môi trường\n\nGiải thích: \n<1. Bộ Tài nguyên và Môi trường có trách nhiệm chủ trì, phối hợp với các Bộ có liên quan thực hiện các nhiệm vụ liên quan đến việc điều tra, đánh giá đất đai, bảo vệ, cải tạo, phục hồi đất (Điều 55 Luật Đất đai).>",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 1014.67,
+        "llm_latency_seconds": 4.4,
+        "total_latency_seconds": 5.41
+      },
+      {
+        "index": 7,
+        "season": "2025",
+        "question_id": "private_test_alquac25_61",
+        "question_type": "Tự luận",
+        "question_text": "Theo Luật Giá, hàng hóa là gì?",
+        "gold_relevant_articles": [
+          [
+            "Luật Giá",
+            "4"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Giá",
+            "article_id": "4",
+            "title": "Giải thích từ ngữ",
+            "score": 0.06944
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Giá",
+            "article_id": "21",
+            "title": "Hàng hóa, dịch vụ do Nhà nước định giá",
+            "score": 0.06735
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Giá",
+            "article_id": "8",
+            "title": "Quyền của tổ chức, cá nhân kinh doanh hàng hóa, dịch vụ",
+            "score": 0.06527
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Giá",
+            "article_id": "29",
+            "title": "Niêm yết giá",
+            "score": 0.06407
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Giá",
+            "article_id": "28",
+            "title": "Kê khai giá",
+            "score": 0.06353
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Sản phẩm có thể trao đổi, mua, bán trên thị trường",
+        "predicted_answer": "hàng hóa",
+        "llm_response": "Đáp án: <hàng hóa>\n\nGIẢI THÍCH: <Luật Giá - Điều 4, Khoản 1>",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 581.19,
+        "llm_latency_seconds": 3.73,
+        "total_latency_seconds": 4.31
+      },
+      {
+        "index": 8,
+        "season": "2025",
+        "question_id": "private_test_alquac25_78",
+        "question_type": "Tự luận",
+        "question_text": "Khi thay đổi người giám hộ thì trong thời hạn bao nhiêu ngày, kể từ ngày có người giám hộ mới, người đã thực hiện việc giám hộ phải chuyển giao giám hộ cho người thay thế mình?",
+        "gold_relevant_articles": [
+          [
+            "Bộ luật dân sự",
+            "61"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "61",
+            "title": "Chuyển giao giám hộ",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "63",
+            "title": "Hậu quả chấm dứt việc giám hộ",
+            "score": 0.04955
+          },
+          {
+            "rank": 3,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "60",
+            "title": "Thay đổi người giám hộ",
+            "score": 0.04885
+          },
+          {
+            "rank": 4,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "51",
+            "title": "Giám sát việc giám hộ",
+            "score": 0.04527
+          },
+          {
+            "rank": 5,
+            "law_id": "Bộ luật dân sự",
+            "article_id": "62",
+            "title": "Chấm dứt việc giám hộ",
+            "score": 0.04442
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "15 ngày",
+        "predicted_answer": "15 ngày",
+        "llm_response": "Đáp án: 15 ngày\n\nGiải thích: <Bộ luật dân sự - Điều 61>",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 865.11,
+        "llm_latency_seconds": 3.15,
+        "total_latency_seconds": 4.02
+      },
+      {
+        "index": 9,
+        "season": "2025",
+        "question_id": "private_test_alquac25_1",
+        "question_type": "Đúng/Sai",
+        "question_text": "Hợp đồng điện tử được ký kết giữa hai hệ thống thông tin tự động mà không có sự can thiệp của con người sẽ không có giá trị pháp lý trong mọi trường hợp.",
+        "gold_relevant_articles": [
+          [
+            "Luật Giao dịch điện tử",
+            "34"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "34",
+            "title": "Hợp đồng điện tử",
+            "score": 0.05082
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "38",
+            "title": "Giá trị pháp lý của thông báo trong giao kết và thực hiện hợp đồng điện tử",
+            "score": 0.04838
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "23",
+            "title": "Giá trị pháp lý của chữ ký điện tử",
+            "score": 0.0481
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "36",
+            "title": "Nguyên tắc giao kết và thực hiện hợp đồng điện tử",
+            "score": 0.04779
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Giao dịch điện tử",
+            "article_id": "35",
+            "title": "Giao kết hợp đồng điện tử",
+            "score": 0.04523
+          }
+        ],
+        "retrieval_hit_at_1": true,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 1.0,
+        "recall_at_5": 1.0,
+        "gold_answer": "Sai",
+        "predicted_answer": "Sai",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định rằng hợp đồng điện tử không có giá trị pháp lý trong mọi trường hợp khi không có sự can thiệp của con người.\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ):\n   - Nhận định này chứa từ mang tính tuyệt đối ('trong mọi trường hợp').\n   - Căn cứ pháp luật không có điều kiện loại trừ nào được đề cập đến.\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - Nhận định nói 'không cần sự đồng ý' nhưng pháp luật bắt buộc 'cần sự thỏa thuận của cả hai bên'.\n</thinking>\n\nĐÁP ÁN: Sai\nGIẢI THÍCH: Nhận định khẳng định rằng hợp đồng điện tử không có giá trị pháp lý trong mọi trường hợp khi không có sự can thiệp của con người, điều này trái với Điều 34 của Luật Giao dịch điện tử, trong đó quy định rằng hợp đồng điện tử vẫn có giá trị pháp lý nếu không có sự kiểm tra hay can thiệp của con người vào từng hành động cụ thể do các hệ thống thông tin tự động thực hiện. Điều này cho thấy hợp đồng điện tử vẫn có giá trị pháp lý trong nhiều trường hợp, chỉ cần có thỏa thuận của cả hai bên.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 713.55,
+        "llm_latency_seconds": 7.1,
+        "total_latency_seconds": 7.81
+      },
+      {
+        "index": 10,
+        "season": "2025",
+        "question_id": "private_test_alquac25_9",
+        "question_type": "Đúng/Sai",
+        "question_text": "Cảnh sát giao thông có thể xử phạt người điều khiển xe đạp nếu phát hiện có nồng độ cồn.",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống tác hại của rượu, bia",
+            "5"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "21",
+            "title": "Phòng ngừa tai nạn giao thông liên quan đến sử dụng rượu, bia",
+            "score": 0.05035
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Đường bộ",
+            "article_id": "63",
+            "title": "Quyền và nghĩa vụ của người lái xe vận tải hàng hoá bằng xe ô tô",
+            "score": 0.04716
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "35",
+            "title": "Sửa đổi, bổ sung quy định của một số luật khác",
+            "score": 0.04677
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Đường bộ",
+            "article_id": "59",
+            "title": "Quyền và nghĩa vụ của người lái xe, nhân viên phục vụ trên xe ô tô kinh doanh vận tải hành khách",
+            "score": 0.04612
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Đường bộ",
+            "article_id": "24",
+            "title": "Công trình an toàn giao thông đường bộ",
+            "score": 0.04216
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": false,
+        "retrieval_hit_at_5": false,
+        "reciprocal_rank_at_5": 0.0,
+        "recall_at_5": 0.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "ĐÁP ÁN: Sai\nGIẢI THÍCH: Luật Phòng, chống tác hại của rượu, bia không quy định cụ thể về việc cảnh sát giao thông có thể xử phạt người điều khiển xe đạp nếu phát hiện có nồng độ cồn. Điều 21 chỉ đề cập đến việc phòng ngừa tai nạn giao thông liên quan đến sử dụng rượu, bia trong quá trình tham gia giao thông, nhưng không đề cập đến trường hợp cụ thể của xe đạp. Luật Đường bộ cũng không có quy định cụ thể về việc xử phạt người điều khiển xe đạp nếu phát hiện nồng độ cồn.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 679.45,
+        "llm_latency_seconds": 5.02,
+        "total_latency_seconds": 5.7
+      },
+      {
+        "index": 11,
+        "season": "2025",
+        "question_id": "private_test_alquac25_11",
+        "question_type": "Đúng/Sai",
+        "question_text": "Công dân có quyền phản ánh, tố cáo hành vi vi phạm pháp luật về phòng, chống tác hại của rượu, bia.",
+        "gold_relevant_articles": [
+          [
+            "Luật Phòng, chống tác hại của rượu, bia",
+            "4"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "28",
+            "title": "Xử lý vi phạm pháp luật về phòng, chống tác hại của rượu, bia",
+            "score": 0.0505
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "4",
+            "title": "Quyền và nghĩa vụ của cá nhân, tổ chức trong phòng, chống tác hại của rượu, bia",
+            "score": 0.05032
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "24",
+            "title": "Biện pháp phòng ngừa tác hại của rượu, bia tại cộng đồng",
+            "score": 0.04847
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "7",
+            "title": "Nội dung thông tin, giáo dục, truyền thông về phòng, chống tác hại của rượu, bia",
+            "score": 0.04782
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Phòng, chống tác hại của rượu, bia",
+            "article_id": "29",
+            "title": "Nội dung quản lý nhà nước về phòng, chống tác hại của rượu, bia",
+            "score": 0.04739
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Đúng",
+        "llm_response": "<thinking>\n1. BƯỚC 1 (MỆNH ĐỀ CHÍNH): Nhận định khẳng định điều gì? Điều luật nào trong căn cứ quy định về việc này?\n   - Nhận định: Công dân có quyền phản ánh, tố cáo hành vi vi phạm pháp luật về phòng, chống tác hại của rượu, bia.\n   - Điều luật: Luật Phòng, chống tác hại của rượu, bia - Điều 4: Quyền và nghĩa vụ của cá nhân, tổ chức trong phòng, chống tác hại của rượu, bia.\n\n2. BƯỚC 2 (RÀ SOÁT BẪY TUYỆT ĐỐI & NGOẠI LỆ LOẠI TRỪ):\n   - Từ mang tính tuyệt đối: Không có.\n   - Căn cứ pháp luật có điều kiện loại trừ: Không có.\n\n3. BƯỚC 3 (ĐỐI CHIẾU QUYẾT ĐỊNH):\n   - Nhận định: 'Công dân có quyền phản ánh, tố cáo hành vi vi phạm pháp luật về phòng, chống tác hại của rượu, bia.'\n   - Điều luật: 'Phản ánh', tố cáo hành vi vi phạm pháp luật về phòng, chống tác hại của rượu, bia.'\n   - Nhận định hoàn toàn phù hợp với điều luật không bị phả định bởi ngoại lệ.\n\nKết luận: Đúng.\n</thinking>\n\nĐÁP ÁN: Đúng\nGIẢI THÍCH: Nhận định của công dân có quyền phản ánh, tố cáo hành vi vi phạm pháp luật về phòng, chống tác hại của rượu, bia phù hợp với Điều 4 của Luật Phòng, chống tác hại của rượu, bia, không bị phả định bởi ngoại lệ nào trong điều luật này.",
+        "is_correct": true,
+        "f1_score": 1.0,
+        "retrieval_latency_ms": 714.96,
+        "llm_latency_seconds": 8.28,
+        "total_latency_seconds": 9.0
+      },
+      {
+        "index": 12,
+        "season": "2025",
+        "question_id": "private_test_alquac25_18",
+        "question_type": "Đúng/Sai",
+        "question_text": "Việc quản lý, sử dụng nhà ở phải đáp ứng các điều kiện về phòng cháy, chữa cháy, vệ sinh, môi trường, an ninh, trật tự, an toàn xã hội.",
+        "gold_relevant_articles": [
+          [
+            "Luật Nhà ở",
+            "5"
+          ]
+        ],
+        "retrieved_articles": [
+          {
+            "rank": 1,
+            "law_id": "Luật Nhà ở",
+            "article_id": "150",
+            "title": "Điều kiện của đơn vị quản lý vận hành nhà chung cư",
+            "score": 0.04996
+          },
+          {
+            "rank": 2,
+            "law_id": "Luật Nhà ở",
+            "article_id": "5",
+            "title": "Yêu cầu chung về phát triển và quản lý, sử dụng nhà ở",
+            "score": 0.04961
+          },
+          {
+            "rank": 3,
+            "law_id": "Luật Nhà ở",
+            "article_id": "125",
+            "title": "Việc quản lý, sử dụng nhà ở thuộc tài sản công",
+            "score": 0.03991
+          },
+          {
+            "rank": 4,
+            "law_id": "Luật Nhà ở",
+            "article_id": "11",
+            "title": "Nghĩa vụ của chủ sở hữu nhà ở và người sử dụng nhà ở",
+            "score": 0.03617
+          },
+          {
+            "rank": 5,
+            "law_id": "Luật Nhà ở",
+            "article_id": "130",
+            "title": "Bảo trì nhà ở",
+            "score": 0.03404
+          }
+        ],
+        "retrieval_hit_at_1": false,
+        "retrieval_hit_at_3": true,
+        "retrieval_hit_at_5": true,
+        "reciprocal_rank_at_5": 0.5,
+        "recall_at_5": 1.0,
+        "gold_answer": "Đúng",
+        "predicted_answer": "Sai",
+        "llm_response": "Đáp án: Sai\n\nGiải thích: \nCăn cứ pháp luật quy định về việc quản lý, sử dụng nhà ở chỉ yêu cầu đơn vị quản lý vận hành nhà chung cư phải đáp ứng các điều kiện về phòng cháy, chữa cháy, vệ sinh, môi trường và các lĩnh vực khác. Điều này không khẳng định rằng việc quản lý, sử dụng nhà ở phải đáp ứng tất cả các điều kiện về phòng cháy, chữa cháy, vệ sinh, môi trường và các lĩnh vực khác trong mọi trường hợp. Căn cứ pháp luật chỉ đề cập đến các lĩnh vực cụ thể mà đơn vị quản lý vận hành nhà chung cư cần đáp ứng các điều kiện, không khẳng định rằng tất cả các điều kiện này phải được đáp ứng trong mọi trường hợp.",
+        "is_correct": false,
+        "f1_score": 0.0,
+        "retrieval_latency_ms": 818.56,
+        "llm_latency_seconds": 5.24,
+        "total_latency_seconds": 6.06
+      }
+    ]
+  }
+}

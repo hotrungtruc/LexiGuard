@@ -10,11 +10,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from loguru import logger
 
 from src.agents.state import AgentState
 from src.agents.workflow import lexiguard_agent
+from pydantic import BaseModel, Field
+from src.reporting.docx_exporter import generate_contract_audit_docx
 
 router = APIRouter()
 
@@ -155,3 +157,33 @@ async def audit_contract(file: UploadFile = File(...)):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+class ExportDocxRequest(BaseModel):
+    report: Dict[str, Any] = Field(..., description="Dữ liệu JSON báo cáo thẩm định hợp đồng")
+    contract_title: Optional[str] = Field("Báo cáo Thẩm định Hợp đồng", description="Tiêu đề tài liệu hợp đồng")
+
+
+@router.post("/export-docx")
+@router.post("/audit/export-docx")
+async def export_contract_audit_docx(req: ExportDocxRequest):
+    """
+    Exports structured ContractAuditReport into a boardroom-ready Word (.docx) document
+    featuring Redlines (Track-Changes simulation with 3 tiers: Strict, Balanced, Flexible)
+    and Judicial precedents.
+    """
+    try:
+        title = req.contract_title or "Báo cáo Thẩm định Hợp đồng"
+        docx_stream = generate_contract_audit_docx(req.report, contract_title=title)
+        safe_filename = "Bao_Cao_Tham_Dinh_LexiGuard.docx"
+        return Response(
+            content=docx_stream.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="{safe_filename}"',
+                "Access-Control-Expose-Headers": "Content-Disposition",
+            },
+        )
+    except Exception as exc:
+        logger.error(f"Failed to export audit report to DOCX: {exc}")
+        raise HTTPException(status_code=500, detail=f"Lỗi xuất báo cáo Word (.docx): {str(exc)}")

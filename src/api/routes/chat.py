@@ -4,19 +4,29 @@ Conversational Chat Route: Handles general legal Q&A, contract audits, and strea
 
 import json
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
+from pydantic import BaseModel, Field
+from src.reporting.docx_exporter import generate_contract_audit_docx
 from loguru import logger
 
 from src.agents.nodes import get_fast_cpu_llm
 from src.agents.state import AgentState
+from src.agents.prompts import (
+    build_legal_consultation_prompt,
+    build_deliberative_qa_prompt,
+    extract_thinking_and_answer,
+)
+from src.core.format_guardian import FormatGuardian
 from src.agents.workflow import lexiguard_agent
 from src.mcp_server.legal_tools import search_legal_provisions
+from src.retrieval.context_grounding import format_grounded_statutory_context
 
 router = APIRouter()
 
@@ -24,6 +34,129 @@ router = APIRouter()
 def format_sse(data: Dict[str, Any]) -> str:
     """Format dictionary into Server-Sent Events data line."""
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def is_explicit_contract_audit_request(message: str) -> bool:
+    """
+    Distinguishes whether a message is an explicit contract/clause snippet to be audited
+    versus a conversational question about laws or contracts.
+    """
+    if not message:
+        return False
+    msg = message.strip()
+    lower = msg.lower()
+
+    # Explicit audit action keywords
+    audit_keywords = [
+        "thẩm định", "soát xét", "rà soát", "kiểm toán hợp đồng",
+        "kiểm tra hợp đồng", "audit", "kiểm tra điều khoản",
+        "đánh giá rủi ro điều khoản", "redline", "bắt lỗi hợp đồng",
+        "kiểm tra hồ sơ", "check hồ sơ", "thẩm định hồ sơ", "rà soát hồ sơ", "soát hồ sơ"
+    ]
+    if any(k in lower for k in audit_keywords):
+        return True
+
+    # If it's an inquiry question (ends with '?' or inquiry phrases), treat as Legal Q&A
+    question_starters = [
+        "tại sao", "như thế nào", "là bao nhiêu", "cho tôi hỏi",
+        "hỏi về", "giải thích", "xin hỏi", "có được", "có được phép", "có bị"
+    ]
+    is_question = msg.endswith("?") or any(qs in lower for qs in question_starters)
+    if is_question and not any(k in lower for k in audit_keywords):
+        return False
+
+    # Formal multi-clause or contract text with parties or markdown tables
+    has_clause_header = bool(re.search(r"\bđiều\s+\d+[:\.]", lower))
+    has_parties = "bên a" in lower or "bên b" in lower or "party a" in lower or "party b" in lower
+    has_table = "|" in msg and ("---" in msg or "-|-" in msg)
+
+    if (has_clause_header and (has_parties or len(msg) > 300)) or has_table:
+        return True
+
+    return False
+
+
+def classify_chat_intent(message: Optional[str], has_file: bool = False, mode: str = "auto") -> str:
+    """
+    Classifies user request into one of three distinct flows:
+    1. 'audit': Contract auditing & vulnerability detection (Multi-Agent State Machine).
+    2. 'legal_rag': Legal consultation & statutory retrieval (Hybrid GraphRAG search).
+    3. 'general_chat': Standard chitchat, greetings, general questions (Direct LLM, no RAG, no thinking box).
+    """
+    # 1. Respect explicit mode from client if specified
+    if mode == "audit":
+        return "audit"
+    if mode == "chat":
+        return "general_chat"
+    if mode == "legal":
+        return "legal_rag"
+
+    # 2. Check for file upload -> Always Contract Audit
+    if has_file:
+        return "audit"
+
+    if not message or not message.strip():
+        return "general_chat"
+
+    msg = message.strip()
+    lower = msg.lower()
+
+    # 3. Check for explicit contract audit request or contract snippet
+    if is_explicit_contract_audit_request(msg):
+        return "audit"
+
+    # 4. Check for common greetings and general chitchat
+    clean_text = re.sub(r"[^\w\s]", "", lower).strip()
+
+    greetings = {
+        "chào", "chao", "xin chào", "xin chao", "chào bạn", "chao ban", "chào em", 
+        "chào anh", "chào chị", "chào ad", "chào bot", "chào trợ lý", "hello", "hi", 
+        "hey", "alo", "yo", "good morning", "good afternoon", "good evening", 
+        "hi bot", "hello bot", "bắt đầu"
+    }
+
+    intro_queries = {
+        "bạn là ai", "ban la ai", "bạn tên gì", "ban ten gi", "bạn làm được gì", 
+        "ban lam duoc gi", "bạn có thể làm gì", "giới thiệu", "gioi thieu", 
+        "giới thiệu về bạn", "hướng dẫn", "huong dan", "hướng dẫn sử dụng", 
+        "who are you", "what can you do", "help"
+    }
+
+    courtesy_phrases = {
+        "cảm ơn", "cam on", "cảm ơn bạn", "cảm ơn nhiều", "thanks", "thank you", 
+        "tạm biệt", "tam biet", "bye", "bye bye", "hẹn gặp lại", "ok", "oke", 
+        "được rồi", "rất tốt", "tuyệt vời", "good"
+    }
+
+    if clean_text in greetings or clean_text in intro_queries or clean_text in courtesy_phrases:
+        return "general_chat"
+
+    starts_with_greeting = any(lower.startswith(g) for g in ["chào ", "xin chào ", "hello ", "hi "])
+
+    # 5. Check for substantive legal keywords
+    legal_keywords = [
+        "luật", "bộ luật", "nghị định", "thông tư", "quy chuẩn", "pháp lệnh", "văn bản quy phạm",
+        "điều ", "khoản ", "điểm ", "quy định", "pháp luật", "pháp lý",
+        "mức phạt", "phạt tiền", "xử phạt", "phạt nguội", "tước bằng",
+        "vi phạm", "tội phạm", "truy cứu", "hình sự", "dân sự", "hành chính",
+        "lao động", "bảo hiểm xã hội", "bhxh", "tiền lương", "hợp đồng lao động", "sa thải", "nghỉ việc",
+        "thuế", "thuế thu nhập", "vat", "doanh nghiệp", "thành lập công ty", "giải thể", "phá sản",
+        "đất đai", "sổ đỏ", "sổ hồng", "chuyển nhượng", "bất động sản", "quyền sử dụng đất",
+        "thừa kế", "di chúc", "ly hôn", "hôn nhân", "chia tài sản", "nuôi con",
+        "bồi thường", "thiệt hại", "khởi kiện", "tố tụng", "tòa án", "trọng tài", "viac", "tand", "kháng cáo",
+        "thời hiệu", "lãi suất", "vay nợ", "quỵt nợ", "công chứng", "chứng thực",
+        "sở hữu trí tuệ", "bản quyền", "nhãn hiệu", "sáng chế",
+        "law", "statute", "decree", "circular", "penalty", "fine", "court", "arbitration"
+    ]
+
+    has_legal_intent = any(k in lower for k in legal_keywords)
+    if has_legal_intent:
+        return "legal_rag"
+
+    if starts_with_greeting:
+        return "general_chat"
+
+    return "general_chat"
 
 
 @router.post("/chat", summary="Conversational AI endpoint with SSE streaming")
@@ -38,6 +171,7 @@ async def chat_endpoint(
     Unified chat endpoint supporting:
     1. Contract vulnerability auditing (when file or long contract text is provided).
     2. General legal Q&A and statutory retrieval (when conversational question is asked).
+    3. Direct chitchat & natural conversation (no RAG, no agent thinking box).
     Streams real-time step progress and final response via Server-Sent Events (SSE).
     """
     if not message and not file:
@@ -50,6 +184,13 @@ async def chat_endpoint(
     temp_dir: Optional[str] = None
     file_name = file.filename if file and file.filename else None
 
+    # Classify execution intent: 'audit', 'legal_rag', or 'general_chat'
+    intent = classify_chat_intent(
+        message=message,
+        has_file=bool(file and file.filename),
+        mode=mode or "auto",
+    )
+
     # Handle attached file or text snippet for contract auditing
     if file and file.filename:
         temp_dir = tempfile.mkdtemp(prefix="lexiguard_chat_upload_")
@@ -57,41 +198,16 @@ async def chat_endpoint(
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         logger.info(f"Chat received attached file: {file.filename} -> {temp_path}")
-    elif (
-        mode == "audit"
-        or (
-            message
-            and (
-                "hợp đồng" in message.lower()
-                or "thẩm định" in message.lower()
-                or "contract" in message.lower()
-                or "audit" in message.lower()
-                or "điều " in message.lower()
-                or "dieu " in message.lower()
-                or "|" in message
-            )
-        )
-    ) and message:
-        # Text appears to be or requests a contract snippet audit
+    elif intent == "audit" and message:
         temp_dir = tempfile.mkdtemp(prefix="lexiguard_chat_snippet_")
         temp_path = os.path.join(temp_dir, "contract_snippet.md")
         with open(temp_path, "w", encoding="utf-8") as f:
             f.write(message)
         logger.info(f"Chat created contract audit snippet -> {temp_path}")
 
-    # Determine execution workflow: Contract Audit vs. Legal Q&A
-    is_audit_mode = (
-        mode == "audit"
-        or temp_path is not None
-        or (
-            file_name is not None
-            and Path(file_name).suffix.lower() in {".pdf", ".docx", ".doc", ".md"}
-        )
-    )
-
     async def event_generator():
         try:
-            if is_audit_mode and temp_path:
+            if intent == "audit" and temp_path:
                 # =============================================================
                 # BRANCH A: MULTI-AGENT CONTRACT AUDIT WORKFLOW
                 # =============================================================
@@ -210,10 +326,15 @@ async def chat_endpoint(
                         it.model_dump() if hasattr(it, "model_dump") else it for it in items_to_use
                     ]
                     calc_score = max(0, 100 - len(items_data) * 12)
+                    dyn_summary = latest_draft.summary_notes if latest_draft and latest_draft.summary_notes else None
                     summary_msg = (
-                        f"Đã phát hiện {len(items_data)} điểm rủi ro pháp lý cần chỉnh lý theo án lệ TAND & VIAC."
-                        if items_data
-                        else "Văn bản an toàn, không phát hiện rủi ro vi phạm pháp luật nghiêm trọng."
+                        dyn_summary
+                        if dyn_summary
+                        else (
+                            f"Đã phát hiện {len(items_data)} điểm rủi ro pháp lý cần chỉnh lý theo án lệ TAND & VIAC."
+                            if items_data
+                            else "Văn bản an toàn, không phát hiện rủi ro vi phạm pháp luật nghiêm trọng."
+                        )
                     )
                     final_report = {
                         "contract_name": file_name or "Tài liệu thẩm định",
@@ -240,21 +361,40 @@ async def chat_endpoint(
                     final_report["findings"] = f_list
                     final_report["vulnerabilities"] = f_list
 
-                # Extract Redline recommendations
+                # Extract 3-Tier Redline recommendations & judicial precedents
                 f_list = final_report.get("findings", [])
                 redlines = []
                 for f in f_list:
                     redline_text = f.get("proposed_redline")
-                    if redline_text:
+                    r_3t = f.get("redlines") or {}
+                    if hasattr(r_3t, "model_dump"):
+                        r_3t = r_3t.model_dump()
+                    elif not isinstance(r_3t, dict):
+                        r_3t = {}
+
+                    if redline_text or r_3t:
                         prov = f.get("contract_provenance") or {}
                         orig = prov.get("verbatim_text") or f.get("clause_reference") or ""
+                        strict_rev = r_3t.get("strict_protective") or f.get("strict_revision") or redline_text
+                        balanced_rev = r_3t.get("balanced_standard") or f.get("balanced_revision") or redline_text
+                        flexible_rev = r_3t.get("flexible_commercial") or f.get("flexible_revision") or redline_text
+                        prec_ref = f.get("precedent_reference") or ""
+                        if not prec_ref and f.get("dispute_insight"):
+                            disp = f.get("dispute_insight")
+                            if isinstance(disp, dict):
+                                prec_ref = disp.get("precedent_reference") or ""
+
                         redlines.append(
                             {
                                 "clause_id": f.get("clause_reference")
                                 or f.get("finding_id")
                                 or "Điều khoản",
                                 "original_text": orig,
-                                "suggested_revision": redline_text,
+                                "suggested_revision": balanced_rev or redline_text,
+                                "strict_revision": strict_rev,
+                                "balanced_revision": balanced_rev or redline_text,
+                                "flexible_revision": flexible_rev,
+                                "precedent_reference": prec_ref,
                                 "rationale": f.get("negotiation_rationale")
                                 or f.get("audit_verdict")
                                 or "",
@@ -271,9 +411,75 @@ async def chat_endpoint(
                     }
                 )
 
+            elif intent == "general_chat":
+                # =============================================================
+                # BRANCH B: GENERAL CHITCHAT / CASUAL RESPONSE (NO RAG, NO STEPS)
+                # =============================================================
+                user_msg = message or "Chào bạn"
+                if lang == "en":
+                    prompt = (
+                        f"You are LexiGuard AI — an intelligent Vietnamese Legal Assistant & Contract Risk Auditor.\n"
+                        f"User message: '{user_msg}'\n\n"
+                        f"Instructions:\n"
+                        f"- Respond naturally, warmly, and concisely in English (no rigid template or numbered headers).\n"
+                        f"- Address their greeting or inquiry directly.\n"
+                        f"- Briefly introduce your key capabilities: fast Vietnamese legal statute search, contract loophole risk auditing, redline suggestions, and financial schedule arithmetic checks.\n"
+                        f"- Invite them to ask a legal question or upload a contract document to begin."
+                    )
+                else:
+                    prompt = (
+                        f"Bạn là LexiGuard AI — Trợ lý Pháp lý & Kiểm toán Hợp đồng thông minh.\n"
+                        f"Tin nhắn của người dùng: '{user_msg}'\n\n"
+                        f"Yêu cầu:\n"
+                        f"- Trả lời một cách tự nhiên, lịch thiệp, thân thiện và súc tích (TUYỆT ĐỐI KHÔNG dùng barem hay liệt kê cứng nhắc).\n"
+                        f"- Phản hồi trực diện câu chào hỏi hoặc nội dung trò chuyện của người dùng.\n"
+                        f"- Giới thiệu ngắn gọn các năng lực cốt lõi: tra cứu văn bản pháp luật Việt Nam, thẩm định rủi ro hợp đồng, đề xuất câu chữ Redline sửa đổi, và kiểm toán số học bảng biểu.\n"
+                        f"- Mời người dùng đặt câu hỏi pháp lý hoặc tải lên tệp hợp đồng để bắt đầu."
+                    )
+
+                try:
+                    llm = get_fast_cpu_llm()
+                    response = llm.invoke(prompt)
+                    answer_text = (
+                        response.content if hasattr(response, "content") else str(response)
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        f"Ollama LLM unavailable ({exc}). Using friendly default greeting."
+                    )
+                    if lang == "en":
+                        answer_text = (
+                            "Hello! I am **LexiGuard AI** — your intelligent Legal Advisor and Contract Risk Auditor.\n\n"
+                            "I can assist you with:\n"
+                            "- 🔍 **Statutory Search**: Fast retrieval of Vietnamese Laws, Decrees, and Circulars.\n"
+                            "- 🛡️ **Contract Auditing**: Detecting risky loophole clauses, penalties, and VIAC/TAND dispute risks.\n"
+                            "- ✏️ **Redline Suggestions**: Generating legally balanced replacement wording.\n"
+                            "- 🔢 **Arithmetic Audit**: Verifying payment schedules and penalty caps.\n\n"
+                            "Feel free to ask a legal question or upload a contract document to begin!"
+                        )
+                    else:
+                        answer_text = (
+                            "Xin chào! Tôi là **LexiGuard AI** — Trợ lý Pháp lý & Kiểm toán Hợp đồng thông minh.\n\n"
+                            "Tôi có thể đồng hành cùng bạn trong các tác vụ:\n"
+                            "- 🔍 **Tra cứu pháp luật**: Tra cứu nhanh quy định trong các Bộ luật, Nghị định, Thông tư hiện hành.\n"
+                            "- 🛡️ **Thẩm định hợp đồng**: Rà soát điều khoản bất lợi, bẫy pháp lý và rủi ro tranh chấp TAND / VIAC.\n"
+                            "- ✏️ **Đề xuất Redline**: Soạn thảo câu chữ sửa đổi cân bằng quyền lợi cho các bên.\n"
+                            "- 🔢 **Kiểm toán số học**: Tự động đối soát bảng tiến độ thanh toán và trần phạt vi phạm.\n\n"
+                            "Bạn hãy nhập câu hỏi pháp lý cần giải đáp hoặc tải lên tệp hợp đồng để bắt đầu nhé!"
+                        )
+
+                yield format_sse(
+                    {
+                        "type": "chat_completed",
+                        "status": "success",
+                        "answer": answer_text,
+                        "citations": [],
+                    }
+                )
+
             else:
                 # =============================================================
-                # BRANCH B: GENERAL LEGAL Q&A WITH HYBRID GRAPHRAG RETRIEVAL
+                # BRANCH C: GENERAL LEGAL Q&A WITH HYBRID GRAPHRAG RETRIEVAL
                 # =============================================================
                 query = message or "Tra cứu pháp luật"
                 truncated_query = query[:60]
@@ -288,7 +494,7 @@ async def chat_endpoint(
 
                 # 1. Search provisions via FastMCP tool
                 retrieval_res = await search_legal_provisions(query=query, top_k=5)
-                provisions = retrieval_res.get("results", [])
+                provisions = retrieval_res.get("provisions", retrieval_res.get("results", []))
 
                 yield format_sse(
                     {
@@ -300,17 +506,20 @@ async def chat_endpoint(
                     }
                 )
 
-                # 2. Extract citations & context
-                context_chunks = []
+                # 2. Extract citations & Phase 2 Grounded Context (Re-ranking + Anchor Highlighting)
                 citations = []
                 for p in provisions:
                     cit = p.get("citation", p.get("canonical_citation", ""))
-                    content = p.get("content", "")
                     if cit:
                         citations.append(cit)
-                    context_chunks.append(f"### {cit}\n{content}")
 
-                legal_context = "\n\n".join(context_chunks)
+                # Phase 2: Proximity Re-ranking + Anchor Highlighting
+                legal_context = format_grounded_statutory_context(
+                    provisions=provisions,
+                    query=query,
+                    highlight_anchors=True,
+                    ordering_strategy="proximity_to_query",
+                )
 
                 # 3. Generate response using fast reasoning LLM
                 yield format_sse(
@@ -329,37 +538,56 @@ async def chat_endpoint(
                 )
                 ctx_to_use = legal_context if legal_context else fallback_ctx
 
-                if lang == "en":
-                    prompt = (
-                        f"You are LexiGuard AI — a Senior Legal Assistant & Contract Auditor.\n"
-                        f"Please answer the user's question accurately and professionally, citing the legal provisions provided below in English:\n\n"
-                        f"USER QUESTION:\n{query}\n\n"
-                        f"RELEVANT LEGAL CONTEXT FROM KNOWLEDGE GRAPH:\n{ctx_to_use}\n\n"
-                        f"REQUIREMENTS:\n"
-                        f"1. Provide a direct, focused answer in clear English.\n"
-                        f"2. Cite the exact articles, clauses, and legal instruments (e.g. Civil Code 2015, Commercial Law 2005).\n"
-                        f"3. Offer practical advice and dispute avoidance recommendations.\n"
-                        f"4. Format cleanly using Markdown with bullet points where helpful.\n"
+                is_tf = FormatGuardian.is_true_false_query(query)
+                is_mcq = FormatGuardian.is_multiple_choice_query(query)
+
+                if is_tf:
+                    prompt = build_deliberative_qa_prompt(
+                        query=query,
+                        legal_context=ctx_to_use,
+                        question_type="Đúng/Sai",
+                    )
+                elif is_mcq:
+                    prompt = build_deliberative_qa_prompt(
+                        query=query,
+                        legal_context=ctx_to_use,
+                        question_type="Trắc nghiệm",
                     )
                 else:
-                    prompt = (
-                        f"Bạn là LexiGuard AI — Trợ lý Pháp lý & Kiểm toán Hợp đồng cao cấp.\n"
-                        f"Hãy trả lời câu hỏi sau của người dùng một cách chuẩn xác, chuyên nghiệp, viện dẫn đúng các quy định pháp luật được cung cấp:\n\n"
-                        f"CÂU HỎI:\n{query}\n\n"
-                        f"CĂN CỨ PHÁP LUẬT ĐƯỢC TRA CỨU TỪ CƠ SỞ TRI THỨC:\n{ctx_to_use}\n\n"
-                        f"YÊU CẦU:\n"
-                        f"1. Nêu rõ câu trả lời trọng tâm.\n"
-                        f"2. Viện dẫn chính xác tên điều, khoản, văn bản pháp luật (ví dụ: Bộ luật Dân sự 2015, Luật Thương mại 2005...).\n"
-                        f"3. Đưa ra lời khuyên thực tiễn hoặc các điểm cần lưu ý phòng tránh tranh chấp.\n"
-                        f"4. Trình bày bằng Markdown rõ ràng, dễ đọc.\n"
+                    prompt = build_legal_consultation_prompt(
+                        query=query,
+                        legal_context=ctx_to_use,
+                        lang=lang or "vi",
                     )
 
                 try:
                     llm = get_fast_cpu_llm()
                     response = llm.invoke(prompt)
-                    answer_text = (
+                    raw_text = (
                         response.content if hasattr(response, "content") else str(response)
                     )
+                    thinking_content, raw_ans = extract_thinking_and_answer(raw_text)
+
+                    # Sanitize output via FormatGuardian (strip leaked prefixes & enforce binary outputs)
+                    if is_tf:
+                        answer_text = FormatGuardian.enforce_true_false_format(raw_ans, query)
+                    else:
+                        answer_text = FormatGuardian.sanitize_conversational_text(raw_ans)
+
+                    # Filter citations against hallucination (e.g. Điều 81 Hiến pháp on arrest)
+                    citations = FormatGuardian.filter_hallucinated_citations(citations, provisions, query=query)
+
+                    # If deliberative reasoning scratchpad was generated, emit it as a verified step
+                    if thinking_content:
+                        yield format_sse(
+                            {
+                                "type": "step",
+                                "step": "reasoning",
+                                "status": "completed",
+                                "message": "Hoàn tất suy luận đa chiều (IRAC & rà soát ngoại lệ).",
+                                "thought": thinking_content,
+                            }
+                        )
                 except Exception as exc:
                     logger.warning(
                         f"Ollama LLM unavailable ({exc}). Using structured statutory synthesis."
@@ -434,3 +662,31 @@ async def chat_endpoint(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+class ChatExportDocxRequest(BaseModel):
+    report: Dict[str, Any] = Field(..., description="Dữ liệu JSON báo cáo thẩm định hợp đồng")
+    contract_title: Optional[str] = Field("Báo cáo Thẩm định Hợp đồng", description="Tiêu đề tài liệu hợp đồng")
+
+
+@router.post("/chat/export-docx")
+@router.post("/export-docx")
+async def chat_export_contract_audit_docx(req: ChatExportDocxRequest):
+    """
+    Exports structured ContractAuditReport from chat into a boardroom-ready Word (.docx) document.
+    """
+    try:
+        title = req.contract_title or "Báo cáo Thẩm định Hợp đồng"
+        docx_stream = generate_contract_audit_docx(req.report, contract_title=title)
+        safe_filename = "Bao_Cao_Tham_Dinh_LexiGuard.docx"
+        return Response(
+            content=docx_stream.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename="{safe_filename}"',
+                "Access-Control-Expose-Headers": "Content-Disposition",
+            },
+        )
+    except Exception as exc:
+        logger.error(f"Failed to export chat audit report to DOCX: {exc}")
+        raise HTTPException(status_code=500, detail=f"Lỗi xuất báo cáo Word (.docx): {str(exc)}")

@@ -35,8 +35,13 @@
       systemOnline: 'Trực tuyến',
       systemOffline: 'Mất kết nối',
       chatTitleDefault: 'Cuộc trò chuyện mới',
-      ocrBtn: 'Tài liệu OCR',
+      ocrBtn: 'Thêm tài liệu',
+      docLibraryBtn: 'Thêm tài liệu',
       exportBtn: 'Xuất',
+      exportDocxBtn: 'Xuất DOCX',
+      downloadDocxTitle: 'Báo cáo Kiểm toán Word (.docx)',
+      downloadDocxDesc: 'Sẵn sàng đàm phán: Redline Track-Changes 3 cấp độ & Án lệ TAND/VIAC',
+      downloadDocxBtn: 'Tải File Word (.docx)',
       heroGreeting: 'Hôm nay tôi có thể giúp gì cho bạn?',
       promptPlaceholder: 'Hỏi bất cứ điều gì hoặc đính kèm tài liệu...',
       disclaimer: 'LexiGuard có thể mắc lỗi. Vui lòng kiểm tra các điều khoản quan trọng.',
@@ -52,7 +57,30 @@
       sendBtnTitle: 'Gửi (Enter)',
       stopBtnTitle: 'Dừng tạo câu trả lời',
       clearAllConfirm: 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử?',
-      drawerTitle: 'Tài liệu OCR & Bảng biểu',
+      drawerTitle: 'Kho tài liệu RAG & Vector DB',
+      drawerUploadTitle: 'Thêm tài liệu mới vào Vector DB',
+      drawerUploadHint: 'Kéo thả tệp (.pdf, .docx, .doc, .md, .txt) hoặc nhấp để chọn',
+      drawerDocTitlePlaceholder: 'Tên hiển thị tài liệu (tùy chọn)...',
+      drawerUploadBtn: 'Nạp vào Vector DB',
+      drawerUploading: 'Đang phân đoạn và nạp vào Vector DB...',
+      drawerUploadSuccess: 'Nạp thành công tài liệu vào Vector DB phục vụ RAG!',
+      drawerUploadError: 'Lỗi nạp tài liệu',
+      drawerSearchPlaceholder: 'Lọc tài liệu...',
+      drawerCatalogTitle: 'Danh sách tài liệu trong Vector DB:',
+      drawerTotalDocs: 'Tài liệu',
+      drawerTotalChunks: 'Chunks RAG',
+      drawerDbStatus: 'Trạng thái',
+      drawerStatusOnline: '🟢 Vector DB Trực tuyến',
+      drawerStatusFallback: '🟢 RAG Sẵn sàng',
+      drawerDocEmpty: 'Chưa có tài liệu nào trong Vector DB.',
+      drawerDeleteConfirm: 'Bạn có chắc chắn muốn xóa tài liệu này khỏi Vector Database?',
+      drawerDeletedSuccess: 'Đã xóa tài liệu khỏi Vector Database!',
+      drawerBadgeBuiltin: 'Luật định',
+      drawerBadgeCustom: 'Người dùng',
+      drawerBtnView: 'Xem',
+      drawerBtnDelete: 'Xóa',
+      drawerBackToList: '← Quay lại danh sách',
+      drawerChunksTitle: 'Các phân đoạn (Chunks) trong Vector DB:',
       drawerEmpty: 'Chưa có văn bản OCR nào. Tải ảnh hoặc PDF scan để bắt đầu.',
       drawerPages: 'Trang',
       drawerTables: 'Bảng',
@@ -78,6 +106,14 @@
       ocrPromptPrefix: 'Thẩm định các điều khoản và bảng biểu sau đây được bóc tách từ tài liệu OCR:\n\n',
       thinkingProcessRunning: 'Quy trình tư duy tác tử...',
       thinkingProcessDone: 'Đã hoàn thành phân tích',
+      modeAuto: 'Tự động',
+      modeChat: 'Trò chuyện',
+      modeLegal: 'Tra cứu luật',
+      modeAudit: 'Thẩm định hồ sơ',
+      promptPlaceholderAuto: 'Hỏi bất cứ điều gì hoặc đính kèm tài liệu...',
+      promptPlaceholderChat: 'Trò chuyện bình thường với LexiGuard AI...',
+      promptPlaceholderLegal: 'Tra cứu quy định, nghị định, thông tư hoặc điều luật...',
+      promptPlaceholderAudit: 'Dán điều khoản hoặc tải tệp tài liệu để thẩm định rủi ro...',
     },
     en: {
       documentTitle: 'LexiGuard AI — Legal Assistant',
@@ -92,8 +128,13 @@
       systemOnline: 'Online',
       systemOffline: 'Offline',
       chatTitleDefault: 'New chat',
-      ocrBtn: 'OCR Docs',
+      ocrBtn: 'Add Documents',
+      docLibraryBtn: 'Add Documents',
       exportBtn: 'Export',
+      exportDocxBtn: 'Export DOCX',
+      downloadDocxTitle: 'Boardroom Word Report (.docx)',
+      downloadDocxDesc: 'Negotiation ready: 3-Tier Track-Changes & Precedents',
+      downloadDocxBtn: 'Download Word (.docx)',
       heroGreeting: 'How can I help you today?',
       promptPlaceholder: 'Ask anything or attach a contract...',
       disclaimer: 'LexiGuard can make mistakes. Please verify important legal clauses.',
@@ -109,7 +150,30 @@
       sendBtnTitle: 'Send (Enter)',
       stopBtnTitle: 'Stop generating',
       clearAllConfirm: 'Are you sure you want to clear all history?',
-      drawerTitle: 'OCR Document & Tables',
+      drawerTitle: 'RAG Document Library & Vector DB',
+      drawerUploadTitle: 'Add New Document to Vector DB',
+      drawerUploadHint: 'Drag & drop file (.pdf, .docx, .doc, .md, .txt) or click to browse',
+      drawerDocTitlePlaceholder: 'Document title (optional)...',
+      drawerUploadBtn: 'Index into Vector DB',
+      drawerUploading: 'Chunking & indexing into Vector DB...',
+      drawerUploadSuccess: 'Document successfully indexed into Vector DB for RAG!',
+      drawerUploadError: 'Failed to upload document',
+      drawerSearchPlaceholder: 'Filter documents...',
+      drawerCatalogTitle: 'Indexed Documents in Vector DB:',
+      drawerTotalDocs: 'Documents',
+      drawerTotalChunks: 'RAG Chunks',
+      drawerDbStatus: 'Status',
+      drawerStatusOnline: '🟢 Vector DB Online',
+      drawerStatusFallback: '🟢 RAG Ready',
+      drawerDocEmpty: 'No documents in Vector DB.',
+      drawerDeleteConfirm: 'Are you sure you want to delete this document from Vector Database?',
+      drawerDeletedSuccess: 'Document removed from Vector Database!',
+      drawerBadgeBuiltin: 'Statute',
+      drawerBadgeCustom: 'Custom',
+      drawerBtnView: 'View',
+      drawerBtnDelete: 'Delete',
+      drawerBackToList: '← Back to document list',
+      drawerChunksTitle: 'Indexed Chunks in Vector DB:',
       drawerEmpty: 'No OCR document yet. Upload an image or scanned PDF to start.',
       drawerPages: 'Pages',
       drawerTables: 'Tables',
@@ -135,6 +199,14 @@
       ocrPromptPrefix: 'Audit the following clauses and financial tables extracted from OCR:\n\n',
       thinkingProcessRunning: 'Agent reasoning process...',
       thinkingProcessDone: 'Analysis completed',
+      modeAuto: 'Auto',
+      modeChat: 'Chat',
+      modeLegal: 'Legal Search',
+      modeAudit: 'Audit Doc',
+      promptPlaceholderAuto: 'Ask anything or attach a contract...',
+      promptPlaceholderChat: 'Chat casually with LexiGuard AI...',
+      promptPlaceholderLegal: 'Search statutes, decrees, or penalty caps...',
+      promptPlaceholderAudit: 'Paste clauses or upload a document to audit...',
     },
   };
 
@@ -169,6 +241,7 @@
     sessions: [],
     currentSessionId: null,
     attachedFile: null,
+    chatMode: 'auto',
     isGenerating: false,
     activeController: null,
     ocrVault: [],
@@ -197,6 +270,7 @@
     currentChatTitle: document.getElementById('current-chat-title'),
     openDrawerBtn: document.getElementById('open-drawer-btn'),
     exportChatBtn: document.getElementById('export-chat-btn'),
+    exportDocxTopBtn: document.getElementById('export-docx-top-btn'),
     langToggleBtn: document.getElementById('lang-toggle-btn'),
     langViCode: document.getElementById('lang-vi-code'),
     langEnCode: document.getElementById('lang-en-code'),
@@ -212,12 +286,13 @@
     ocrUploadInput: document.getElementById('ocr-upload-input'),
     attachFileBtn: document.getElementById('attach-file-btn'),
     ocrBtn: document.getElementById('ocr-btn'),
+    modePills: document.querySelectorAll('.mode-pill'),
     promptInput: document.getElementById('prompt-input'),
     sendBtn: document.getElementById('send-btn'),
     sendIcon: document.getElementById('send-icon'),
     stopIcon: document.getElementById('stop-icon'),
 
-    // OCR Drawer
+    // OCR & RAG Drawer
     drawerOverlay: document.getElementById('drawer-overlay'),
     documentDrawer: document.getElementById('document-drawer'),
     drawerCloseBtn: document.getElementById('drawer-close-btn'),
@@ -228,6 +303,27 @@
     drawerMarkdownPreview: document.getElementById('drawer-markdown-preview'),
     copyOcrTextBtn: document.getElementById('copy-ocr-text-btn'),
     sendOcrToChatBtn: document.getElementById('send-ocr-to-chat-btn'),
+
+    // Vector DB / RAG elements
+    vectordbDocCount: document.getElementById('vectordb-doc-count'),
+    vectordbChunkCount: document.getElementById('vectordb-chunk-count'),
+    vectordbStatusBadge: document.getElementById('vectordb-status-badge'),
+    ragFileInput: document.getElementById('rag-file-input'),
+    ragDropzone: document.getElementById('rag-dropzone'),
+    ragDropzoneLabel: document.getElementById('rag-dropzone-label'),
+    ragSelectedFile: document.getElementById('rag-selected-file'),
+    ragUploadForm: document.getElementById('rag-upload-form'),
+    ragDocTitleInput: document.getElementById('rag-doc-title-input'),
+    ragSubmitUploadBtn: document.getElementById('rag-submit-upload-btn'),
+    ragUploadBtnText: document.getElementById('rag-upload-btn-text'),
+    ragUploadSpinner: document.getElementById('rag-upload-spinner'),
+    ragAlertBox: document.getElementById('rag-alert-box'),
+    ragDocList: document.getElementById('rag-doc-list'),
+    ragSearchInput: document.getElementById('rag-search-input'),
+    ragChunksView: document.getElementById('rag-chunks-view'),
+    ragChunksList: document.getElementById('rag-chunks-list'),
+    ragChunkDocTitle: document.getElementById('rag-chunk-doc-title'),
+    ragBackToListBtn: document.getElementById('rag-back-to-list-btn'),
   };
 
   // =========================================================================
@@ -293,7 +389,7 @@
 
     // Update Placeholders & Tooltips
     if (dom.promptInput) {
-      dom.promptInput.placeholder = t('promptPlaceholder');
+      updatePromptPlaceholder();
     }
     if (dom.sessionSearchInput) {
       dom.sessionSearchInput.placeholder = t('searchPlaceholder');
@@ -613,7 +709,11 @@
     if (msg.role === 'user') {
       bubble.textContent = msg.content;
     } else {
-      bubble.innerHTML = renderMarkdown(msg.content);
+      if (msg.auditReport) {
+        renderAuditReportIntoBubble(msg.auditReport, bubble, wrapper);
+      } else {
+        bubble.innerHTML = renderMarkdown(msg.content);
+      }
     }
     wrapper.appendChild(bubble);
 
@@ -784,6 +884,20 @@
   }
 
   // =========================================================================
+  function updatePromptPlaceholder() {
+    if (!dom.promptInput) return;
+    if (state.chatMode === 'chat') {
+      dom.promptInput.placeholder = t('promptPlaceholderChat');
+    } else if (state.chatMode === 'legal') {
+      dom.promptInput.placeholder = t('promptPlaceholderLegal');
+    } else if (state.chatMode === 'audit') {
+      dom.promptInput.placeholder = t('promptPlaceholderAudit');
+    } else {
+      dom.promptInput.placeholder = t('promptPlaceholderAuto');
+    }
+  }
+
+  // =========================================================================
   // SEND MESSAGE & SSE STREAM CONTROLLER
   // =========================================================================
   async function sendMessage() {
@@ -824,6 +938,7 @@
     setGeneratingState(true);
 
     const thinkingSteps = [];
+    let liveAccordion = null; // Lazy instantiation: only create if step events actually arrive
     const assistantMsg = {
       role: 'assistant',
       content: '',
@@ -836,15 +951,12 @@
     const bubbleEl = domRef.bubble;
     const wrapperEl = domRef.wrapper;
 
-    const liveAccordion = createThinkingAccordionElement(thinkingSteps, true);
-    liveAccordion.classList.add('open');
-    wrapperEl.insertBefore(liveAccordion, bubbleEl);
-
     const formData = new FormData();
     if (text) formData.append('message', text);
     if (session.id) formData.append('session_id', session.id);
     if (file) formData.append('file', file);
     formData.append('lang', state.lang);
+    formData.append('mode', state.chatMode || 'auto');
 
     state.activeController = new AbortController();
 
@@ -889,6 +1001,13 @@
                 message: stepMsg,
               });
 
+              // Lazily create and inject the thinking accordion on the first step event
+              if (!liveAccordion) {
+                liveAccordion = createThinkingAccordionElement(thinkingSteps, true);
+                liveAccordion.classList.add('open');
+                wrapperEl.insertBefore(liveAccordion, bubbleEl);
+              }
+
               const stepsCont = liveAccordion.querySelector('.thinking-steps');
               if (stepsCont) {
                 const item = document.createElement('div');
@@ -923,8 +1042,10 @@
             } else if (data.type === 'audit_completed') {
               const rep = data.report;
               if (rep) {
+                assistantMsg.auditReport = rep;
                 renderAuditReportIntoBubble(rep, bubbleEl, wrapperEl);
                 assistantMsg.content = bubbleEl.innerText;
+                saveSessions();
               } else {
                 bubbleEl.innerHTML = `<p>${data.message || 'Audit completed.'}</p>`;
               }
@@ -938,14 +1059,16 @@
         }
       }
 
-      // Finish thinking accordion
-      const titleText = liveAccordion.querySelector('.thinking-title-text');
-      const spinner = liveAccordion.querySelector('.thinking-spinner');
-      if (spinner) spinner.remove();
-      if (titleText) {
-        titleText.textContent = `${t('thinkingProcessDone')} (${thinkingSteps.length})`;
+      // Finish thinking accordion if one was created
+      if (liveAccordion) {
+        const titleText = liveAccordion.querySelector('.thinking-title-text');
+        const spinner = liveAccordion.querySelector('.thinking-spinner');
+        if (spinner) spinner.remove();
+        if (titleText) {
+          titleText.textContent = `${t('thinkingProcessDone')} (${thinkingSteps.length})`;
+        }
+        liveAccordion.classList.remove('open');
       }
-      liveAccordion.classList.remove('open');
 
       session.messages.push(assistantMsg);
       saveSessions();
@@ -962,6 +1085,45 @@
     }
   }
 
+  
+  async function downloadAuditDocx(rep, contractTitle, btnElement) {
+    if (!rep) return;
+    const title = contractTitle || (state.lang === 'vi' ? 'Báo cáo Thẩm định Hợp đồng' : 'Contract Audit Report');
+    const origBtnHtml = btnElement ? btnElement.innerHTML : '';
+    if (btnElement) {
+      btnElement.disabled = true;
+      btnElement.innerHTML = `<span>⏳ ${state.lang === 'vi' ? 'Đang tạo file Word...' : 'Generating Word...'}</span>`;
+    }
+    try {
+      const res = await fetch('/api/v1/audit/export-docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ report: rep, contract_title: title })
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.download = `LexiGuard_Bao_Cao_Tham_Dinh_${dateStr}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert((state.lang === 'vi' ? 'Lỗi khi tải file Word: ' : 'Error downloading Word report: ') + err.message);
+    } finally {
+      if (btnElement) {
+        btnElement.disabled = false;
+        btnElement.innerHTML = origBtnHtml;
+      }
+    }
+  }
+
   function renderAuditReportIntoBubble(rep, bubbleEl, wrapperEl) {
     let html = '';
     const findings = rep.findings || rep.vulnerabilities || [];
@@ -975,6 +1137,34 @@
 
     const scoreClass = score >= 80 ? 'green' : score >= 60 ? 'yellow' : 'red';
     const summary = rep.tand_viac_summary || rep.executive_summary || '';
+
+    const currSession = getCurrentSession();
+    if (currSession) {
+      currSession.lastAuditReport = rep;
+      saveSessions();
+    }
+    if (dom.exportDocxTopBtn) {
+      dom.exportDocxTopBtn.style.display = 'inline-flex';
+    }
+
+    // 0. Boardroom DOCX Download Action Bar
+    html += `
+      <div class="audit-export-action-box">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.6rem;">📄</span>
+          <div>
+            <div class="export-info-title">${t('downloadDocxTitle')}</div>
+            <div class="export-info-desc">${t('downloadDocxDesc')}</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-download-docx-bubble" title="Tải Báo cáo Word (.docx)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>${t('downloadDocxBtn')}</span>
+        </button>
+      </div>
+    `;
 
     // 1. Health Score Card
     html += `
@@ -1053,25 +1243,79 @@
       `;
     }
 
-    // 4. Redline Recommendations
+    // 4. 3-Tier Redline Recommendations & Precedent Guidance
     const redlines = rep.redline_recommendations || [];
     if (redlines.length > 0) {
       html += `<h3 style="margin-top: 24px; margin-bottom: 12px;">${t('redlineTitle')}</h3>`;
-      redlines.forEach((r) => {
+      redlines.forEach((r, rIdx) => {
+        const strictText = r.strict_revision || r.suggested_revision || '';
+        const balancedText = r.balanced_revision || r.suggested_revision || '';
+        const flexibleText = r.flexible_revision || r.suggested_revision || '';
+        const precBadge = r.precedent_reference
+          ? `<div style="font-size: 0.76rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 4px; padding: 2px 8px;">🏛️ ${escapeHtml(r.precedent_reference)}</div>`
+          : '';
+
         html += `
-          <div style="margin: 14px 0;">
-            <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent-cyan); margin-bottom: 6px;">${escapeHtml(r.clause_id || 'Redline')}</div>
+          <div class="redline-card" data-redline-idx="${rIdx}" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin: 14px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <span style="font-weight: 600; font-size: 0.9rem; color: var(--accent-cyan);">${escapeHtml(r.clause_id || 'Redline')}</span>
+              ${precBadge}
+            </div>
+
+            <!-- 3-Tier Tactical Posture Selector Pills -->
+            <div class="redline-tier-tabs" style="display: flex; gap: 6px; margin-bottom: 10px;">
+              <button type="button" class="redline-tier-pill" data-tier="strict" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); color: var(--accent-rose); cursor: pointer; transition: all 0.2s;">
+                🛡️ ${state.lang === 'vi' ? 'Khắt khe (Bảo vệ)' : 'Strict (Protective)'}
+              </button>
+              <button type="button" class="redline-tier-pill active" data-tier="balanced" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.6); background: rgba(16, 185, 129, 0.25); color: var(--accent-emerald); font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                ⚖️ ${state.lang === 'vi' ? 'Cân bằng (Chuẩn)' : 'Balanced (Standard)'}
+              </button>
+              <button type="button" class="redline-tier-pill" data-tier="flexible" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); cursor: pointer; transition: all 0.2s;">
+                🤝 ${state.lang === 'vi' ? 'Mềm dẻo (Thương mại)' : 'Flexible (Deal)'}
+              </button>
+            </div>
+
             <div class="diff-container">
               <div class="diff-line deletion">- ${escapeHtml(r.original_text || (state.lang === 'vi' ? 'Điều khoản gốc' : 'Original text'))}</div>
-              <div class="diff-line addition">+ ${escapeHtml(r.suggested_revision || r.proposed_redline || '')}</div>
+              <div class="diff-line addition redline-text-display" data-strict="${escapeHtml(strictText)}" data-balanced="${escapeHtml(balancedText)}" data-flexible="${escapeHtml(flexibleText)}">+ ${escapeHtml(balancedText)}</div>
             </div>
-            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;"><strong>${state.lang === 'vi' ? 'Lý do sửa đổi:' : 'Rationale:'}</strong> ${escapeHtml(r.rationale)}</p>` : ''}
+            ${r.rationale ? `<p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;"><strong>${state.lang === 'vi' ? 'Luận cứ đàm phán:' : 'Negotiation rationale:'}</strong> ${escapeHtml(r.rationale)}</p>` : ''}
           </div>
         `;
       });
     }
 
     bubbleEl.innerHTML = html;
+
+    const btnDocx = bubbleEl.querySelector('.btn-download-docx-bubble');
+    if (btnDocx) {
+      btnDocx.addEventListener('click', () => {
+        const s = getCurrentSession();
+        const title = s ? s.title : 'Báo cáo Thẩm định Hợp đồng';
+        downloadAuditDocx(rep, title, btnDocx);
+      });
+    }
+
+    // Attach dynamic 3-Tier tab switching
+    bubbleEl.querySelectorAll('.redline-tier-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const card = pill.closest('.redline-card');
+        if (!card) return;
+        const tier = pill.getAttribute('data-tier');
+        const textDisplay = card.querySelector('.redline-text-display');
+        if (!textDisplay) return;
+
+        card.querySelectorAll('.redline-tier-pill').forEach((p) => {
+          p.classList.remove('active');
+          p.style.fontWeight = 'normal';
+        });
+        pill.classList.add('active');
+        pill.style.fontWeight = '600';
+
+        const newText = textDisplay.getAttribute(`data-${tier}`) || '';
+        textDisplay.textContent = `+ ${newText}`;
+      });
+    });
   }
 
   function stopGenerating() {
@@ -1191,6 +1435,7 @@
     if (dom.drawerOverlay && dom.documentDrawer) {
       dom.drawerOverlay.classList.add('open');
       dom.documentDrawer.classList.add('open');
+      loadVectorDbInfo();
     }
   }
 
@@ -1198,6 +1443,244 @@
     if (dom.drawerOverlay && dom.documentDrawer) {
       dom.drawerOverlay.classList.remove('open');
       dom.documentDrawer.classList.remove('open');
+    }
+  }
+
+  // =========================================================================
+  // VECTOR DATABASE & RAG DOCUMENT MANAGEMENT
+  // =========================================================================
+  async function loadVectorDbInfo() {
+    try {
+      const res = await fetch('/api/v1/vectordb/info');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (dom.vectordbDocCount) dom.vectordbDocCount.textContent = data.total_documents || 0;
+      if (dom.vectordbChunkCount) dom.vectordbChunkCount.textContent = (data.total_chunks || 0).toLocaleString();
+      if (dom.vectordbStatusBadge) {
+        if (data.qdrant_online) {
+          dom.vectordbStatusBadge.textContent = t('drawerStatusOnline');
+          dom.vectordbStatusBadge.style.color = 'var(--accent-emerald)';
+        } else {
+          dom.vectordbStatusBadge.textContent = t('drawerStatusFallback');
+          dom.vectordbStatusBadge.style.color = '#38bdf8';
+        }
+      }
+
+      state.vectorDocs = data.documents || [];
+      renderVectorDocuments(dom.ragSearchInput ? dom.ragSearchInput.value : '');
+    } catch (err) {
+      console.warn('Could not load vectordb info:', err);
+      if (dom.ragDocList) {
+        dom.ragDocList.innerHTML = `<div class="vault-empty-hint" style="color: var(--accent-rose);">${escapeHtml(err.message)}</div>`;
+      }
+    }
+  }
+
+  function renderVectorDocuments(filterText = '') {
+    if (!dom.ragDocList) return;
+    const query = (filterText || '').toLowerCase().trim();
+    let docs = state.vectorDocs || [];
+
+    if (query) {
+      docs = docs.filter(d => 
+        (d.title || '').toLowerCase().includes(query) || 
+        (d.code || '').toLowerCase().includes(query) ||
+        (d.id || '').toLowerCase().includes(query)
+      );
+    }
+
+    if (docs.length === 0) {
+      dom.ragDocList.innerHTML = `<div class="vault-empty-hint" style="padding: 24px 10px;">${t('drawerDocEmpty')}</div>`;
+      return;
+    }
+
+    dom.ragDocList.innerHTML = '';
+    docs.forEach(doc => {
+      const card = document.createElement('div');
+      card.className = 'rag-doc-card';
+      const isCustom = !doc.is_builtin;
+
+      const badgeTypeClass = isCustom ? 'rag-badge-custom' : 'rag-badge-builtin';
+      const badgeTypeText = isCustom ? t('drawerBadgeCustom') : t('drawerBadgeBuiltin');
+
+      card.innerHTML = `
+        <div class="rag-doc-top">
+          <div class="rag-doc-title-wrapper">
+            <svg class="rag-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <div>
+              <div class="rag-doc-title">${escapeHtml(doc.title || doc.id)}</div>
+              <div class="rag-doc-badges" style="margin-top: 4px;">
+                <span class="rag-badge ${badgeTypeClass}">${badgeTypeText}</span>
+                <span class="rag-badge rag-badge-chunks">${doc.chunk_count || 0} chunks</span>
+                ${doc.code ? `<span class="rag-badge rag-badge-chunks">${escapeHtml(doc.code)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rag-doc-bottom">
+          <div class="rag-doc-date">${escapeHtml(doc.created_at || '')}</div>
+          <div class="rag-doc-actions">
+            <button class="rag-btn-view" data-doc-id="${escapeHtml(doc.id)}" title="${t('drawerBtnView')}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px;">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>${t('drawerBtnView')}</span>
+            </button>
+            ${isCustom ? `
+              <button class="rag-btn-delete" data-doc-id="${escapeHtml(doc.id)}" title="${t('drawerBtnDelete')}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px;">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                <span>${t('drawerBtnDelete')}</span>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      // Event listener for View
+      const viewBtn = card.querySelector('.rag-btn-view');
+      if (viewBtn) {
+        viewBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showDocumentChunks(doc.id, doc.title || doc.id);
+        });
+      }
+
+      // Event listener for Delete
+      if (isCustom) {
+        const delBtn = card.querySelector('.rag-btn-delete');
+        if (delBtn) {
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteVectorDocument(doc.id, doc.title || doc.id);
+          });
+        }
+      }
+
+      dom.ragDocList.appendChild(card);
+    });
+  }
+
+  async function showDocumentChunks(docId, docTitle) {
+    if (!dom.ragChunksView || !dom.ragDocList) return;
+    dom.ragDocList.style.display = 'none';
+    dom.ragChunksView.style.display = 'flex';
+    if (dom.ragChunkDocTitle) dom.ragChunkDocTitle.textContent = docTitle;
+    if (dom.ragChunksList) {
+      dom.ragChunksList.innerHTML = `
+        <div style="display: flex; justify-content: center; padding: 30px;">
+          <div class="thinking-spinner" style="width: 22px; height: 22px; border-width: 2px;"></div>
+        </div>
+      `;
+    }
+
+    try {
+      const res = await fetch(`/api/v1/vectordb/chunks?doc_id=${encodeURIComponent(docId)}&limit=60`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const chunks = data.chunks || [];
+
+      if (chunks.length === 0) {
+        dom.ragChunksList.innerHTML = `<div class="vault-empty-hint">${t('drawerDocEmpty')}</div>`;
+        return;
+      }
+
+      dom.ragChunksList.innerHTML = '';
+      chunks.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'rag-chunk-card';
+        item.innerHTML = `
+          <div class="rag-chunk-citation">📌 ${escapeHtml(c.canonical_citation || c.chunk_id)}</div>
+          <div class="rag-chunk-text">${escapeHtml(c.content_preview || '')}</div>
+        `;
+        dom.ragChunksList.appendChild(item);
+      });
+    } catch (err) {
+      if (dom.ragChunksList) {
+        dom.ragChunksList.innerHTML = `<div class="vault-empty-hint" style="color: var(--accent-rose);">${escapeHtml(err.message)}</div>`;
+      }
+    }
+  }
+
+  async function deleteVectorDocument(docId, docTitle) {
+    if (!confirm(t('drawerDeleteConfirm'))) return;
+
+    try {
+      const res = await fetch(`/api/v1/vectordb/documents/${encodeURIComponent(docId)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      showRagAlert(data.message || t('drawerDeletedSuccess'), 'success');
+      await loadVectorDbInfo();
+    } catch (err) {
+      showRagAlert(`${t('drawerUploadError')}: ${err.message}`, 'error');
+    }
+  }
+
+  function showRagAlert(msg, type = 'success') {
+    if (!dom.ragAlertBox) return;
+    dom.ragAlertBox.textContent = msg;
+    dom.ragAlertBox.className = `rag-alert-box rag-alert-${type}`;
+    dom.ragAlertBox.style.display = 'flex';
+    setTimeout(() => {
+      if (dom.ragAlertBox) dom.ragAlertBox.style.display = 'none';
+    }, 5000);
+  }
+
+  async function handleRagUploadSubmit() {
+    if (!state.selectedRagFile) return;
+
+    if (dom.ragSubmitUploadBtn) dom.ragSubmitUploadBtn.disabled = true;
+    if (dom.ragUploadSpinner) dom.ragUploadSpinner.style.display = 'inline-block';
+    if (dom.ragUploadBtnText) dom.ragUploadBtnText.textContent = t('drawerUploading');
+
+    const formData = new FormData();
+    formData.append('file', state.selectedRagFile);
+    const customTitle = dom.ragDocTitleInput ? dom.ragDocTitleInput.value.trim() : '';
+    if (customTitle) {
+      formData.append('doc_title', customTitle);
+    }
+
+    try {
+      const res = await fetch('/api/v1/vectordb/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      showRagAlert(data.message || t('drawerUploadSuccess'), 'success');
+
+      // Reset form
+      state.selectedRagFile = null;
+      if (dom.ragFileInput) dom.ragFileInput.value = '';
+      if (dom.ragDocTitleInput) dom.ragDocTitleInput.value = '';
+      if (dom.ragSelectedFile) {
+        dom.ragSelectedFile.textContent = '';
+        dom.ragSelectedFile.style.display = 'none';
+      }
+      if (dom.ragUploadForm) dom.ragUploadForm.style.display = 'none';
+      if (dom.ragDropzoneLabel) dom.ragDropzoneLabel.style.display = 'block';
+
+      // Refresh list
+      await loadVectorDbInfo();
+    } catch (err) {
+      showRagAlert(`${t('drawerUploadError')}: ${err.message}`, 'error');
+    } finally {
+      if (dom.ragSubmitUploadBtn) dom.ragSubmitUploadBtn.disabled = false;
+      if (dom.ragUploadSpinner) dom.ragUploadSpinner.style.display = 'none';
+      if (dom.ragUploadBtnText) dom.ragUploadBtnText.textContent = t('drawerUploadBtn');
     }
   }
 
@@ -1314,6 +1797,19 @@
       });
     }
 
+    // Mode selector pills
+    const modePills = document.querySelectorAll('.mode-pill');
+    if (modePills && modePills.length > 0) {
+      modePills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+          const selectedMode = pill.getAttribute('data-mode') || 'auto';
+          state.chatMode = selectedMode;
+          modePills.forEach((p) => p.classList.toggle('active', p === pill));
+          updatePromptPlaceholder();
+        });
+      });
+    }
+
     // New Chat
     if (dom.newChatBtn) {
       dom.newChatBtn.addEventListener('click', () => createNewSession(true));
@@ -1361,6 +1857,16 @@
     // Export Chat
     if (dom.exportChatBtn) {
       dom.exportChatBtn.addEventListener('click', exportChatToMarkdown);
+    }
+    if (dom.exportDocxTopBtn) {
+      dom.exportDocxTopBtn.addEventListener('click', () => {
+        const s = getCurrentSession();
+        if (s && s.lastAuditReport) {
+          downloadAuditDocx(s.lastAuditReport, s.title, dom.exportDocxTopBtn);
+        } else {
+          alert(state.lang === 'vi' ? 'Chưa có báo cáo thẩm định trong hội thoại này.' : 'No audit report found in this conversation.');
+        }
+      });
     }
 
     // Search Sessions
@@ -1429,6 +1935,61 @@
 
     if (dom.openDrawerBtn) {
       dom.openDrawerBtn.addEventListener('click', openDrawer);
+    }
+
+    // RAG Drawer dropzone & file input
+    if (dom.ragDropzone && dom.ragFileInput) {
+      dom.ragDropzone.addEventListener('click', () => dom.ragFileInput.click());
+      dom.ragDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dom.ragDropzone.classList.add('dragover');
+      });
+      dom.ragDropzone.addEventListener('dragleave', () => {
+        dom.ragDropzone.classList.remove('dragover');
+      });
+      dom.ragDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dom.ragDropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          onRagFileSelected(e.dataTransfer.files[0]);
+        }
+      });
+
+      dom.ragFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          onRagFileSelected(e.target.files[0]);
+        }
+      });
+    }
+
+    function onRagFileSelected(file) {
+      state.selectedRagFile = file;
+      if (dom.ragSelectedFile) {
+        dom.ragSelectedFile.textContent = `📄 ${file.name} (${formatFileSize(file.size)})`;
+        dom.ragSelectedFile.style.display = 'inline-flex';
+      }
+      if (dom.ragDropzoneLabel) dom.ragDropzoneLabel.style.display = 'none';
+      if (dom.ragUploadForm) dom.ragUploadForm.style.display = 'flex';
+      if (dom.ragDocTitleInput && !dom.ragDocTitleInput.value) {
+        dom.ragDocTitleInput.value = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      }
+    }
+
+    if (dom.ragSubmitUploadBtn) {
+      dom.ragSubmitUploadBtn.addEventListener('click', handleRagUploadSubmit);
+    }
+
+    if (dom.ragSearchInput) {
+      dom.ragSearchInput.addEventListener('input', (e) => {
+        renderVectorDocuments(e.target.value);
+      });
+    }
+
+    if (dom.ragBackToListBtn) {
+      dom.ragBackToListBtn.addEventListener('click', () => {
+        if (dom.ragChunksView) dom.ragChunksView.style.display = 'none';
+        if (dom.ragDocList) dom.ragDocList.style.display = 'flex';
+      });
     }
     if (dom.drawerCloseBtn) {
       dom.drawerCloseBtn.addEventListener('click', closeDrawer);

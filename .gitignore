@@ -38,4 +38,4 @@ scratch/
 # Benchmark raw datasets (downloadable via scripts)
 data/vlegal_bench/
 data/alqac/
-
+references/

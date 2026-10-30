@@ -171,6 +171,27 @@ class LegalGrounding(BaseModel):
     )
 
 
+class Redline3Tier(BaseModel):
+    """
+    3-Tier Tactical Redline Formulations for Vietnamese Contract Negotiations:
+    - strict_protective: Maximizes client defense, minimal counterparty exposure (e.g. 0% penalty, broad exclusion).
+    - balanced_standard: Market-standard fair allocation under Vietnamese law & practice (e.g. statutory 8% cap, 30 days cure period).
+    - flexible_commercial: Commercial compromise prioritizing deal velocity with conditional safeguards.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    strict_protective: Optional[str] = Field(
+        default=None, description="Phương án Khắt khe (Bảo vệ tối đa thân chủ)"
+    )
+    balanced_standard: Optional[str] = Field(
+        default=None, description="Phương án Cân bằng (Chuẩn mực thị trường theo luật định)"
+    )
+    flexible_commercial: Optional[str] = Field(
+        default=None, description="Phương án Mềm dẻo (Nhượng bộ thương mại có điều kiện)"
+    )
+
+
 class VulnerabilityItem(BaseModel):
     """
     Standardized contract vulnerability report item incorporating TAND/VIAC dispute risk.
@@ -197,6 +218,9 @@ class VulnerabilityItem(BaseModel):
     audit_verdict: str = Field(description="Detailed analysis of the conflict with applicable law")
     proposed_redline: Optional[str] = Field(
         default=None, description="Legally compliant replacement wording"
+    )
+    redlines: Optional[Redline3Tier] = Field(
+        default=None, description="3-Tier tactical redline formulations (Strict, Balanced, Flexible)"
     )
     negotiation_rationale: Optional[str] = Field(
         default=None, description="Negotiation rationale for the proposed change"
@@ -299,6 +323,9 @@ class AuditFindingItem(BaseModel):
     )
     proposed_redline: Optional[str] = Field(
         default=None, description="Legally compliant, balanced replacement wording"
+    )
+    redlines: Optional[Redline3Tier] = Field(
+        default=None, description="3-Tier tactical redline formulations (Strict, Balanced, Flexible)"
     )
     negotiation_rationale: Optional[str] = Field(
         default=None, description="Basis and negotiation rationale for the counterparty"

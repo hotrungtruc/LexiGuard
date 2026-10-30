@@ -37,6 +37,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from src.core.legal_norm import canonical_law_slug
 from src.retrieval.entity_extractor import LegalEntityExtractor
+from src.retrieval.legal_hyde_expander import LegalQueryExpander, LegalHyDEGenerator
 
 # ============================================================================
 # 1. DATA STRUCTURES
@@ -418,6 +419,8 @@ class LexiGuardFullRetriever:
         self.qdrant = qdrant
         self.extractor = LegalEntityExtractor()
         self.reranker = reranker
+        self.expander = LegalQueryExpander()
+        self.hyde_gen = LegalHyDEGenerator()
 
     def search(
         self,
@@ -471,6 +474,45 @@ class LexiGuardFullRetriever:
 
         boosted.sort(key=lambda x: x[0], reverse=True)
         return boosted[:top_k]
+
+    def search_hyde_expanded(
+        self,
+        query: str,
+        top_k: int = 20,
+        use_hyde_llm: bool = False,
+    ) -> List[Tuple[float, BenchmarkArticle]]:
+        """
+        Phase 2 Tri-Fusion Retrieval:
+        1. Query Expander: Injects legislative synonyms into BM25 query.
+        2. Original Dense: Standard semantic vector search on query.
+        3. HyDE Dense: Embeds hypothetical statutory clause to match statutory manifold.
+        4. RRF Tri-Fusion: Merges all 3 ranked lists + Entity Boost.
+        """
+        # Step 1: Expanded BM25
+        expanded_query = self.expander.expand_query(query)
+        bm25_res = self.bm25.search(expanded_query, top_k=max(top_k * 3, 60))
+
+        # Step 2: Dense Original
+        if self.qdrant is not None:
+            dense_orig = self.qdrant.search(query, top_k=max(top_k * 3, 60))
+            # Step 3: Dense HyDE
+            if use_hyde_llm:
+                hyde_clause = self.hyde_gen.generate_hypothetical_statute(query)
+            else:
+                hyde_clause = self.hyde_gen.generate_rule_based_hypothetical_statute(query)
+            dense_hyde = self.qdrant.search(hyde_clause, top_k=max(top_k * 3, 60))
+
+            # Step 4: Tri-Fusion RRF
+            tri_fused = reciprocal_rank_fusion(
+                [bm25_res, dense_orig, dense_hyde],
+                weights=[1.2, 1.0, 0.9],
+                top_k=max(top_k * 2, 40),
+            )
+        else:
+            tri_fused = bm25_res
+
+        # Step 5: Entity-aware citation & law boosting
+        return self.search_entity_aware(query, top_k=top_k, base_hybrid=tri_fused)
 
     def search_two_stage_rerank(
         self,

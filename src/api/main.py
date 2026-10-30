@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from src.api.routes import audit, chat, health, ocr
+from src.api.routes import audit, chat, health, ocr, vectordb
 from src.core.config import async_connection_manager
 from src.core.logging import setup_logging
 
@@ -53,11 +53,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def add_no_cache_for_static(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/app"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # Include Routers
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(audit.router, prefix="/api/v1", tags=["Audit"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["OCR"])
+app.include_router(vectordb.router, prefix="/api/v1", tags=["VectorDB"])
 
 # Mount Web AI Interface
 web_dir = Path(__file__).resolve().parent.parent / "ui" / "web"

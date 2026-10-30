@@ -20,6 +20,7 @@ from src.agents.state import (
     ExtractedClauseItem,
     HallucinationGrade,
     LegalGrounding,
+    Redline3Tier,
     VulnerabilityCategory,
     VulnerabilityItem,
 )
@@ -205,3 +206,18 @@ def test_agent_state_typeddict_compatibility():
     assert state["raw_document_path"] == "contract.pdf"
     assert state["contract_metadata"]["governing_law"] == "Việt Nam"
     assert state["retry_count"] == 0
+
+
+def test_3tier_redline_structure_and_serialization():
+    """Verify Redline3Tier accommodates Strict, Balanced, and Flexible tactical redlines."""
+    r3 = Redline3Tier(
+        strict_protective="Loại bỏ toàn bộ điều khoản phạt vi phạm đối với thân chủ.",
+        balanced_standard="Điều chỉnh mức phạt vi phạm về đúng trần tối đa 8% theo Điều 301 Luật Thương mại.",
+        flexible_commercial="Áp dụng mức phạt 8% kèm thời hạn khắc phục 30 ngày trước khi tính phạt.",
+    )
+
+    dumped = r3.model_dump()
+    assert "strict_protective" in dumped
+    assert "balanced_standard" in dumped
+    assert "flexible_commercial" in dumped
+    assert "8%" in dumped["balanced_standard"]

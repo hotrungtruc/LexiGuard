@@ -150,25 +150,94 @@ _OFFLINE_CHUNKS_CACHE: Optional[List[Dict[str, Any]]] = None
 _OFFLINE_GRAPHS_CACHE: Optional[Dict[str, Dict[str, Any]]] = None
 
 
+def _load_custom_chunks() -> List[Dict[str, Any]]:
+    """Loads all custom uploaded document chunks from data/custom_vectors/."""
+    custom_chunks: List[Dict[str, Any]] = []
+    custom_dir = Path("data/custom_vectors")
+    if custom_dir.exists():
+        for fpath in custom_dir.glob("*.json"):
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    doc_data = json.load(f)
+                    chunks = doc_data.get("chunks", [])
+                    custom_chunks.extend(chunks)
+            except Exception as exc:
+                logger.warning(f"Error reading custom vector file {fpath}: {exc}")
+    return custom_chunks
+
+
+def reset_retriever_cache():
+    """Invalidates chunks and BM25 index caches when new documents are added or removed."""
+    global _OFFLINE_CHUNKS_CACHE, _BM25_RETRIEVER_INSTANCE
+    _OFFLINE_CHUNKS_CACHE = None
+    _BM25_RETRIEVER_INSTANCE = None
+    logger.info("Retriever cache invalidated. Will reload statutory + custom chunks on next search.")
+
+
 def _get_offline_chunks() -> List[Dict[str, Any]]:
-    """Loads standardized statutory chunks from data/extracted_laws/ for fallback."""
+    """Loads standardized statutory chunks and all custom uploaded chunks for RAG."""
     global _OFFLINE_CHUNKS_CACHE
     if _OFFLINE_CHUNKS_CACHE is not None:
         return _OFFLINE_CHUNKS_CACHE
 
+    all_chunks: List[Dict[str, Any]] = []
     combined_file = Path("data/extracted_laws/combined_qdrant_chunks.json")
     if combined_file.exists():
         try:
             with open(combined_file, "r", encoding="utf-8") as f:
-                _OFFLINE_CHUNKS_CACHE = json.load(f)
+                statutory_chunks = json.load(f)
+                all_chunks.extend(statutory_chunks)
                 logger.info(
-                    f"Loaded {len(_OFFLINE_CHUNKS_CACHE)} offline legal chunks from {combined_file}"
+                    f"Loaded {len(statutory_chunks)} statutory chunks from {combined_file}"
                 )
-                return _OFFLINE_CHUNKS_CACHE
         except Exception as e:
             logger.warning(f"Failed to load {combined_file}: {e}")
 
-    _OFFLINE_CHUNKS_CACHE = []
+    # Load full statutory corpus from ALQAC 2025 (3,363 articles across 28 statutes)
+    alqac_law_file = Path("data/alqac/ALQAC_2025/law.json")
+    if alqac_law_file.exists():
+        try:
+            with open(alqac_law_file, "r", encoding="utf-8") as f:
+                alqac_laws = json.load(f)
+            existing_keys = {
+                (c.get("law_id"), str(c.get("article_num"))) for c in all_chunks
+            }
+            loaded_count = 0
+            for law in alqac_laws:
+                law_title = law.get("id", "Văn bản pháp luật")
+                for art in law.get("articles", []):
+                    art_id = str(art.get("id", "")).strip()
+                    if (law_title, art_id) in existing_keys:
+                        continue
+                    existing_keys.add((law_title, art_id))
+                    art_text = art.get("text", "").strip()
+                    first_line = art_text.splitlines()[0] if art_text else ""
+                    art_title = first_line.split(".", 1)[-1].strip() if "." in first_line else f"Điều {art_id}"
+                    
+                    chunk = {
+                        "chunk_id": f"{law_title}_D{art_id}",
+                        "law_id": law_title,
+                        "law_title": law_title,
+                        "article_num": int(art_id) if art_id.isdigit() else None,
+                        "article_title": art_title,
+                        "content": art_text,
+                        "canonical_citation": f"{law_title} - Điều {art_id}: {art_title}",
+                        "context_enriched_text": f"{law_title} - Điều {art_id}: {art_text}",
+                        "is_active": True,
+                    }
+                    all_chunks.append(chunk)
+                    loaded_count += 1
+            logger.info(f"Loaded {loaded_count} additional comprehensive statutory articles from ALQAC corpus.")
+        except Exception as e:
+            logger.warning(f"Failed to load ALQAC statutory corpus: {e}")
+
+    # Merge custom uploaded document chunks for active RAG
+    custom_chunks = _load_custom_chunks()
+    if custom_chunks:
+        all_chunks.extend(custom_chunks)
+        logger.info(f"Merged {len(custom_chunks)} custom vector chunks into RAG corpus.")
+
+    _OFFLINE_CHUNKS_CACHE = all_chunks
     return _OFFLINE_CHUNKS_CACHE
 
 
@@ -303,22 +372,55 @@ class TableArithmeticAuditor:
 
     @classmethod
     def parse_markdown_table(cls, md_text: str) -> Tuple[List[str], List[List[Any]]]:
-        """Parses a markdown table string into header list and rows matrix."""
-        lines = [line.strip() for line in md_text.strip().splitlines() if line.strip()]
-        table_lines = [l for l in lines if l.startswith("|") and l.endswith("|")]
-        if len(table_lines) < 2:
+        """Parses a markdown table string into header list and rows matrix with robust multi-line and single-line support."""
+        if not md_text:
+            return [], []
+        first_p = md_text.find("|")
+        if first_p == -1:
+            return [], []
+        table_part = md_text[first_p:].strip()
+
+        # Case 1: Standard multi-line markdown table
+        lines = [l.strip() for l in table_part.splitlines() if l.strip() and "|" in l]
+        if len(lines) >= 2:
+            headers = [c.strip() for c in lines[0].strip("|").split("|")]
+            rows = []
+            for l in lines[1:]:
+                cells = [c.strip() for c in l.strip("|").split("|")]
+                if all(c == "" or set(c).issubset({"-", ":"}) for c in cells):
+                    continue
+                rows.append(cells)
+            if rows:
+                return headers, rows
+
+        # Case 2: Single-line table with || row boundaries
+        raw_cells = [c.strip() for c in table_part.split("|")]
+        if raw_cells and raw_cells[0] == "":
+            raw_cells.pop(0)
+        if raw_cells and raw_cells[-1] == "":
+            raw_cells.pop()
+
+        rows_raw = []
+        curr = []
+        for c in raw_cells:
+            if c == "" and curr and not (len(curr) == 1 and curr[0].lower().startswith("tổng")):
+                rows_raw.append(curr)
+                curr = []
+            else:
+                curr.append(c)
+        if curr:
+            rows_raw.append(curr)
+
+        if not rows_raw:
             return [], []
 
-        # Header line
-        headers = [c.strip() for c in table_lines[0].strip("|").split("|")]
-
-        rows: List[List[Any]] = []
-        for l in table_lines[1:]:
-            # Skip separator line (|---|---|)
-            cells = [c.strip() for c in l.strip("|").split("|")]
-            if all(re.match(r"^:?-+:?$", c) for c in cells):
-                continue
-            rows.append(cells)
+        headers = rows_raw[0]
+        num_cols = len(headers)
+        rows = []
+        for r in rows_raw[1:]:
+            while len(r) < num_cols:
+                r.insert(1, "")
+            rows.append(r[:num_cols])
 
         return headers, rows
 
@@ -553,10 +655,14 @@ async def search_legal_provisions(
     eff_article_num = inferred["article_num"]
     eff_clause_num = inferred["clause_num"]
 
-    # Step 2: High-Precision BM25 Lexical Retrieval with Compound N-grams
+    # Step 2: High-Precision BM25 Lexical Retrieval with Legal Synonym Expansion
+    from src.retrieval.legal_hyde_expander import LegalQueryExpander
+    expander = LegalQueryExpander()
+    expanded_query = expander.expand_query(query)
+
     bm25_retriever = _get_bm25_retriever()
     provisions = bm25_retriever.search(
-        query=query,
+        query=expanded_query,
         top_k=top_k,
         law_id=eff_law_id,
         article_num=eff_article_num,
